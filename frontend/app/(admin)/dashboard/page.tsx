@@ -321,22 +321,23 @@ export default function AdminDashboardPage() {
   }
 
   if (!token) {
-    return <main className="mx-auto max-w-6xl p-8">Please login first to access admin dashboard.</main>;
+    return <main className="oc-container oc-section max-w-6xl">Please login first to access admin dashboard.</main>;
   }
 
   if (!isAdmin) {
-    return <main className="mx-auto max-w-6xl p-8">Only ADMIN users can access this page.</main>;
+    return <main className="oc-container oc-section max-w-6xl">Only ADMIN users can access this page.</main>;
   }
 
   return (
-    <main className="mx-auto max-w-6xl space-y-8 p-8">
+    <main className="oc-section">
+      <div className="oc-container max-w-6xl space-y-8">
       <header>
-        <h1 className="text-3xl font-semibold">Admin Dashboard</h1>
-        <p className="mt-2 text-stone-700">Overview, orders, products, and customers management.</p>
+        <h1 className="oc-heading">Admin Dashboard</h1>
+        <p className="mt-2 text-sm text-[var(--oc-muted)]">Overview, orders, products, and customers management.</p>
       </header>
 
-      {error && <p className="rounded-md bg-red-50 p-3 text-red-700">{error}</p>}
-      {message && <p className="rounded-md bg-green-50 p-3 text-green-700">{message}</p>}
+      {error && <p className="border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+      {message && <p className="border border-green-200 bg-green-50 p-3 text-sm text-green-700">{message}</p>}
 
       <section className="grid gap-4 md:grid-cols-4">
         <MetricCard label="Orders" value={overview?.orders ?? 0} />
@@ -345,22 +346,22 @@ export default function AdminDashboardPage() {
         <MetricCard label="Customers" value={overview?.customers ?? 0} />
       </section>
 
-      <section className="rounded-lg border border-stone-200 bg-white p-5">
-        <h2 className="text-xl font-semibold">Order Management</h2>
+      <section className="oc-surface p-5">
+        <h2 className="font-display text-2xl uppercase tracking-[0.1em]">Order Management</h2>
         <div className="mt-4 space-y-3">
           {orders.map((order) => (
-            <article key={order.id} className="rounded-md border border-stone-200 p-3">
+            <article key={order.id} className="border border-[var(--oc-line)] bg-white p-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="font-semibold">{order.orderNumber}</p>
-                  <p className="text-sm text-stone-600">
+                  <p className="font-display text-lg uppercase tracking-[0.08em]">{order.orderNumber}</p>
+                  <p className="text-sm text-[var(--oc-muted)]">
                     {order.customer.name || order.customer.email} • {order.itemsCount} item(s) • {new Date(order.createdAt).toLocaleString()}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{order.total.toFixed(2)} GEL</span>
+                  <span className="text-sm font-semibold uppercase tracking-[0.08em]">{order.total.toFixed(2)} GEL</span>
                   <select
-                    className="rounded border border-stone-300 px-2 py-1 text-sm"
+                    className="oc-input py-1 text-sm"
                     value={order.status}
                     onChange={(event) => void onChangeOrderStatus(order.id, event.target.value as 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED')}
                     disabled={busy}
@@ -378,15 +379,15 @@ export default function AdminDashboardPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-stone-200 bg-white p-5">
-        <h2 className="text-xl font-semibold">Customer List</h2>
+      <section className="oc-surface p-5">
+        <h2 className="font-display text-2xl uppercase tracking-[0.1em]">Customer List</h2>
         <div className="mt-4 grid gap-2 text-sm">
           {customers.map((customer) => (
-            <div key={customer.id} className="flex flex-wrap items-center justify-between rounded border border-stone-100 px-3 py-2">
+            <div key={customer.id} className="flex flex-wrap items-center justify-between border border-[var(--oc-line)] bg-white px-3 py-2">
               <span>
-                {customer.fullName || 'Unnamed'} <span className="text-stone-500">({customer.email})</span>
+                {customer.fullName || 'Unnamed'} <span className="text-[var(--oc-muted)]">({customer.email})</span>
               </span>
-              <span className="text-stone-600">
+              <span className="text-[var(--oc-muted)]">
                 Orders: {customer.ordersCount} • Spent: {customer.spentTotal.toFixed(2)} GEL
               </span>
             </div>
@@ -394,22 +395,22 @@ export default function AdminDashboardPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-stone-200 bg-white p-5">
-        <h2 className="text-xl font-semibold">Create Category</h2>
+      <section className="oc-surface p-5">
+        <h2 className="font-display text-2xl uppercase tracking-[0.1em]">Create Category</h2>
         <form onSubmit={onCreateCategory} className="mt-4 grid gap-3 md:grid-cols-4">
-          <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Name" value={categoryForm.name} onChange={(e) => setCategoryForm((prev) => ({ ...prev, name: e.target.value }))} required />
-          <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Slug" value={categoryForm.slug} onChange={(e) => setCategoryForm((prev) => ({ ...prev, slug: e.target.value }))} required />
-          <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Description" value={categoryForm.description} onChange={(e) => setCategoryForm((prev) => ({ ...prev, description: e.target.value }))} />
-          <button className="rounded-md bg-brand-700 px-4 py-2 text-white" disabled={busy} type="submit">
+          <input className="oc-input" placeholder="Name" value={categoryForm.name} onChange={(e) => setCategoryForm((prev) => ({ ...prev, name: e.target.value }))} required />
+          <input className="oc-input" placeholder="Slug" value={categoryForm.slug} onChange={(e) => setCategoryForm((prev) => ({ ...prev, slug: e.target.value }))} required />
+          <input className="oc-input" placeholder="Description" value={categoryForm.description} onChange={(e) => setCategoryForm((prev) => ({ ...prev, description: e.target.value }))} />
+          <button className="oc-btn-primary" disabled={busy} type="submit">
             Add category
           </button>
         </form>
 
         <div className="mt-4 space-y-2 text-sm">
           {categories.map((category) => (
-            <div key={category.id} className="flex items-center justify-between rounded-md border border-stone-100 px-3 py-2">
+            <div key={category.id} className="flex items-center justify-between border border-[var(--oc-line)] bg-white px-3 py-2">
               <span>
-                {category.name} <span className="text-stone-500">({category.slug})</span>
+                {category.name} <span className="text-[var(--oc-muted)]">({category.slug})</span>
               </span>
               <button type="button" className="text-red-600 hover:underline" onClick={() => void onDeleteCategory(category.id)}>
                 Delete
@@ -419,21 +420,21 @@ export default function AdminDashboardPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-stone-200 bg-white p-5">
-        <h2 className="text-xl font-semibold">{editingProductId ? 'Edit Product' : 'Create Product'}</h2>
+      <section className="oc-surface p-5">
+        <h2 className="font-display text-2xl uppercase tracking-[0.1em]">{editingProductId ? 'Edit Product' : 'Create Product'}</h2>
 
         <form onSubmit={onSubmitProduct} className="mt-4 space-y-3">
           <div className="grid gap-3 md:grid-cols-3">
-            <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Title" value={productForm.title} onChange={(e) => setProductForm((prev) => ({ ...prev, title: e.target.value }))} required />
-            <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Slug" value={productForm.slug} onChange={(e) => setProductForm((prev) => ({ ...prev, slug: e.target.value }))} required />
-            <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="SKU" value={productForm.sku} onChange={(e) => setProductForm((prev) => ({ ...prev, sku: e.target.value }))} required />
+            <input className="oc-input" placeholder="Title" value={productForm.title} onChange={(e) => setProductForm((prev) => ({ ...prev, title: e.target.value }))} required />
+            <input className="oc-input" placeholder="Slug" value={productForm.slug} onChange={(e) => setProductForm((prev) => ({ ...prev, slug: e.target.value }))} required />
+            <input className="oc-input" placeholder="SKU" value={productForm.sku} onChange={(e) => setProductForm((prev) => ({ ...prev, sku: e.target.value }))} required />
           </div>
 
-          <textarea className="min-h-28 w-full rounded-md border border-stone-300 px-3 py-2" placeholder="Description" value={productForm.description} onChange={(e) => setProductForm((prev) => ({ ...prev, description: e.target.value }))} required />
+          <textarea className="oc-input min-h-28" placeholder="Description" value={productForm.description} onChange={(e) => setProductForm((prev) => ({ ...prev, description: e.target.value }))} required />
 
           <div className="grid gap-3 md:grid-cols-4">
-            <input type="number" min={0} step="0.01" className="rounded-md border border-stone-300 px-3 py-2" placeholder="Price" value={productForm.price} onChange={(e) => setProductForm((prev) => ({ ...prev, price: e.target.value }))} required />
-            <select className="rounded-md border border-stone-300 px-3 py-2" value={productForm.categoryId} onChange={(e) => setProductForm((prev) => ({ ...prev, categoryId: e.target.value }))} required>
+            <input type="number" min={0} step="0.01" className="oc-input" placeholder="Price" value={productForm.price} onChange={(e) => setProductForm((prev) => ({ ...prev, price: e.target.value }))} required />
+            <select className="oc-input" value={productForm.categoryId} onChange={(e) => setProductForm((prev) => ({ ...prev, categoryId: e.target.value }))} required>
               <option value="">Select category</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -441,13 +442,13 @@ export default function AdminDashboardPage() {
                 </option>
               ))}
             </select>
-            <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Size" value={productForm.size} onChange={(e) => setProductForm((prev) => ({ ...prev, size: e.target.value }))} />
-            <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Color" value={productForm.color} onChange={(e) => setProductForm((prev) => ({ ...prev, color: e.target.value }))} />
+            <input className="oc-input" placeholder="Size" value={productForm.size} onChange={(e) => setProductForm((prev) => ({ ...prev, size: e.target.value }))} />
+            <input className="oc-input" placeholder="Color" value={productForm.color} onChange={(e) => setProductForm((prev) => ({ ...prev, color: e.target.value }))} />
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
-            <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Material" value={productForm.material} onChange={(e) => setProductForm((prev) => ({ ...prev, material: e.target.value }))} />
-            <label className="flex items-center gap-2 rounded-md border border-stone-300 px-3 py-2 text-sm">
+            <input className="oc-input" placeholder="Material" value={productForm.material} onChange={(e) => setProductForm((prev) => ({ ...prev, material: e.target.value }))} />
+            <label className="flex items-center gap-2 border border-[var(--oc-line)] bg-white px-3 py-2 text-sm">
               <input type="checkbox" checked={productForm.isActive} onChange={(e) => setProductForm((prev) => ({ ...prev, isActive: e.target.checked }))} />
               Product active
             </label>
@@ -458,16 +459,16 @@ export default function AdminDashboardPage() {
             <input type="file" accept="image/*" onChange={(e) => void onUploadImage(e.target.files?.[0] ?? null)} />
           </div>
 
-          <textarea className="min-h-24 w-full rounded-md border border-stone-300 px-3 py-2" placeholder="Image URLs (one per line)" value={productForm.imagesText} onChange={(e) => setProductForm((prev) => ({ ...prev, imagesText: e.target.value }))} />
+          <textarea className="oc-input min-h-24" placeholder="Image URLs (one per line)" value={productForm.imagesText} onChange={(e) => setProductForm((prev) => ({ ...prev, imagesText: e.target.value }))} />
 
           <div className="flex gap-3">
-            <button className="rounded-md bg-brand-700 px-4 py-2 text-white" disabled={busy} type="submit">
+            <button className="oc-btn-primary" disabled={busy} type="submit">
               {editingProductId ? 'Save changes' : 'Create product'}
             </button>
             {editingProductId && (
               <button
                 type="button"
-                className="rounded-md border border-stone-300 px-4 py-2"
+                className="oc-btn-secondary"
                 onClick={() => {
                   setEditingProductId(null);
                   setProductForm({ ...emptyProduct, categoryId: categories[0]?.id ?? '' });
@@ -481,19 +482,19 @@ export default function AdminDashboardPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold">Existing Products</h2>
+        <h2 className="font-display text-2xl uppercase tracking-[0.1em]">Existing Products</h2>
         {products.map((product) => (
-          <article key={product.id} className="rounded-lg border border-stone-200 bg-white p-4">
+          <article key={product.id} className="oc-surface p-4">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-lg font-semibold">{product.title}</h3>
-                <p className="text-sm text-stone-600">
+                <h3 className="font-display text-xl uppercase tracking-[0.08em]">{product.title}</h3>
+                <p className="text-sm text-[var(--oc-muted)]">
                   {product.category.name} • {product.price.toFixed(2)} GEL
                 </p>
-                <p className="mt-1 text-sm text-stone-500">{product.slug}</p>
+                <p className="mt-1 text-sm text-[var(--oc-muted)]">{product.slug}</p>
               </div>
               <div className="flex gap-3 text-sm">
-                <button className="text-brand-700 hover:underline" onClick={() => startEdit(product)}>
+                <button className="text-[var(--oc-brand)] hover:underline" onClick={() => startEdit(product)}>
                   Edit
                 </button>
                 <button className="text-red-600 hover:underline" onClick={() => void onDeleteProduct(product.id)}>
@@ -501,19 +502,20 @@ export default function AdminDashboardPage() {
                 </button>
               </div>
             </div>
-            {product.images[0] && <img src={product.images[0]} alt={product.title} className="mt-3 h-32 w-48 rounded-md border border-stone-200 object-cover" />}
+            {product.images[0] && <img src={product.images[0]} alt={product.title} className="mt-3 h-32 w-48 border border-[var(--oc-line)] object-cover" />}
           </article>
         ))}
       </section>
+      </div>
     </main>
   );
 }
 
 function MetricCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <article className="rounded-lg border border-stone-200 bg-white p-4">
-      <p className="text-sm text-stone-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold">{value}</p>
+    <article className="oc-surface p-4">
+      <p className="oc-kicker">{label}</p>
+      <p className="mt-2 font-display text-3xl uppercase tracking-[0.08em]">{value}</p>
     </article>
   );
 }

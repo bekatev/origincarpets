@@ -47,55 +47,57 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   }
 
   return (
-    <main className="mx-auto grid max-w-6xl gap-8 p-8 md:grid-cols-2">
-      <section>
+    <main className="oc-section">
+      <div className="oc-container grid gap-8 md:grid-cols-2">
+        <section className="oc-surface p-4">
         <Image
           src={product.images[0] ?? 'https://placehold.co/1200x900?text=Carpet'}
           alt={product.title}
           width={1200}
           height={900}
           priority
-          className="h-[420px] w-full rounded-lg border border-stone-200 object-cover"
+          className="h-[500px] w-full object-cover"
         />
-      </section>
+        </section>
 
-      <section className="space-y-4">
-        <p className="text-sm uppercase tracking-wide text-stone-500">{product.category.name}</p>
-        <h1 className="text-3xl font-semibold">{product.title}</h1>
-        <p className="text-lg font-semibold">{product.price.toFixed(2)} GEL</p>
+        <section className="space-y-5">
+          <p className="oc-kicker">{product.category.name}</p>
+          <h1 className="font-display text-4xl uppercase leading-tight tracking-[0.1em]">{product.title}</h1>
+          <p className="text-sm font-semibold uppercase tracking-[0.12em]">{product.price.toFixed(2)} GEL</p>
 
-        <dl className="grid grid-cols-2 gap-3 rounded-lg border border-stone-200 bg-white p-4 text-sm">
-          <div>
-            <dt className="text-stone-500">Size</dt>
-            <dd className="font-medium">{product.attributes.size ?? 'N/A'}</dd>
-          </div>
-          <div>
-            <dt className="text-stone-500">Color</dt>
-            <dd className="font-medium">{product.attributes.color ?? 'N/A'}</dd>
-          </div>
-          <div>
-            <dt className="text-stone-500">Material</dt>
-            <dd className="font-medium">{product.attributes.material ?? 'N/A'}</dd>
-          </div>
-          <div>
-            <dt className="text-stone-500">SKU</dt>
-            <dd className="font-medium">{product.sku}</dd>
-          </div>
-        </dl>
+          <dl className="oc-surface grid grid-cols-2 gap-3 p-4 text-sm">
+            <div>
+              <dt className="text-[var(--oc-muted)]">Size</dt>
+              <dd className="mt-1 font-medium">{product.attributes.size ?? 'N/A'}</dd>
+            </div>
+            <div>
+              <dt className="text-[var(--oc-muted)]">Color</dt>
+              <dd className="mt-1 font-medium">{product.attributes.color ?? 'N/A'}</dd>
+            </div>
+            <div>
+              <dt className="text-[var(--oc-muted)]">Material</dt>
+              <dd className="mt-1 font-medium">{product.attributes.material ?? 'N/A'}</dd>
+            </div>
+            <div>
+              <dt className="text-[var(--oc-muted)]">SKU</dt>
+              <dd className="mt-1 font-medium">{product.sku}</dd>
+            </div>
+          </dl>
 
-        <p className="leading-7 text-stone-700">{product.description}</p>
+          <p className="leading-7 text-[var(--oc-muted)]">{product.description}</p>
 
-        <AddToCartButton
-          product={{
-            id: product.id,
-            slug: product.slug,
-            title: product.title,
-            price: product.price,
-            image: product.images[0]
-          }}
-          className="rounded-md bg-brand-700 px-4 py-2 text-white"
-        />
-      </section>
+          <AddToCartButton
+            product={{
+              id: product.id,
+              slug: product.slug,
+              title: product.title,
+              price: product.price,
+              image: product.images[0]
+            }}
+            className="oc-btn-primary"
+          />
+        </section>
+      </div>
     </main>
   );
 }

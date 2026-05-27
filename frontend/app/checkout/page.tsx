@@ -137,12 +137,14 @@ export default function CheckoutPage() {
 
   if (!items.length && !createdOrder) {
     return (
-      <main className="mx-auto max-w-4xl p-8">
-        <h1 className="text-3xl font-semibold">Checkout</h1>
-        <p className="mt-3 text-stone-700">Your cart is empty.</p>
-        <Link href="/products" className="mt-4 inline-block text-brand-700 hover:underline">
-          Go to products
-        </Link>
+      <main className="oc-section">
+        <div className="oc-container max-w-4xl">
+          <h1 className="oc-heading">Checkout</h1>
+          <p className="mt-3 text-sm text-[var(--oc-muted)]">Your cart is empty.</p>
+          <Link href="/products" className="mt-4 inline-flex text-xs font-semibold uppercase tracking-[0.14em] text-[var(--oc-brand)] hover:text-[var(--oc-brand-soft)]">
+            Go to products
+          </Link>
+        </div>
       </main>
     );
   }
@@ -150,20 +152,21 @@ export default function CheckoutPage() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
   return (
-    <main className="mx-auto grid max-w-6xl gap-8 p-8 lg:grid-cols-[1.5fr_1fr]">
-      <section className="space-y-4 rounded-lg border border-stone-200 bg-white p-5">
-        <h1 className="text-2xl font-semibold">Checkout</h1>
+    <main className="oc-section">
+      <div className="oc-container grid gap-8 lg:grid-cols-[1.5fr_1fr]">
+        <section className="oc-surface space-y-4 p-5">
+          <h1 className="font-display text-3xl uppercase tracking-[0.1em]">Checkout</h1>
 
         {!createdOrder ? (
           <form onSubmit={onCreateOrder} className="mt-2 space-y-4">
             <div>
-              <p className="mb-2 text-sm font-medium">Shipping type</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em]">Shipping type</p>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setShippingType('GEORGIA')}
-                  className={`rounded-md border px-3 py-2 text-sm ${
-                    shippingType === 'GEORGIA' ? 'border-brand-700 bg-brand-700 text-white' : 'border-stone-300'
+                  className={`oc-btn px-3 py-2 ${
+                    shippingType === 'GEORGIA' ? 'border-[var(--oc-brand)] bg-[var(--oc-brand)] text-white' : 'border-[var(--oc-line)] bg-white'
                   }`}
                 >
                   Georgia (Free)
@@ -171,8 +174,8 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => setShippingType('INTERNATIONAL')}
-                  className={`rounded-md border px-3 py-2 text-sm ${
-                    shippingType === 'INTERNATIONAL' ? 'border-brand-700 bg-brand-700 text-white' : 'border-stone-300'
+                  className={`oc-btn px-3 py-2 ${
+                    shippingType === 'INTERNATIONAL' ? 'border-[var(--oc-brand)] bg-[var(--oc-brand)] text-white' : 'border-[var(--oc-line)] bg-white'
                   }`}
                 >
                   International
@@ -181,18 +184,18 @@ export default function CheckoutPage() {
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
-              <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-              <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-              <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Country code (GE/US/DE...)" value={countryCode} onChange={(e) => setCountryCode(e.target.value.toUpperCase())} required />
-              <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} required />
-              <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Region" value={region} onChange={(e) => setRegion(e.target.value)} />
-              <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Postal code" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
+              <input className="oc-input" placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+              <input className="oc-input" placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <input className="oc-input" placeholder="Country code (GE/US/DE...)" value={countryCode} onChange={(e) => setCountryCode(e.target.value.toUpperCase())} required />
+              <input className="oc-input" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} required />
+              <input className="oc-input" placeholder="Region" value={region} onChange={(e) => setRegion(e.target.value)} />
+              <input className="oc-input" placeholder="Postal code" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
             </div>
 
-            <input className="w-full rounded-md border border-stone-300 px-3 py-2" placeholder="Address line 1" value={line1} onChange={(e) => setLine1(e.target.value)} required />
-            <input className="w-full rounded-md border border-stone-300 px-3 py-2" placeholder="Address line 2 (optional)" value={line2} onChange={(e) => setLine2(e.target.value)} />
+            <input className="oc-input" placeholder="Address line 1" value={line1} onChange={(e) => setLine1(e.target.value)} required />
+            <input className="oc-input" placeholder="Address line 2 (optional)" value={line2} onChange={(e) => setLine2(e.target.value)} />
 
-            <button disabled={busy} type="submit" className="rounded-md bg-brand-700 px-4 py-2 text-white disabled:opacity-60">
+            <button disabled={busy} type="submit" className="oc-btn-primary">
               {busy ? 'Creating order...' : 'Create order'}
             </button>
           </form>
@@ -210,15 +213,15 @@ export default function CheckoutPage() {
             />
           </Elements>
         ) : (
-          <p className="text-sm text-red-600">Stripe publishable key is missing. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.</p>
+          <p className="text-sm text-red-700">Stripe publishable key is missing. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.</p>
         )}
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        {success && <p className="text-sm text-green-700">{success}</p>}
-      </section>
+          {error && <p className="text-sm text-red-700">{error}</p>}
+          {success && <p className="text-sm text-green-700">{success}</p>}
+        </section>
 
-      <aside className="h-fit rounded-lg border border-stone-200 bg-white p-5">
-        <h2 className="text-lg font-semibold">Order Summary</h2>
+        <aside className="oc-surface h-fit p-5">
+          <h2 className="font-display text-2xl uppercase tracking-[0.1em]">Order Summary</h2>
         <div className="mt-4 space-y-2 text-sm">
           {items.map((item) => (
             <div key={item.id} className="flex items-center justify-between">
@@ -230,7 +233,7 @@ export default function CheckoutPage() {
           ))}
         </div>
 
-        <div className="mt-4 border-t border-stone-200 pt-3 text-sm">
+        <div className="mt-4 border-t border-[var(--oc-line)] pt-3 text-sm">
           <div className="flex items-center justify-between">
             <span>Subtotal</span>
             <span>{subtotal.toFixed(2)} GEL</span>
@@ -240,7 +243,7 @@ export default function CheckoutPage() {
             <span>{loadingQuote ? '...' : `${shippingEstimate.toFixed(2)} GEL`}</span>
           </div>
           {quote && (
-            <p className="mt-1 text-xs text-stone-500">
+            <p className="mt-1 text-xs text-[var(--oc-muted)]">
               Provider: {quote.provider} • ETA {quote.deliveryDays.min ?? '?'}-{quote.deliveryDays.max ?? '?'} days
             </p>
           )}
@@ -249,7 +252,8 @@ export default function CheckoutPage() {
             <span>{total.toFixed(2)} GEL</span>
           </div>
         </div>
-      </aside>
+        </aside>
+      </div>
     </main>
   );
 }

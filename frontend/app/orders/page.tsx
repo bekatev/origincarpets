@@ -32,38 +32,40 @@ export default function OrdersPage() {
   }, []);
 
   if (loading) {
-    return <main className="mx-auto max-w-5xl p-8">Loading orders...</main>;
+    return <main className="oc-container oc-section max-w-5xl">Loading orders...</main>;
   }
 
   if (error) {
-    return <main className="mx-auto max-w-5xl p-8 text-red-600">{error}</main>;
+    return <main className="oc-container oc-section max-w-5xl text-red-700">{error}</main>;
   }
 
   return (
-    <main className="mx-auto max-w-5xl space-y-4 p-8">
-      <h1 className="text-3xl font-semibold">My Orders</h1>
+    <main className="oc-section">
+      <div className="oc-container max-w-5xl space-y-5">
+        <h1 className="oc-heading">My Orders</h1>
       {orders.length === 0 ? (
-        <p className="text-stone-700">No orders yet.</p>
+        <p className="text-sm text-[var(--oc-muted)]">No orders yet.</p>
       ) : (
         <div className="space-y-3">
           {orders.map((order) => (
-            <article key={order.id} className="rounded-lg border border-stone-200 bg-white p-4">
+            <article key={order.id} className="oc-surface p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-semibold">{order.orderNumber}</p>
-                  <p className="text-sm text-stone-600">
+                  <p className="font-display text-lg uppercase tracking-[0.08em]">{order.orderNumber}</p>
+                  <p className="text-sm text-[var(--oc-muted)]">
                     {new Date(order.createdAt).toLocaleString()} • {order.itemsCount} item(s)
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold">{order.total.toFixed(2)} GEL</p>
-                  <p className="text-sm text-stone-600">{order.status}</p>
+                  <p className="text-sm font-semibold uppercase tracking-[0.08em]">{order.total.toFixed(2)} GEL</p>
+                  <p className="text-xs uppercase tracking-[0.14em] text-[var(--oc-muted)]">{order.status}</p>
                 </div>
               </div>
             </article>
           ))}
         </div>
       )}
+      </div>
     </main>
   );
 }

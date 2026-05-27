@@ -7,15 +7,23 @@ export function ProductCard({ product }: { product: ProductItem }) {
   const cover = product.images[0] ?? 'https://placehold.co/800x600?text=Carpet';
 
   return (
-    <article className="overflow-hidden rounded-lg border border-stone-200 bg-white">
-      <Image src={cover} alt={product.title} width={800} height={600} className="h-52 w-full object-cover" />
-      <div className="space-y-2 p-4">
-        <p className="text-xs uppercase tracking-wide text-stone-500">{product.category.name}</p>
-        <h3 className="text-lg font-semibold">{product.title}</h3>
-        <p className="line-clamp-2 text-sm text-stone-600">{product.description}</p>
-        <div className="flex items-center justify-between pt-2">
-          <p className="font-semibold">{product.price.toFixed(2)} GEL</p>
-          <Link href={`/products/${product.slug}`} className="text-sm font-medium text-brand-700 hover:underline">
+    <article className="group oc-surface overflow-hidden">
+      <div className="overflow-hidden">
+        <Image
+          src={cover}
+          alt={product.title}
+          width={800}
+          height={600}
+          className="h-64 w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+        />
+      </div>
+      <div className="space-y-3 p-5">
+        <p className="oc-kicker">{product.category.name}</p>
+        <h3 className="font-display text-xl uppercase leading-tight tracking-[0.08em]">{product.title}</h3>
+        <p className="line-clamp-2 text-sm leading-6 text-[var(--oc-muted)]">{product.description}</p>
+        <div className="flex items-center justify-between border-t border-[var(--oc-line)] pt-3">
+          <p className="text-sm font-semibold uppercase tracking-[0.08em]">{product.price.toFixed(2)} GEL</p>
+          <Link href={`/products/${product.slug}`} className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--oc-brand)] hover:text-[var(--oc-brand-soft)]">
             View details
           </Link>
         </div>
@@ -27,7 +35,7 @@ export function ProductCard({ product }: { product: ProductItem }) {
             price: product.price,
             image: cover
           }}
-          className="w-full rounded-md bg-brand-700 px-4 py-2 text-white"
+          className="oc-btn-primary w-full"
         />
       </div>
     </article>

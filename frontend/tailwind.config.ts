@@ -4,10 +4,14 @@ const config: Config = {
   content: ['./app/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        display: ['"Playfair Display"', 'serif'],
+        sans: ['"Inter"', 'system-ui', 'sans-serif']
+      },
       colors: {
         brand: {
-          500: '#8C6A43',
-          700: '#5A4127'
+          500: '#8b7a68',
+          700: '#2f2720'
         }
       }
     }

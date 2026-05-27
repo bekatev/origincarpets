@@ -4,8 +4,62 @@
 
 :root {
   color-scheme: light;
+  --oc-bg: #f6f3ef;
+  --oc-paper: #fffdf9;
+  --oc-ink: #1f1812;
+  --oc-muted: #6e645b;
+  --oc-line: #d8cec1;
+  --oc-brand: #2f2720;
+  --oc-brand-soft: #8b7a68;
 }
 
 body {
-  @apply bg-stone-50 text-stone-900;
+  @apply bg-[var(--oc-bg)] text-[var(--oc-ink)] antialiased;
+  font-feature-settings: 'liga' 1, 'kern' 1;
+}
+
+a {
+  @apply transition-colors duration-200;
+}
+
+@layer components {
+  .oc-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10;
+  }
+
+  .oc-section {
+    @apply py-10 sm:py-14;
+  }
+
+  .oc-heading {
+    @apply font-display text-3xl uppercase tracking-[0.12em] sm:text-4xl;
+  }
+
+  .oc-subtitle {
+    @apply text-sm uppercase tracking-[0.2em] text-[var(--oc-brand-soft)];
+  }
+
+  .oc-surface {
+    @apply rounded-none border border-[var(--oc-line)] bg-[var(--oc-paper)];
+  }
+
+  .oc-input {
+    @apply w-full border border-[var(--oc-line)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--oc-brand)] focus:ring-1 focus:ring-[var(--oc-brand)];
+  }
+
+  .oc-btn {
+    @apply inline-flex items-center justify-center border px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .oc-btn-primary {
+    @apply oc-btn border-[var(--oc-brand)] bg-[var(--oc-brand)] text-white hover:bg-[#19130f];
+  }
+
+  .oc-btn-secondary {
+    @apply oc-btn border-[var(--oc-line)] bg-white text-[var(--oc-ink)] hover:bg-stone-50;
+  }
+
+  .oc-kicker {
+    @apply text-xs uppercase tracking-[0.2em] text-[var(--oc-brand-soft)];
+  }
 }

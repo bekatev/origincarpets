@@ -16,7 +16,7 @@ export function AddToCartButton({
   return (
     <button
       type="button"
-      className={className ?? 'rounded-md bg-brand-700 px-4 py-2 text-white'}
+      className={className ?? 'oc-btn-primary'}
       onClick={() => {
         addToCart(product);
         setAdded(true);
