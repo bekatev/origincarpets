@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-  experimental: {
-    typedRoutes: true
-  }
+  output: "standalone",
+  typedRoutes: true
 };
 
 export default nextConfig;

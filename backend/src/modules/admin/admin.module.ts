@@ -1,4 +1,9 @@
 import { Module } from '@nestjs/common';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { AdminController } from './admin.controller';
 
-@Module({})
+@Module({
+  controllers: [AdminController],
+  providers: [RolesGuard]
+})
 export class AdminModule {}
