@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { postJson, type AuthResponse } from '@/lib/api';
+import { mergeLocalCartAfterAuth } from '@/lib/cart-sync';
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState('');
@@ -28,6 +29,7 @@ export default function RegisterPage() {
       });
       localStorage.setItem('auth_token', data.accessToken);
       localStorage.setItem('auth_user', JSON.stringify(data.user));
+      await mergeLocalCartAfterAuth(data.accessToken);
       setSuccess(`Account created for ${data.user.email}`);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Registration failed');

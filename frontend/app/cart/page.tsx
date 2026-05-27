@@ -71,9 +71,9 @@ export default function CartPage() {
               <span>{subtotal.toFixed(2)} GEL</span>
             </div>
             <p className="mt-2 text-sm text-stone-600">Shipping and taxes are calculated at checkout.</p>
-            <button type="button" className="mt-4 rounded-md bg-brand-700 px-4 py-2 text-white">
-              Proceed to checkout (next step)
-            </button>
+            <Link href="/checkout" className="mt-4 inline-block rounded-md bg-brand-700 px-4 py-2 text-white">
+              Proceed to checkout
+            </Link>
           </section>
         </>
       )}

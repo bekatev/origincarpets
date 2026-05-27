@@ -41,7 +41,8 @@ export interface ProductListResponse {
 async function apiFetch<T>(path: string): Promise<T | null> {
   try {
     const response = await fetch(`${API_URL}${path}`, {
-      next: { revalidate: 60 }
+      cache: 'force-cache',
+      next: { revalidate: 300, tags: ['products'] }
     });
 
     if (!response.ok) {
@@ -85,7 +86,9 @@ export async function fetchProducts(filters: {
 }
 
 export async function fetchCategories(): Promise<ProductCategory[]> {
-  return (await apiFetch<ProductCategory[]>('/products/categories')) ?? [];
+  return (
+    (await apiFetch<ProductCategory[]>('/products/categories'))?.sort((a, b) => a.name.localeCompare(b.name)) ?? []
+  );
 }
 
 export async function fetchProductBySlug(slug: string): Promise<ProductItem | null> {

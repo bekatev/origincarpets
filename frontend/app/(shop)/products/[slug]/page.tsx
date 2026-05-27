@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
 import { fetchProductBySlug } from '@/lib/products';
+
+export const revalidate = 300;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -14,12 +17,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   return {
-    title: `${product.title} | Carpet Commerce`,
+    title: product.title,
     description: product.description.slice(0, 150),
+    alternates: {
+      canonical: `/products/${product.slug}`
+    },
     openGraph: {
       title: product.title,
       description: product.description.slice(0, 150),
-      images: product.images.length ? [{ url: product.images[0] }] : undefined
+      type: 'website',
+      url: `http://localhost:3000/products/${product.slug}`,
+      images: product.images.length ? [{ url: product.images[0], alt: product.title }] : undefined
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: product.title,
+      description: product.description.slice(0, 150),
+      images: product.images.length ? [product.images[0]] : undefined
     }
   };
 }
@@ -35,9 +49,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   return (
     <main className="mx-auto grid max-w-6xl gap-8 p-8 md:grid-cols-2">
       <section>
-        <img
+        <Image
           src={product.images[0] ?? 'https://placehold.co/1200x900?text=Carpet'}
           alt={product.title}
+          width={1200}
+          height={900}
+          priority
           className="h-[420px] w-full rounded-lg border border-stone-200 object-cover"
         />
       </section>

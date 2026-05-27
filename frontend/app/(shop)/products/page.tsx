@@ -5,8 +5,18 @@ import { fetchCategories, fetchProducts } from '@/lib/products';
 
 export const metadata: Metadata = {
   title: 'Carpet Products',
-  description: 'Browse premium carpets with filtering by category and price.'
+  description: 'Browse premium carpets with filtering by category and price.',
+  alternates: {
+    canonical: '/products'
+  },
+  openGraph: {
+    title: 'Carpet Products',
+    description: 'Browse premium carpets with filtering by category and price.',
+    url: 'http://localhost:3000/products'
+  }
 };
+
+export const revalidate = 300;
 
 export default async function ProductsPage({
   searchParams

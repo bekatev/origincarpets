@@ -33,6 +33,36 @@ type Product = {
   };
 };
 
+type AdminOverview = {
+  orders: number;
+  revenue: number;
+  products: number;
+  customers: number;
+};
+
+type AdminOrder = {
+  id: string;
+  orderNumber: string;
+  status: 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'CONFIRMED' | 'FULFILLED' | 'REFUNDED';
+  total: number;
+  createdAt: string;
+  customer: {
+    id: string;
+    email: string;
+    name: string | null;
+  };
+  itemsCount: number;
+};
+
+type Customer = {
+  id: string;
+  email: string;
+  fullName: string | null;
+  createdAt: string;
+  ordersCount: number;
+  spentTotal: number;
+};
+
 type ProductFormState = {
   title: string;
   slug: string;
@@ -61,14 +91,22 @@ const emptyProduct: ProductFormState = {
   isActive: true
 };
 
+const ORDER_STATUS_OPTIONS: Array<'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED'> = ['PENDING', 'PAID', 'SHIPPED', 'DELIVERED'];
+
 export default function AdminDashboardPage() {
   const [token, setToken] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const [overview, setOverview] = useState<AdminOverview | null>(null);
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [categoryForm, setCategoryForm] = useState({ name: '', slug: '', description: '' });
   const [productForm, setProductForm] = useState<ProductFormState>(emptyProduct);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -83,11 +121,17 @@ export default function AdminDashboardPage() {
   }, []);
 
   async function loadAll(authToken: string) {
-    const [categoryData, productData] = await Promise.all([
+    const [overviewData, ordersData, customersData, categoryData, productData] = await Promise.all([
+      apiRequest<AdminOverview>('/admin/overview', authToken),
+      apiRequest<AdminOrder[]>('/admin/orders', authToken),
+      apiRequest<Customer[]>('/admin/customers', authToken),
       apiRequest<Category[]>('/products/admin/categories/all', authToken),
-      apiRequest<{ items: Product[] }>('/products/admin/all?limit=100', authToken)
+      apiRequest<{ items: Product[] }>('/products/admin/all?limit=200', authToken)
     ]);
 
+    setOverview(overviewData);
+    setOrders(ordersData);
+    setCustomers(customersData);
     setCategories(categoryData);
     setProducts(productData.items);
 
@@ -97,10 +141,7 @@ export default function AdminDashboardPage() {
   }
 
   useEffect(() => {
-    if (!token || !isAdmin) {
-      return;
-    }
-
+    if (!token || !isAdmin) return;
     void loadAll(token).catch((loadError) => {
       setError(loadError instanceof Error ? loadError.message : 'Failed loading admin data');
     });
@@ -129,7 +170,6 @@ export default function AdminDashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(categoryForm)
       });
-
       setCategoryForm({ name: '', slug: '', description: '' });
       await loadAll(token);
       setMessage('Category created');
@@ -184,8 +224,7 @@ export default function AdminDashboardPage() {
   }
 
   async function onDeleteProduct(id: string) {
-    if (!token) return;
-    if (!window.confirm('Delete this product?')) return;
+    if (!token || !window.confirm('Delete this product?')) return;
 
     setBusy(true);
     setError(null);
@@ -203,8 +242,7 @@ export default function AdminDashboardPage() {
   }
 
   async function onDeleteCategory(id: string) {
-    if (!token) return;
-    if (!window.confirm('Delete this category?')) return;
+    if (!token || !window.confirm('Delete this category?')) return;
 
     setBusy(true);
     setError(null);
@@ -243,6 +281,28 @@ export default function AdminDashboardPage() {
     }
   }
 
+  async function onChangeOrderStatus(orderId: string, status: 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED') {
+    if (!token) return;
+
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      await apiRequest(`/admin/orders/${orderId}/status`, token, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      await loadAll(token);
+      setMessage(`Order status updated to ${status}`);
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'Failed updating order status');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function startEdit(product: Product) {
     setEditingProductId(product.id);
     setProductForm({
@@ -261,46 +321,85 @@ export default function AdminDashboardPage() {
   }
 
   if (!token) {
-    return <main className="mx-auto max-w-5xl p-8">Please login first to access admin tools.</main>;
+    return <main className="mx-auto max-w-6xl p-8">Please login first to access admin dashboard.</main>;
   }
 
   if (!isAdmin) {
-    return <main className="mx-auto max-w-5xl p-8">Only ADMIN users can access this page.</main>;
+    return <main className="mx-auto max-w-6xl p-8">Only ADMIN users can access this page.</main>;
   }
 
   return (
     <main className="mx-auto max-w-6xl space-y-8 p-8">
       <header>
-        <h1 className="text-3xl font-semibold">Admin Product Management</h1>
-        <p className="mt-2 text-stone-700">Manage categories, products, uploads, and catalog content.</p>
+        <h1 className="text-3xl font-semibold">Admin Dashboard</h1>
+        <p className="mt-2 text-stone-700">Overview, orders, products, and customers management.</p>
       </header>
 
       {error && <p className="rounded-md bg-red-50 p-3 text-red-700">{error}</p>}
       {message && <p className="rounded-md bg-green-50 p-3 text-green-700">{message}</p>}
 
+      <section className="grid gap-4 md:grid-cols-4">
+        <MetricCard label="Orders" value={overview?.orders ?? 0} />
+        <MetricCard label="Revenue" value={`${(overview?.revenue ?? 0).toFixed(2)} GEL`} />
+        <MetricCard label="Products" value={overview?.products ?? 0} />
+        <MetricCard label="Customers" value={overview?.customers ?? 0} />
+      </section>
+
+      <section className="rounded-lg border border-stone-200 bg-white p-5">
+        <h2 className="text-xl font-semibold">Order Management</h2>
+        <div className="mt-4 space-y-3">
+          {orders.map((order) => (
+            <article key={order.id} className="rounded-md border border-stone-200 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">{order.orderNumber}</p>
+                  <p className="text-sm text-stone-600">
+                    {order.customer.name || order.customer.email} • {order.itemsCount} item(s) • {new Date(order.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{order.total.toFixed(2)} GEL</span>
+                  <select
+                    className="rounded border border-stone-300 px-2 py-1 text-sm"
+                    value={order.status}
+                    onChange={(event) => void onChangeOrderStatus(order.id, event.target.value as 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED')}
+                    disabled={busy}
+                  >
+                    {ORDER_STATUS_OPTIONS.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-stone-200 bg-white p-5">
+        <h2 className="text-xl font-semibold">Customer List</h2>
+        <div className="mt-4 grid gap-2 text-sm">
+          {customers.map((customer) => (
+            <div key={customer.id} className="flex flex-wrap items-center justify-between rounded border border-stone-100 px-3 py-2">
+              <span>
+                {customer.fullName || 'Unnamed'} <span className="text-stone-500">({customer.email})</span>
+              </span>
+              <span className="text-stone-600">
+                Orders: {customer.ordersCount} • Spent: {customer.spentTotal.toFixed(2)} GEL
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="rounded-lg border border-stone-200 bg-white p-5">
         <h2 className="text-xl font-semibold">Create Category</h2>
         <form onSubmit={onCreateCategory} className="mt-4 grid gap-3 md:grid-cols-4">
-          <input
-            className="rounded-md border border-stone-300 px-3 py-2"
-            placeholder="Name"
-            value={categoryForm.name}
-            onChange={(event) => setCategoryForm((prev) => ({ ...prev, name: event.target.value }))}
-            required
-          />
-          <input
-            className="rounded-md border border-stone-300 px-3 py-2"
-            placeholder="Slug"
-            value={categoryForm.slug}
-            onChange={(event) => setCategoryForm((prev) => ({ ...prev, slug: event.target.value }))}
-            required
-          />
-          <input
-            className="rounded-md border border-stone-300 px-3 py-2"
-            placeholder="Description"
-            value={categoryForm.description}
-            onChange={(event) => setCategoryForm((prev) => ({ ...prev, description: event.target.value }))}
-          />
+          <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Name" value={categoryForm.name} onChange={(e) => setCategoryForm((prev) => ({ ...prev, name: e.target.value }))} required />
+          <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Slug" value={categoryForm.slug} onChange={(e) => setCategoryForm((prev) => ({ ...prev, slug: e.target.value }))} required />
+          <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Description" value={categoryForm.description} onChange={(e) => setCategoryForm((prev) => ({ ...prev, description: e.target.value }))} />
           <button className="rounded-md bg-brand-700 px-4 py-2 text-white" disabled={busy} type="submit">
             Add category
           </button>
@@ -312,11 +411,7 @@ export default function AdminDashboardPage() {
               <span>
                 {category.name} <span className="text-stone-500">({category.slug})</span>
               </span>
-              <button
-                type="button"
-                className="text-red-600 hover:underline"
-                onClick={() => void onDeleteCategory(category.id)}
-              >
+              <button type="button" className="text-red-600 hover:underline" onClick={() => void onDeleteCategory(category.id)}>
                 Delete
               </button>
             </div>
@@ -329,54 +424,16 @@ export default function AdminDashboardPage() {
 
         <form onSubmit={onSubmitProduct} className="mt-4 space-y-3">
           <div className="grid gap-3 md:grid-cols-3">
-            <input
-              className="rounded-md border border-stone-300 px-3 py-2"
-              placeholder="Title"
-              value={productForm.title}
-              onChange={(event) => setProductForm((prev) => ({ ...prev, title: event.target.value }))}
-              required
-            />
-            <input
-              className="rounded-md border border-stone-300 px-3 py-2"
-              placeholder="Slug"
-              value={productForm.slug}
-              onChange={(event) => setProductForm((prev) => ({ ...prev, slug: event.target.value }))}
-              required
-            />
-            <input
-              className="rounded-md border border-stone-300 px-3 py-2"
-              placeholder="SKU"
-              value={productForm.sku}
-              onChange={(event) => setProductForm((prev) => ({ ...prev, sku: event.target.value }))}
-              required
-            />
+            <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Title" value={productForm.title} onChange={(e) => setProductForm((prev) => ({ ...prev, title: e.target.value }))} required />
+            <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Slug" value={productForm.slug} onChange={(e) => setProductForm((prev) => ({ ...prev, slug: e.target.value }))} required />
+            <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="SKU" value={productForm.sku} onChange={(e) => setProductForm((prev) => ({ ...prev, sku: e.target.value }))} required />
           </div>
 
-          <textarea
-            className="min-h-28 w-full rounded-md border border-stone-300 px-3 py-2"
-            placeholder="Description"
-            value={productForm.description}
-            onChange={(event) => setProductForm((prev) => ({ ...prev, description: event.target.value }))}
-            required
-          />
+          <textarea className="min-h-28 w-full rounded-md border border-stone-300 px-3 py-2" placeholder="Description" value={productForm.description} onChange={(e) => setProductForm((prev) => ({ ...prev, description: e.target.value }))} required />
 
           <div className="grid gap-3 md:grid-cols-4">
-            <input
-              type="number"
-              min={0}
-              step="0.01"
-              className="rounded-md border border-stone-300 px-3 py-2"
-              placeholder="Price"
-              value={productForm.price}
-              onChange={(event) => setProductForm((prev) => ({ ...prev, price: event.target.value }))}
-              required
-            />
-            <select
-              className="rounded-md border border-stone-300 px-3 py-2"
-              value={productForm.categoryId}
-              onChange={(event) => setProductForm((prev) => ({ ...prev, categoryId: event.target.value }))}
-              required
-            >
+            <input type="number" min={0} step="0.01" className="rounded-md border border-stone-300 px-3 py-2" placeholder="Price" value={productForm.price} onChange={(e) => setProductForm((prev) => ({ ...prev, price: e.target.value }))} required />
+            <select className="rounded-md border border-stone-300 px-3 py-2" value={productForm.categoryId} onChange={(e) => setProductForm((prev) => ({ ...prev, categoryId: e.target.value }))} required>
               <option value="">Select category</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -384,49 +441,24 @@ export default function AdminDashboardPage() {
                 </option>
               ))}
             </select>
-            <input
-              className="rounded-md border border-stone-300 px-3 py-2"
-              placeholder="Size"
-              value={productForm.size}
-              onChange={(event) => setProductForm((prev) => ({ ...prev, size: event.target.value }))}
-            />
-            <input
-              className="rounded-md border border-stone-300 px-3 py-2"
-              placeholder="Color"
-              value={productForm.color}
-              onChange={(event) => setProductForm((prev) => ({ ...prev, color: event.target.value }))}
-            />
+            <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Size" value={productForm.size} onChange={(e) => setProductForm((prev) => ({ ...prev, size: e.target.value }))} />
+            <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Color" value={productForm.color} onChange={(e) => setProductForm((prev) => ({ ...prev, color: e.target.value }))} />
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
-            <input
-              className="rounded-md border border-stone-300 px-3 py-2"
-              placeholder="Material"
-              value={productForm.material}
-              onChange={(event) => setProductForm((prev) => ({ ...prev, material: event.target.value }))}
-            />
-
+            <input className="rounded-md border border-stone-300 px-3 py-2" placeholder="Material" value={productForm.material} onChange={(e) => setProductForm((prev) => ({ ...prev, material: e.target.value }))} />
             <label className="flex items-center gap-2 rounded-md border border-stone-300 px-3 py-2 text-sm">
-              <input
-                type="checkbox"
-                checked={productForm.isActive}
-                onChange={(event) => setProductForm((prev) => ({ ...prev, isActive: event.target.checked }))}
-              />
+              <input type="checkbox" checked={productForm.isActive} onChange={(e) => setProductForm((prev) => ({ ...prev, isActive: e.target.checked }))} />
               Product active
             </label>
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Upload image</label>
-            <input type="file" accept="image/*" onChange={(event) => void onUploadImage(event.target.files?.[0] ?? null)} />
+            <input type="file" accept="image/*" onChange={(e) => void onUploadImage(e.target.files?.[0] ?? null)} />
           </div>
 
-          <textarea
-            className="min-h-24 w-full rounded-md border border-stone-300 px-3 py-2"
-            placeholder="Image URLs (one per line)"
-            value={productForm.imagesText}
-            onChange={(event) => setProductForm((prev) => ({ ...prev, imagesText: event.target.value }))}
-          />
+          <textarea className="min-h-24 w-full rounded-md border border-stone-300 px-3 py-2" placeholder="Image URLs (one per line)" value={productForm.imagesText} onChange={(e) => setProductForm((prev) => ({ ...prev, imagesText: e.target.value }))} />
 
           <div className="flex gap-3">
             <button className="rounded-md bg-brand-700 px-4 py-2 text-white" disabled={busy} type="submit">
@@ -455,7 +487,9 @@ export default function AdminDashboardPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold">{product.title}</h3>
-                <p className="text-sm text-stone-600">{product.category.name} • {product.price.toFixed(2)} GEL</p>
+                <p className="text-sm text-stone-600">
+                  {product.category.name} • {product.price.toFixed(2)} GEL
+                </p>
                 <p className="mt-1 text-sm text-stone-500">{product.slug}</p>
               </div>
               <div className="flex gap-3 text-sm">
@@ -467,12 +501,19 @@ export default function AdminDashboardPage() {
                 </button>
               </div>
             </div>
-            {product.images[0] && (
-              <img src={product.images[0]} alt={product.title} className="mt-3 h-32 w-48 rounded-md border border-stone-200 object-cover" />
-            )}
+            {product.images[0] && <img src={product.images[0]} alt={product.title} className="mt-3 h-32 w-48 rounded-md border border-stone-200 object-cover" />}
           </article>
         ))}
       </section>
     </main>
+  );
+}
+
+function MetricCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <article className="rounded-lg border border-stone-200 bg-white p-4">
+      <p className="text-sm text-stone-500">{label}</p>
+      <p className="mt-1 text-2xl font-semibold">{value}</p>
+    </article>
   );
 }

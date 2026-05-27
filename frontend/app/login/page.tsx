@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { postJson, type AuthResponse } from '@/lib/api';
+import { mergeLocalCartAfterAuth } from '@/lib/cart-sync';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -21,6 +22,7 @@ export default function LoginPage() {
       const data = await postJson<AuthResponse>('/auth/login', { email, password });
       localStorage.setItem('auth_token', data.accessToken);
       localStorage.setItem('auth_user', JSON.stringify(data.user));
+      await mergeLocalCartAfterAuth(data.accessToken);
       setSuccess(`Logged in as ${data.user.email} (${data.user.role})`);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Login failed');

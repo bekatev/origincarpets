@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { ProductItem } from '@/lib/products';
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
 
@@ -7,7 +8,7 @@ export function ProductCard({ product }: { product: ProductItem }) {
 
   return (
     <article className="overflow-hidden rounded-lg border border-stone-200 bg-white">
-      <img src={cover} alt={product.title} className="h-52 w-full object-cover" />
+      <Image src={cover} alt={product.title} width={800} height={600} className="h-52 w-full object-cover" />
       <div className="space-y-2 p-4">
         <p className="text-xs uppercase tracking-wide text-stone-500">{product.category.name}</p>
         <h3 className="text-lg font-semibold">{product.title}</h3>
