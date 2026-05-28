@@ -5,7 +5,7 @@ import Stripe from 'stripe';
 
 @Injectable()
 export class PaymentsService {
-  private readonly stripe: Stripe.Stripe;
+  private readonly stripe: Stripe | null;
   private readonly currency: string;
 
   constructor(
@@ -13,15 +13,15 @@ export class PaymentsService {
     config: ConfigService
   ) {
     const secretKey = config.get<string>('STRIPE_SECRET_KEY');
-    if (!secretKey) {
-      throw new Error('STRIPE_SECRET_KEY is required');
-    }
-
     this.currency = config.get<string>('STRIPE_CURRENCY', 'usd').toLowerCase();
-    this.stripe = new Stripe(secretKey);
+    this.stripe = secretKey ? new Stripe(secretKey) : null;
   }
 
   async createPaymentIntent(userId: string, orderId: string) {
+    if (!this.stripe) {
+      throw new BadRequestException('Stripe is not configured on server');
+    }
+
     const order = await this.prisma.order.findUnique({ where: { id: orderId } });
 
     if (!order) {
@@ -71,6 +71,10 @@ export class PaymentsService {
   }
 
   async confirmPayment(userId: string, orderId: string, paymentIntentId: string) {
+    if (!this.stripe) {
+      throw new BadRequestException('Stripe is not configured on server');
+    }
+
     const order = await this.prisma.order.findUnique({ where: { id: orderId } });
 
     if (!order) {

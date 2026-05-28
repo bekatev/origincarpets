@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { syncOrigincarpetsProducts } from './origincarpets-sync';
 
 type ManageableOrderStatus = 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED';
 
@@ -90,5 +91,9 @@ export class AdminService {
       ordersCount: user.orders.length,
       spentTotal: user.orders.reduce((sum, order) => sum + Number(order.total), 0)
     }));
+  }
+
+  async syncOrigincarpets(mode: 'full' | 'sync' = 'sync') {
+    return syncOrigincarpetsProducts(this.prisma, mode);
   }
 }

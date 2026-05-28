@@ -303,6 +303,30 @@ export default function AdminDashboardPage() {
     }
   }
 
+  async function onSyncOrigincarpets(mode: 'sync' | 'full') {
+    if (!token) return;
+
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const result = await apiRequest<{ imported: number; skipped: number; totalFetched: number; mode: 'sync' | 'full' }>(
+        `/admin/imports/origincarpets?mode=${mode}`,
+        token,
+        { method: 'POST' }
+      );
+      await loadAll(token);
+      setMessage(
+        `Origin Carpets ${result.mode.toUpperCase()} completed: imported ${result.imported}, skipped ${result.skipped}, total ${result.totalFetched}.`
+      );
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'Failed to sync Origin Carpets products');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function startEdit(product: Product) {
     setEditingProductId(product.id);
     setProductForm({
@@ -331,9 +355,19 @@ export default function AdminDashboardPage() {
   return (
     <main className="oc-section">
       <div className="oc-container max-w-6xl space-y-8">
-      <header>
-        <h1 className="oc-heading">Admin Dashboard</h1>
-        <p className="mt-2 text-sm text-[var(--oc-muted)]">Overview, orders, products, and customers management.</p>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="oc-heading">Admin Dashboard</h1>
+          <p className="mt-2 text-sm text-[var(--oc-muted)]">Overview, orders, products, and customers management.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" disabled={busy} className="oc-btn-secondary" onClick={() => void onSyncOrigincarpets('sync')}>
+            Sync Origin Carpets
+          </button>
+          <button type="button" disabled={busy} className="oc-btn-primary" onClick={() => void onSyncOrigincarpets('full')}>
+            Full Reimport
+          </button>
+        </div>
       </header>
 
       {error && <p className="border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}

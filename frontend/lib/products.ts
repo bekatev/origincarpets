@@ -40,9 +40,10 @@ export interface ProductListResponse {
 
 async function apiFetch<T>(path: string): Promise<T | null> {
   try {
+    const isDev = process.env.NODE_ENV === 'development';
     const response = await fetch(`${API_URL}${path}`, {
-      cache: 'force-cache',
-      next: { revalidate: 300, tags: ['products'] }
+      cache: isDev ? 'no-store' : 'force-cache',
+      ...(isDev ? {} : { next: { revalidate: 300, tags: ['products'] } })
     });
 
     if (!response.ok) {
