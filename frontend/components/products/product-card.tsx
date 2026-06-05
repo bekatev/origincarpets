@@ -1,43 +1,57 @@
+'use client';
+
 import Link from 'next/link';
-import Image from 'next/image';
+import { motion } from 'framer-motion';
 import type { ProductItem } from '@/lib/products';
+import { ProductCardFoldMedia } from '@/components/products/product-card-fold-media';
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
+import { FormattedPrice } from '@/components/products/formatted-price';
 
 export function ProductCard({ product }: { product: ProductItem }) {
-  const cover = product.images[0] ?? 'https://placehold.co/800x600?text=Carpet';
+  const cover = product.images[0];
 
   return (
-    <article className="group oc-surface overflow-hidden">
-      <div className="overflow-hidden">
-        <Image
-          src={cover}
+    <motion.article
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-8%' }}
+      transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+      className="group"
+    >
+      <Link
+        href={`/products/${product.slug}`}
+        className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--oc-ink)]"
+        aria-label={`View ${product.title}`}
+      >
+        <ProductCardFoldMedia
+          images={product.images}
           alt={product.title}
-          width={800}
-          height={600}
-          className="h-64 w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
-      </div>
-      <div className="space-y-3 p-5">
-        <p className="oc-kicker">{product.category.name}</p>
-        <h3 className="font-display text-xl uppercase leading-tight tracking-[0.08em]">{product.title}</h3>
-        <p className="line-clamp-2 text-sm leading-6 text-[var(--oc-muted)]">{product.description}</p>
-        <div className="flex items-center justify-between border-t border-[var(--oc-line)] pt-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.08em]">{product.price.toFixed(2)} GEL</p>
-          <Link href={`/products/${product.slug}`} className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--oc-brand)] hover:text-[var(--oc-brand-soft)]">
-            View details
+      </Link>
+      <div className="mt-4 space-y-2">
+        <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--oc-muted)]">{product.category.name}</p>
+        <h3 className="font-display text-lg leading-snug text-[var(--oc-ink)]">
+          <Link href={`/products/${product.slug}`} className="hover:opacity-60">
+            {product.title}
           </Link>
-        </div>
-        <AddToCartButton
-          product={{
-            id: product.id,
-            slug: product.slug,
-            title: product.title,
-            price: product.price,
-            image: cover
-          }}
-          className="oc-btn-primary w-full"
-        />
+        </h3>
+        <p className="text-sm text-[var(--oc-ink)]">
+          <FormattedPrice amount={product.price} />
+        </p>
+        {cover ? (
+          <AddToCartButton
+            product={{
+              id: product.id,
+              slug: product.slug,
+              title: product.title,
+              price: product.price,
+              image: cover
+            }}
+            className="oc-btn-primary mt-3 w-full sm:w-auto"
+          />
+        ) : null}
       </div>
-    </article>
+    </motion.article>
   );
 }

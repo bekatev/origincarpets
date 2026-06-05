@@ -1,52 +1,150 @@
-import type { ProductCategory } from '@/lib/products';
+'use client';
 
-export function ProductFilters({
-  categories,
-  current
+import Link from 'next/link';
+import type { ProductFilterOptions, ProductListFilters } from '@/lib/products';
+import { useI18n } from '@/components/providers/i18n-provider';
+
+function FilterSelect({
+  label,
+  name,
+  value,
+  options,
+  placeholder
 }: {
-  categories: ProductCategory[];
-  current: { search?: string; category?: string; minPrice?: string; maxPrice?: string };
+  label: string;
+  name: string;
+  value?: string;
+  options: string[];
+  placeholder: string;
 }) {
   return (
-    <form className="oc-surface grid gap-3 p-4 md:grid-cols-4" method="get">
-      <input
-        name="search"
-        defaultValue={current.search}
-        placeholder="Search carpets"
-        className="oc-input"
-      />
-
-      <select name="category" defaultValue={current.category ?? ''} className="oc-input">
-        <option value="">All categories</option>
-        {categories.map((category) => (
-          <option key={category.id} value={category.slug}>
-            {category.name}
+    <div className="space-y-2">
+      <label htmlFor={name} className="oc-kicker block">
+        {label}
+      </label>
+      <select id={name} name={name} defaultValue={value ?? ''} className="oc-input">
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
           </option>
         ))}
       </select>
+    </div>
+  );
+}
 
-      <input
-        type="number"
-        min={0}
-        name="minPrice"
-        defaultValue={current.minPrice}
-        placeholder="Min price"
-        className="oc-input"
-      />
+export function ProductFilters({
+  facets,
+  current
+}: {
+  facets: ProductFilterOptions;
+  current: ProductListFilters;
+}) {
+  const { dict } = useI18n();
+  const f = dict.filters;
 
-      <div className="flex gap-2">
-        <input
-          type="number"
-          min={0}
-          name="maxPrice"
-          defaultValue={current.maxPrice}
-          placeholder="Max price"
-          className="oc-input"
-        />
-        <button type="submit" className="oc-btn-primary px-4">
-          Apply
-        </button>
-      </div>
-    </form>
+  const hasActiveFilters = Boolean(
+    current.search ||
+      current.category ||
+      current.material ||
+      current.size ||
+      current.origin ||
+      current.color ||
+      current.period ||
+      current.age ||
+      current.georgian ||
+      current.minPrice ||
+      current.maxPrice
+  );
+
+  return (
+    <aside className="lg:sticky lg:top-28 lg:self-start">
+      <form className="oc-surface space-y-6 p-5 sm:p-6" method="get">
+        <div>
+          <h2 className="font-display text-lg font-medium uppercase tracking-[0.1em]">{f.title}</h2>
+          <p className="mt-1 text-xs leading-5 text-[var(--oc-muted)]">{f.subtitle}</p>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="search" className="oc-kicker block">
+            {f.search}
+          </label>
+          <input
+            id="search"
+            name="search"
+            defaultValue={current.search}
+            placeholder={f.searchPlaceholder}
+            className="oc-input"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="category" className="oc-kicker block">
+            {f.category}
+          </label>
+          <select id="category" name="category" defaultValue={current.category ?? ''} className="oc-input">
+            <option value="">{f.allCategories}</option>
+            {facets.categories.map((category) => (
+              <option key={category.id} value={category.slug}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <FilterSelect label={f.material} name="material" value={current.material} options={facets.materials} placeholder={f.allMaterials} />
+        <FilterSelect label={f.size} name="size" value={current.size} options={facets.sizes} placeholder={f.allSizes} />
+        <FilterSelect label={f.origin} name="origin" value={current.origin} options={facets.origins} placeholder={f.allOrigins} />
+        <FilterSelect label={f.color} name="color" value={current.color} options={facets.colors} placeholder={f.allColors} />
+        <FilterSelect label={f.age} name="age" value={current.age} options={facets.ages} placeholder={f.allAges} />
+        <FilterSelect label={f.period} name="period" value={current.period} options={facets.periods} placeholder={f.allPeriods} />
+
+        <div className="space-y-2">
+          <label htmlFor="georgian" className="oc-kicker block">
+            {f.georgian}
+          </label>
+          <select id="georgian" name="georgian" defaultValue={current.georgian ?? ''} className="oc-input">
+            <option value="">{f.allCarpets}</option>
+            <option value="1">{f.georgianOnly}</option>
+          </select>
+        </div>
+
+        <div className="space-y-2 border-t border-[var(--oc-line)] pt-5">
+          <p className="oc-kicker">{f.price}</p>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="number"
+              min={0}
+              name="minPrice"
+              defaultValue={current.minPrice}
+              placeholder={f.minPrice}
+              className="oc-input"
+              aria-label={f.minPrice}
+            />
+            <input
+              type="number"
+              min={0}
+              name="maxPrice"
+              defaultValue={current.maxPrice}
+              placeholder={f.maxPrice}
+              className="oc-input"
+              aria-label={f.maxPrice}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2 border-t border-[var(--oc-line)] pt-5">
+          <button type="submit" className="oc-btn-primary w-full">
+            {f.apply}
+          </button>
+          {hasActiveFilters && (
+            <Link href="/products" className="oc-btn-secondary w-full text-center">
+              {f.clear}
+            </Link>
+          )}
+        </div>
+      </form>
+    </aside>
   );
 }

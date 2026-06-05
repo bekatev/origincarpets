@@ -3,9 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import Stripe from 'stripe';
 
+type StripeClient = InstanceType<typeof Stripe>;
+
 @Injectable()
 export class PaymentsService {
-  private readonly stripe: Stripe | null;
+  private readonly stripe: StripeClient | null;
   private readonly currency: string;
 
   constructor(

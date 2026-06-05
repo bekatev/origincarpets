@@ -1,83 +1,122 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  DEFAULT_INTERNATIONAL_ZONE,
+  GEORGIA_SHIPPING,
+  INTERNATIONAL_SHIPPING_BASE,
+  INTERNATIONAL_ZONE_PRICES,
+  type ShippingMethodConfig,
+  type ShippingProviderKey
+} from './shipping.constants';
 
 export type ShippingType = 'GEORGIA' | 'INTERNATIONAL';
 
-const COUNTRY_ZONE_MAP: Record<string, { code: string; name: string; basePrice: number }> = {
-  GE: { code: 'GEORGIA', name: 'Georgia Local', basePrice: 0 },
-  US: { code: 'USA', name: 'United States', basePrice: 45 },
-  CA: { code: 'USA', name: 'United States', basePrice: 45 },
-  DE: { code: 'EU', name: 'European Union', basePrice: 30 },
-  FR: { code: 'EU', name: 'European Union', basePrice: 30 },
-  IT: { code: 'EU', name: 'European Union', basePrice: 30 },
-  ES: { code: 'EU', name: 'European Union', basePrice: 30 },
-  NL: { code: 'EU', name: 'European Union', basePrice: 30 },
-  BE: { code: 'EU', name: 'European Union', basePrice: 30 },
-  PL: { code: 'EU', name: 'European Union', basePrice: 30 },
-  JP: { code: 'ASIA', name: 'Asia', basePrice: 55 },
-  CN: { code: 'ASIA', name: 'Asia', basePrice: 55 },
-  KR: { code: 'ASIA', name: 'Asia', basePrice: 55 },
-  IN: { code: 'ASIA', name: 'Asia', basePrice: 55 },
-  SG: { code: 'ASIA', name: 'Asia', basePrice: 55 },
-  AE: { code: 'ASIA', name: 'Asia', basePrice: 55 }
+export type ShippingQuote = {
+  shippingType: ShippingType;
+  providerKey: ShippingProviderKey;
+  provider: string;
+  shippingZone: {
+    id: string;
+    code: string;
+    name: string;
+    countryCode: string;
+    basePrice: { toNumber(): number };
+    minDeliveryDays: number | null;
+    maxDeliveryDays: number | null;
+  };
+  shippingCost: number;
+  deliveryDays: { min: number | null; max: number | null };
 };
 
 @Injectable()
 export class ShippingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async calculate(type: ShippingType, countryCode: string) {
+  listOptions() {
+    return [
+      {
+        type: GEORGIA_SHIPPING.type,
+        providerKey: GEORGIA_SHIPPING.providerKey,
+        provider: GEORGIA_SHIPPING.provider,
+        description:
+          'Nationwide delivery across Georgia through the national postal network. Ideal for local orders from our Tbilisi gallery.',
+        countryCode: GEORGIA_SHIPPING.countryCode,
+        estimatedDays: {
+          min: GEORGIA_SHIPPING.minDeliveryDays,
+          max: GEORGIA_SHIPPING.maxDeliveryDays
+        }
+      },
+      {
+        type: INTERNATIONAL_SHIPPING_BASE.type,
+        providerKey: INTERNATIONAL_SHIPPING_BASE.providerKey,
+        provider: INTERNATIONAL_SHIPPING_BASE.provider,
+        description:
+          'Recommended for overseas orders: express delivery, full tracking, and dependable customs handling for valuable hand-woven carpets.',
+        countryCode: null,
+        estimatedDays: {
+          min: INTERNATIONAL_SHIPPING_BASE.minDeliveryDays,
+          max: INTERNATIONAL_SHIPPING_BASE.maxDeliveryDays
+        }
+      }
+    ];
+  }
+
+  async calculate(type: ShippingType, countryCode: string): Promise<ShippingQuote> {
     const normalizedCountry = countryCode.toUpperCase();
 
     if (type === 'GEORGIA') {
-      const zone = await this.ensureZone({
-        code: 'GEORGIA',
-        name: 'Georgia Local',
-        countryCode: 'GE',
-        basePrice: 0,
-        minDeliveryDays: 1,
-        maxDeliveryDays: 3
-      });
+      if (normalizedCountry !== 'GE') {
+        throw new BadRequestException('Georgian Post delivery is only available for addresses in Georgia (GE).');
+      }
+
+      const zone = await this.ensureZone(GEORGIA_SHIPPING);
 
       return {
-        shippingType: 'GEORGIA' as const,
+        shippingType: 'GEORGIA',
+        providerKey: GEORGIA_SHIPPING.providerKey,
+        provider: GEORGIA_SHIPPING.provider,
         shippingZone: zone,
-        shippingCost: 0,
-        provider: 'Georgian Post'
+        shippingCost: GEORGIA_SHIPPING.basePrice,
+        deliveryDays: {
+          min: GEORGIA_SHIPPING.minDeliveryDays,
+          max: GEORGIA_SHIPPING.maxDeliveryDays
+        }
       };
     }
 
-    const config = COUNTRY_ZONE_MAP[normalizedCountry] ?? { code: 'INTL_OTHER', name: 'International Other', basePrice: 65 };
+    if (normalizedCountry === 'GE') {
+      throw new BadRequestException('Use Georgian Post for deliveries within Georgia.');
+    }
 
-    const zone = await this.ensureZone({
-      code: config.code,
-      name: config.name,
+    const zoneConfig = INTERNATIONAL_ZONE_PRICES[normalizedCountry] ?? DEFAULT_INTERNATIONAL_ZONE;
+    const method: ShippingMethodConfig = {
+      ...INTERNATIONAL_SHIPPING_BASE,
+      zoneCode: zoneConfig.code,
+      zoneName: zoneConfig.name,
       countryCode: normalizedCountry,
-      basePrice: config.basePrice,
-      minDeliveryDays: 7,
-      maxDeliveryDays: 21
-    });
+      basePrice: zoneConfig.basePrice
+    };
+
+    const zone = await this.ensureZone(method);
 
     return {
-      shippingType: 'INTERNATIONAL' as const,
+      shippingType: 'INTERNATIONAL',
+      providerKey: INTERNATIONAL_SHIPPING_BASE.providerKey,
+      provider: INTERNATIONAL_SHIPPING_BASE.provider,
       shippingZone: zone,
-      shippingCost: Number(zone.basePrice),
-      provider: 'International Courier'
+      shippingCost: zoneConfig.basePrice,
+      deliveryDays: {
+        min: INTERNATIONAL_SHIPPING_BASE.minDeliveryDays,
+        max: INTERNATIONAL_SHIPPING_BASE.maxDeliveryDays
+      }
     };
   }
 
-  private ensureZone(input: {
-    code: string;
-    name: string;
-    countryCode: string;
-    basePrice: number;
-    minDeliveryDays: number;
-    maxDeliveryDays: number;
-  }) {
+  private ensureZone(input: ShippingMethodConfig) {
     return this.prisma.shippingZone.upsert({
-      where: { code: input.code },
+      where: { code: input.zoneCode },
       update: {
-        name: input.name,
+        name: input.zoneName,
         countryCode: input.countryCode,
         basePrice: input.basePrice,
         minDeliveryDays: input.minDeliveryDays,
@@ -85,8 +124,8 @@ export class ShippingService {
         isActive: true
       },
       create: {
-        code: input.code,
-        name: input.name,
+        code: input.zoneCode,
+        name: input.zoneName,
         countryCode: input.countryCode,
         basePrice: input.basePrice,
         minDeliveryDays: input.minDeliveryDays,

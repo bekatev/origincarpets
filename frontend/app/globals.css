@@ -4,62 +4,206 @@
 
 :root {
   color-scheme: light;
-  --oc-bg: #f6f3ef;
-  --oc-paper: #fffdf9;
-  --oc-ink: #1f1812;
-  --oc-muted: #6e645b;
-  --oc-line: #d8cec1;
-  --oc-brand: #2f2720;
-  --oc-brand-soft: #8b7a68;
+  --oc-bg: #faf9f7;
+  --oc-bg-secondary: #f3f1ed;
+  --oc-paper: #ffffff;
+  --oc-ink: #1a1a1a;
+  --oc-muted: #5c5c5c;
+  --oc-line: #e8e4de;
+  --oc-brand: #8b5a3c;
+  --oc-accent: #3d4a38;
+  --oc-brand-soft: #6b6b6b;
+  --oc-brand-hover: #3d4a38;
+  --oc-shadow: none;
+  --oc-shadow-lift: 0 24px 48px -32px rgba(26, 26, 26, 0.12);
+  --oc-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+html.dark {
+  color-scheme: dark;
+  --oc-bg: #141413;
+  --oc-bg-secondary: #1c1c1b;
+  --oc-paper: #222221;
+  --oc-ink: #f5f3ef;
+  --oc-muted: #a8a29e;
+  --oc-line: #333330;
+  --oc-brand: #c49a7a;
+  --oc-accent: #7a8f72;
+  --oc-brand-soft: #9a9a9a;
 }
 
 body {
   @apply bg-[var(--oc-bg)] text-[var(--oc-ink)] antialiased;
   font-feature-settings: 'liga' 1, 'kern' 1;
+  text-rendering: optimizeLegibility;
 }
 
 a {
-  @apply transition-colors duration-200;
+  @apply transition-colors duration-300 ease-luxury;
+}
+
+::selection {
+  background: rgba(139, 90, 60, 0.18);
+  color: var(--oc-ink);
 }
 
 @layer components {
   .oc-container {
-    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10;
+    @apply mx-auto w-full max-w-[1400px] px-6 sm:px-10 lg:px-14;
+  }
+
+  .oc-container-narrow {
+    @apply mx-auto w-full max-w-3xl px-6 sm:px-10;
   }
 
   .oc-section {
-    @apply py-10 sm:py-14;
+    @apply relative py-20 sm:py-28 lg:py-32;
+  }
+
+  .oc-section-tight {
+    @apply relative py-12 sm:py-16;
   }
 
   .oc-heading {
-    @apply font-display text-3xl uppercase tracking-[0.12em] sm:text-4xl;
+    @apply font-display text-4xl font-normal leading-[1.12] tracking-[-0.01em] text-[var(--oc-ink)] sm:text-5xl lg:text-6xl;
   }
 
-  .oc-subtitle {
-    @apply text-sm uppercase tracking-[0.2em] text-[var(--oc-brand-soft)];
+  .oc-heading-sm {
+    @apply font-display text-2xl font-normal leading-snug tracking-[-0.01em] text-[var(--oc-ink)] sm:text-3xl;
+  }
+
+  .oc-eyebrow {
+    @apply text-[11px] font-medium uppercase tracking-[0.28em] text-[var(--oc-muted)];
+  }
+
+  .oc-lead {
+    @apply text-base leading-[1.75] text-[var(--oc-muted)] sm:text-lg;
+  }
+
+  .oc-body {
+    @apply text-sm leading-[1.85] text-[var(--oc-muted)] sm:text-[15px];
   }
 
   .oc-surface {
-    @apply rounded-none border border-[var(--oc-line)] bg-[var(--oc-paper)];
+    @apply border border-[var(--oc-line)] bg-[var(--oc-paper)];
   }
 
   .oc-input {
-    @apply w-full border border-[var(--oc-line)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--oc-brand)] focus:ring-1 focus:ring-[var(--oc-brand)];
+    @apply w-full border border-[var(--oc-line)] bg-transparent px-4 py-3 text-sm text-[var(--oc-ink)] outline-none transition duration-300 ease-luxury placeholder:text-[var(--oc-muted)] focus:border-[var(--oc-ink)];
+  }
+
+  select.oc-input {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 2.75rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235c5c5c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 0.75rem;
+  }
+
+  html.dark select.oc-input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   }
 
   .oc-btn {
-    @apply inline-flex items-center justify-center border px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center border border-[var(--oc-ink)] bg-transparent px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--oc-ink)] transition duration-300 ease-luxury disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .oc-btn:hover {
+    @apply bg-[var(--oc-ink)] text-[var(--oc-bg)];
   }
 
   .oc-btn-primary {
-    @apply oc-btn border-[var(--oc-brand)] bg-[var(--oc-brand)] text-white hover:bg-[#19130f];
+    @apply oc-btn;
   }
 
-  .oc-btn-secondary {
-    @apply oc-btn border-[var(--oc-line)] bg-white text-[var(--oc-ink)] hover:bg-stone-50;
+  .oc-btn-ghost {
+    @apply inline-flex items-center border-0 bg-transparent p-0 text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--oc-ink)] hover:opacity-60;
+  }
+
+  .oc-link {
+    @apply inline-flex items-center gap-2 text-sm text-[var(--oc-ink)] underline-offset-4 hover:underline;
+  }
+
+  .oc-link-arrow::after {
+    content: '→';
+    @apply transition-transform duration-300 ease-luxury;
+  }
+
+  .oc-link-arrow:hover::after {
+    @apply translate-x-1;
+  }
+
+  .oc-nav-link {
+    @apply text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--oc-ink)] transition-opacity hover:opacity-50;
+  }
+
+  .oc-divider {
+    @apply border-t border-[var(--oc-line)];
+  }
+
+  /* Legacy aliases */
+  .oc-subtitle {
+    @apply oc-eyebrow;
   }
 
   .oc-kicker {
-    @apply text-xs uppercase tracking-[0.2em] text-[var(--oc-brand-soft)];
+    @apply oc-eyebrow;
+  }
+
+  .oc-btn-secondary {
+    @apply oc-btn;
+  }
+
+  .oc-surface-muted {
+    @apply bg-[var(--oc-bg-secondary)];
+  }
+
+  .oc-card-body {
+    @apply space-y-3 pt-4;
+  }
+
+  .oc-glass,
+  .oc-ambient {
+    @apply bg-[var(--oc-bg)];
+  }
+}
+
+/* Product card hover — Thames Carpets slide + scale reveal (same image) */
+.product-reveal__panel {
+  transform: translateX(100%);
+  transition: transform 1s cubic-bezier(0.63, 0.22, 0.1, 1);
+}
+
+.product-reveal__panel-inner {
+  transform: translateX(-100%) scale(1.5);
+  transition: transform 1s cubic-bezier(0.63, 0.22, 0.1, 1);
+}
+
+@media (hover: hover) {
+  .product-reveal:hover .product-reveal__panel {
+    transform: translateX(0);
+  }
+
+  .product-reveal:hover .product-reveal__panel-inner {
+    transform: translateX(0) scale(1.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-reveal__panel,
+  .product-reveal__panel-inner {
+    transition: none;
+  }
+
+  @media (hover: hover) {
+    .product-reveal:hover .product-reveal__panel {
+      transform: translateX(0);
+    }
+
+    .product-reveal:hover .product-reveal__panel-inner {
+      transform: translateX(0) scale(1.1);
+    }
   }
 }

@@ -11,6 +11,34 @@ export class ListProductsDto {
   category?: string;
 
   @IsOptional()
+  @IsString()
+  material?: string;
+
+  @IsOptional()
+  @IsString()
+  size?: string;
+
+  @IsOptional()
+  @IsString()
+  origin?: string;
+
+  @IsOptional()
+  @IsString()
+  color?: string;
+
+  @IsOptional()
+  @IsString()
+  period?: string;
+
+  @IsOptional()
+  @IsString()
+  age?: string;
+
+  @IsOptional()
+  @IsString()
+  georgian?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(0)

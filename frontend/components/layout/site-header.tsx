@@ -1,79 +1,108 @@
 'use client';
 
 import Link from 'next/link';
+import { BrandLogo } from '@/components/brand/brand-logo';
 import type { Route } from 'next';
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AccountNav, AccountNavMobile } from '@/components/layout/account-nav';
 import { CartLink } from '@/components/cart/cart-link';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { useI18n } from '@/components/providers/i18n-provider';
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { dict } = useI18n();
 
-  const navItems: Array<{ href: Route; label: string }> = [
+  const primaryNav: Array<{ href: Route; label: string }> = [
+    { href: '/products', label: dict.nav.shop },
     { href: '/#about-us' as Route, label: dict.nav.about },
-    { href: '/products', label: dict.nav.carpets },
+    { href: '/#contact-us' as Route, label: dict.nav.contact }
+  ];
+
+  const allNav: Array<{ href: Route; label: string }> = [
+    ...primaryNav,
     { href: '/#carpet-origin' as Route, label: dict.nav.origin },
-    { href: '/#guides-policies' as Route, label: dict.nav.guides },
-    { href: '/#contact-us' as Route, label: dict.nav.contact },
-    { href: '/#social-media' as Route, label: dict.nav.social },
-    { href: '/#virtual-appointment' as Route, label: dict.nav.appointment }
+    { href: '/#guides-policies' as Route, label: dict.nav.guides }
   ];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--oc-line)] bg-[var(--oc-paper)]/95 backdrop-blur">
-      <div className="oc-container py-4">
-        <div className="flex items-center justify-between gap-4">
-          <Link href="/" className="font-display text-xl uppercase tracking-[0.14em]" onClick={() => setOpen(false)}>
-            Origin Carpets
+    <header className="sticky top-0 z-40 border-b border-[var(--oc-line)] bg-[var(--oc-bg)]/95 backdrop-blur-sm">
+      <div className="oc-container">
+        <div className="hidden items-center justify-between py-8 lg:grid lg:grid-cols-[1fr_auto_1fr]">
+          <nav className="flex items-center gap-8">
+            {primaryNav.map((item) => (
+              <Link key={item.href} href={item.href} className="oc-nav-link">
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <Link href="/" className="justify-self-center px-6" onClick={() => setOpen(false)} aria-label="Origin Carpets">
+            <BrandLogo size="md" />
           </Link>
 
-          <div className="hidden items-center gap-2 md:flex">
+          <div className="flex items-center justify-end gap-6">
+            <ThemeToggle />
             <LanguageSwitcher />
-            <Link href="/login" className="oc-btn-secondary px-3 py-2">
-              {dict.common.login}
-            </Link>
+            <AccountNav onNavigate={() => setOpen(false)} />
             <CartLink />
           </div>
+        </div>
 
+        <div className="flex items-center justify-between py-5 lg:hidden">
           <button
             type="button"
             aria-expanded={open}
             aria-label={open ? dict.common.close : dict.common.menu}
             onClick={() => setOpen((prev) => !prev)}
-            className="oc-btn-secondary px-3 py-2 md:hidden"
+            className="oc-nav-link"
           >
             {open ? dict.common.close : dict.common.menu}
           </button>
+
+          <Link href="/" onClick={() => setOpen(false)} aria-label="Origin Carpets">
+            <BrandLogo size="sm" iconOnly />
+          </Link>
+
+          <div className="flex items-center gap-5">
+            <ThemeToggle />
+            <CartLink />
+          </div>
         </div>
 
-        <nav className="mt-4 hidden flex-wrap items-center gap-x-5 gap-y-2 border-t border-[var(--oc-line)] pt-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--oc-muted)] md:flex">
-          {navItems.map((item) => (
-            <Link key={item.href} href={item.href} className="hover:text-[var(--oc-ink)]">
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        {open && (
-          <nav className="mt-4 border-t border-[var(--oc-line)] pt-3 md:hidden">
-            <div className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--oc-muted)]">
-              {navItems.map((item) => (
-                <Link key={`mobile-${item.href}`} href={item.href} className="px-1 py-2 hover:text-[var(--oc-ink)]" onClick={() => setOpen(false)}>
-                  {item.label}
-                </Link>
-              ))}
-              <Link href="/login" className="px-1 py-2 hover:text-[var(--oc-ink)]" onClick={() => setOpen(false)}>
-                {dict.common.login}
-              </Link>
-              <LanguageSwitcher />
-              <div className="pt-2">
-                <CartLink />
-              </div>
-            </div>
-          </nav>
-        )}
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden border-t border-[var(--oc-line)] lg:hidden"
+            >
+              <nav className="flex flex-col gap-0 py-4">
+                {allNav.map((item) => (
+                  <Link
+                    key={`m-${item.href}`}
+                    href={item.href}
+                    className="border-b border-[var(--oc-line)] py-4 text-sm uppercase tracking-[0.18em] last:border-0"
+                    onClick={() => setOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+                <div className="flex items-center justify-between pt-6">
+                  <div className="flex items-center gap-5">
+                    <ThemeToggle />
+                    <LanguageSwitcher />
+                  </div>
+                  <AccountNavMobile onNavigate={() => setOpen(false)} />
+                </div>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </header>
   );

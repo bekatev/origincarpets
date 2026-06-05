@@ -15,6 +15,21 @@ const PRODUCT_INCLUDE = {
   }
 };
 
+type LegacyProductMetadata = {
+  period?: { label?: string | null; ageTitle?: string | null };
+  originCountry?: string | null;
+  originRegion?: string | null;
+};
+
+function isTruthyFilterFlag(value?: string): boolean {
+  return value === '1' || value === 'true' || value === 'yes';
+}
+
+function readMetadata(metadata: unknown): LegacyProductMetadata | null {
+  if (!metadata || typeof metadata !== 'object') return null;
+  return metadata as LegacyProductMetadata;
+}
+
 @Injectable()
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -46,6 +61,65 @@ export class ProductsService {
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       select: { id: true, name: true, slug: true, description: true, sortOrder: true, isActive: true }
     });
+  }
+
+  async listFilterOptions() {
+    const [categories, products] = await Promise.all([
+      this.listCategories(),
+      this.prisma.product.findMany({
+        where: { isActive: true },
+        select: {
+          material: true,
+          sizeLabel: true,
+          origin: true,
+          metadata: true,
+          attributes: { include: { attribute: true } }
+        }
+      })
+    ]);
+
+    const materials = new Set<string>();
+    const sizes = new Set<string>();
+    const origins = new Set<string>();
+    const colors = new Set<string>();
+    const periods = new Set<string>();
+    const ages = new Set<string>();
+
+    for (const product of products) {
+      if (product.material?.trim()) materials.add(product.material.trim());
+      if (product.sizeLabel?.trim()) sizes.add(product.sizeLabel.trim());
+      if (product.origin?.trim()) origins.add(product.origin.trim());
+
+      const colorValue = product.attributes.find((entry) => entry.attribute.code === 'color')?.value;
+      if (colorValue?.trim()) colors.add(colorValue.trim());
+
+      const metadata = readMetadata(product.metadata);
+      if (metadata?.originCountry?.trim()) {
+        const country = metadata.originCountry.trim();
+        origins.add(country);
+        if (metadata.originRegion?.trim()) {
+          origins.add(`${country} - ${metadata.originRegion.trim()}`);
+        }
+      }
+      if (metadata?.period?.label?.trim()) periods.add(metadata.period.label.trim());
+      if (metadata?.period?.ageTitle?.trim()) ages.add(metadata.period.ageTitle.trim());
+    }
+
+    const sortAlpha = (values: Set<string>) => [...values].sort((a, b) => a.localeCompare(b));
+
+    return {
+      categories: categories.map((category) => ({
+        id: category.id,
+        name: category.name,
+        slug: category.slug
+      })),
+      materials: sortAlpha(materials),
+      sizes: sortAlpha(sizes),
+      origins: sortAlpha(origins),
+      colors: sortAlpha(colors),
+      periods: sortAlpha(periods),
+      ages: sortAlpha(ages)
+    };
   }
 
   async listAdminCategories() {
@@ -181,31 +255,93 @@ export class ProductsService {
     return { success: true };
   }
 
+  private buildProductWhere(query: ListProductsDto, onlyActive: boolean): Prisma.ProductWhereInput {
+    const and: Prisma.ProductWhereInput[] = [];
+
+    if (onlyActive) and.push({ isActive: true });
+
+    if (query.search) {
+      and.push({
+        OR: [
+          { title: { contains: query.search, mode: 'insensitive' } },
+          { description: { contains: query.search, mode: 'insensitive' } },
+          { material: { contains: query.search, mode: 'insensitive' } },
+          { origin: { contains: query.search, mode: 'insensitive' } }
+        ]
+      });
+    }
+
+    if (query.category) and.push({ category: { slug: query.category } });
+
+    if (query.material) {
+      and.push({ material: { equals: query.material, mode: 'insensitive' } });
+    }
+
+    if (query.size) {
+      and.push({ sizeLabel: { equals: query.size, mode: 'insensitive' } });
+    }
+
+    if (query.origin) {
+      and.push({ origin: { contains: query.origin, mode: 'insensitive' } });
+    }
+
+    if (query.color) {
+      and.push({
+        attributes: {
+          some: {
+            attribute: { code: 'color' },
+            value: { equals: query.color, mode: 'insensitive' }
+          }
+        }
+      });
+    }
+
+    if (query.period) {
+      and.push({
+        metadata: {
+          path: ['period', 'label'],
+          equals: query.period
+        }
+      });
+    }
+
+    if (query.age) {
+      and.push({
+        OR: [
+          { metadata: { path: ['period', 'ageTitle'], equals: query.age } },
+          { metadata: { path: ['period', 'label'], equals: query.age } }
+        ]
+      });
+    }
+
+    if (isTruthyFilterFlag(query.georgian)) {
+      and.push({
+        OR: [
+          { origin: { contains: 'Georgia', mode: 'insensitive' } },
+          { metadata: { path: ['originCountry'], string_contains: 'Georgia', mode: 'insensitive' } },
+          { category: { slug: { in: ['georgian', 'georgian-carpets', 'georgian-carpet'] } } },
+          { category: { name: { contains: 'Georgian', mode: 'insensitive' } } }
+        ]
+      });
+    }
+
+    if (query.minPrice !== undefined || query.maxPrice !== undefined) {
+      and.push({
+        price: {
+          ...(query.minPrice !== undefined ? { gte: query.minPrice } : {}),
+          ...(query.maxPrice !== undefined ? { lte: query.maxPrice } : {})
+        }
+      });
+    }
+
+    return and.length ? { AND: and } : {};
+  }
+
   private async queryProducts(query: ListProductsDto, onlyActive: boolean) {
     const page = query.page ?? 1;
     const limit = Math.min(query.limit ?? 20, 100);
 
-    const where: Prisma.ProductWhereInput = {
-      ...(onlyActive ? { isActive: true } : {}),
-      ...(query.search
-        ? {
-            OR: [
-              { title: { contains: query.search, mode: 'insensitive' } },
-              { description: { contains: query.search, mode: 'insensitive' } },
-              { material: { contains: query.search, mode: 'insensitive' } }
-            ]
-          }
-        : {}),
-      ...(query.category ? { category: { slug: query.category } } : {}),
-      ...(query.minPrice !== undefined || query.maxPrice !== undefined
-        ? {
-            price: {
-              ...(query.minPrice !== undefined ? { gte: query.minPrice } : {}),
-              ...(query.maxPrice !== undefined ? { lte: query.maxPrice } : {})
-            }
-          }
-        : {})
-    };
+    const where = this.buildProductWhere(query, onlyActive);
 
     const [items, total] = await Promise.all([
       this.prisma.product.findMany({
@@ -253,10 +389,13 @@ export class ProductsService {
       price: Number(product.price),
       isActive: product.isActive,
       category: { id: product.category.id, name: product.category.name, slug: product.category.slug },
+      origin: product.origin,
       attributes: {
         size: product.sizeLabel,
         material: product.material,
-        color: colorValue
+        color: colorValue,
+        period: readMetadata(product.metadata)?.period?.label ?? null,
+        age: readMetadata(product.metadata)?.period?.ageTitle ?? null
       },
       images: product.images.map((image) => image.url),
       createdAt: product.createdAt,

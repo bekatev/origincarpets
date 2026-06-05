@@ -9,7 +9,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "import:origincarpets": "ts-node src/scripts/import-origincarpets.ts sync",
-    "import:origincarpets:full": "ts-node src/scripts/import-origincarpets.ts full"
+    "import:origincarpets:full": "ts-node src/scripts/import-origincarpets.ts full",
+    "backfill:filters": "ts-node src/scripts/backfill-product-filters.ts"
   },
   "dependencies": {
     "@nestjs/common": "latest",

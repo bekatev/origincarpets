@@ -1,9 +1,17 @@
 import { API_URL } from './api';
 
-type LocalCartItem = {
+export type StoredCartItem = {
   id: string;
+  slug: string;
+  title: string;
+  price: number;
+  image?: string;
   quantity: number;
 };
+
+const CART_STORAGE_PREFIX = 'carpet_cart_v1';
+/** @deprecated Shared key caused carts to leak between users on the same browser. */
+const LEGACY_CART_STORAGE_KEY = 'carpet_cart_v1';
 
 type RemoteCartResponse = {
   items: Array<{
@@ -12,21 +20,35 @@ type RemoteCartResponse = {
   }>;
 };
 
-const CART_STORAGE_KEY = 'carpet_cart_v1';
+export function cartStorageKey(userId: string): string {
+  return `${CART_STORAGE_PREFIX}:${userId}`;
+}
 
-function getLocalCart(): LocalCartItem[] {
+export function readCartFromStorage(userId: string): StoredCartItem[] {
   try {
-    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    const raw = localStorage.getItem(cartStorageKey(userId));
     if (!raw) return [];
-    const parsed = JSON.parse(raw) as Array<{ id: string; quantity: number }>;
-    return parsed.map((item) => ({ id: item.id, quantity: Math.max(1, Math.floor(item.quantity)) }));
+    const parsed = JSON.parse(raw) as StoredCartItem[];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
 }
 
-function toLocalStorageShape(remote: RemoteCartResponse['items']) {
-  return remote.map((entry) => ({
+export function writeCartToStorage(userId: string, items: StoredCartItem[]): void {
+  localStorage.setItem(cartStorageKey(userId), JSON.stringify(items));
+}
+
+export function clearCartStorage(userId: string): void {
+  localStorage.removeItem(cartStorageKey(userId));
+}
+
+export function clearLegacyCartStorage(): void {
+  localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
+}
+
+function toCartItems(remote: RemoteCartResponse['items']): StoredCartItem[] {
+  return (remote ?? []).map((entry) => ({
     id: entry.product.id,
     slug: entry.product.slug,
     title: entry.product.title,
@@ -36,42 +58,15 @@ function toLocalStorageShape(remote: RemoteCartResponse['items']) {
   }));
 }
 
-export async function mergeLocalCartAfterAuth(token: string): Promise<void> {
-  const local = getLocalCart();
-
-  const [remoteRes] = await Promise.all([
-    fetch(`${API_URL}/cart`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-  ]);
-
-  const remote = (await remoteRes.json()) as RemoteCartResponse;
-
-  const merged = new Map<string, number>();
-  for (const item of remote.items ?? []) {
-    merged.set(item.product.id, Math.max(1, Math.floor(item.quantity)));
-  }
-  for (const item of local) {
-    merged.set(item.id, Math.min(99, (merged.get(item.id) ?? 0) + item.quantity));
-  }
-
-  const syncPayload = {
-    items: Array.from(merged.entries()).map(([productId, quantity]) => ({ productId, quantity }))
-  };
-
-  const syncRes = await fetch(`${API_URL}/cart/sync`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(syncPayload)
+export async function fetchUserCart(token: string): Promise<StoredCartItem[]> {
+  const response = await fetch(`${API_URL}/cart`, {
+    headers: { Authorization: `Bearer ${token}` }
   });
 
-  if (!syncRes.ok) {
-    return;
+  if (!response.ok) {
+    throw new Error('Failed to load cart');
   }
 
-  const synced = (await syncRes.json()) as RemoteCartResponse;
-  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(toLocalStorageShape(synced.items ?? [])));
+  const remote = (await response.json()) as RemoteCartResponse;
+  return toCartItems(remote.items);
 }

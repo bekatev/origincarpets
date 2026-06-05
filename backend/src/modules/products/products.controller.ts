@@ -23,6 +23,11 @@ export class ProductsController {
     return this.productsService.listCategories();
   }
 
+  @Get('filters')
+  filters() {
+    return this.productsService.listFilterOptions();
+  }
+
   @Get(':slug')
   detail(@Param('slug') slug: string) {
     return this.productsService.getBySlug(slug);

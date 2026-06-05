@@ -1,12 +1,12 @@
 'use client';
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
-import { LANG_COOKIE, dictionaries, normalizeLocale, type Locale } from '@/lib/i18n';
+import { LANG_COOKIE, dictionaries, normalizeLocale, type Dictionary, type Locale } from '@/lib/i18n';
 
 type I18nContextValue = {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  dict: (typeof dictionaries)['en'];
+  dict: Dictionary;
 };
 
 const I18nContext = createContext<I18nContextValue | null>(null);

@@ -1,9 +1,16 @@
 'use client';
 
 import { API_URL } from './api';
+import { readStoredToken } from './auth';
+import {
+  clearCartStorage,
+  clearLegacyCartStorage,
+  fetchUserCart,
+  readCartFromStorage,
+  writeCartToStorage
+} from './cart-sync';
+import { useAuth } from '@/components/providers/auth-provider';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-
-const CART_STORAGE_KEY = 'carpet_cart_v1';
 
 type CartProduct = {
   id: string;
@@ -34,7 +41,7 @@ function clampQuantity(quantity: number): number {
 }
 
 async function syncCartToBackend(items: CartItem[]): Promise<void> {
-  const token = localStorage.getItem('auth_token');
+  const token = readStoredToken();
   if (!token) return;
 
   try {
@@ -44,36 +51,71 @@ async function syncCartToBackend(items: CartItem[]): Promise<void> {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ items })
+      body: JSON.stringify({
+        items: items.map((item) => ({ productId: item.id, quantity: item.quantity }))
+      })
     });
   } catch {
-    // Optional sync only; local cart remains source of truth for now.
+    // Local state remains; next load will reconcile from the server.
   }
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { user, ready: authReady } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(CART_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as CartItem[];
-        setItems(parsed);
+    if (!authReady) return;
+
+    let cancelled = false;
+
+    async function loadCartForUser() {
+      setIsHydrated(false);
+      clearLegacyCartStorage();
+
+      if (!user) {
+        setItems([]);
+        setIsHydrated(true);
+        return;
       }
-    } catch {
-      setItems([]);
-    } finally {
-      setIsHydrated(true);
+
+      const token = readStoredToken();
+
+      try {
+        if (token) {
+          const remoteItems = await fetchUserCart(token);
+          if (!cancelled) {
+            setItems(remoteItems);
+            writeCartToStorage(user.id, remoteItems);
+          }
+        } else if (!cancelled) {
+          setItems(readCartFromStorage(user.id));
+        }
+      } catch {
+        if (!cancelled) {
+          setItems(readCartFromStorage(user.id));
+        }
+      } finally {
+        if (!cancelled) {
+          setIsHydrated(true);
+        }
+      }
     }
-  }, []);
+
+    void loadCartForUser();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authReady, user?.id]);
 
   useEffect(() => {
-    if (!isHydrated) return;
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    if (!isHydrated || !user) return;
+
+    writeCartToStorage(user.id, items);
     void syncCartToBackend(items);
-  }, [items, isHydrated]);
+  }, [items, isHydrated, user?.id]);
 
   const addToCart = useCallback((product: CartProduct, quantity = 1) => {
     const qty = clampQuantity(quantity);
@@ -106,7 +148,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = useCallback(() => {
     setItems([]);
-  }, []);
+    if (user) {
+      clearCartStorage(user.id);
+    }
+  }, [user]);
 
   const value = useMemo<CartContextValue>(
     () => ({

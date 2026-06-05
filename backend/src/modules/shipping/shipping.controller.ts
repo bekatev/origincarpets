@@ -15,6 +15,11 @@ class ShippingCostQueryDto {
 export class ShippingController {
   constructor(private readonly shippingService: ShippingService) {}
 
+  @Get('options')
+  options() {
+    return this.shippingService.listOptions();
+  }
+
   @Get('cost')
   async cost(@Query() query: ShippingCostQueryDto) {
     const countryCode = query.countryCode?.toUpperCase() ?? (query.type === 'GEORGIA' ? 'GE' : 'US');
@@ -22,6 +27,7 @@ export class ShippingController {
 
     return {
       shippingType: result.shippingType,
+      providerKey: result.providerKey,
       shippingZone: {
         id: result.shippingZone.id,
         code: result.shippingZone.code,
@@ -29,10 +35,7 @@ export class ShippingController {
       },
       shippingCost: result.shippingCost,
       provider: result.provider,
-      deliveryDays: {
-        min: result.shippingZone.minDeliveryDays,
-        max: result.shippingZone.maxDeliveryDays
-      }
+      deliveryDays: result.deliveryDays
     };
   }
 }

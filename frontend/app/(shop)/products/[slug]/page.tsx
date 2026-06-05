@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { MotionSection } from '@/components/motion/section';
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
+import { FormattedPrice } from '@/components/products/formatted-price';
+import { ProductImageGallery } from '@/components/products/product-image-gallery';
+import { getServerDictionary } from '@/lib/i18n-server';
 import { fetchProductBySlug } from '@/lib/products';
 
 export const revalidate = 300;
@@ -11,8 +14,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const product = await fetchProductBySlug(slug);
 
   if (!product) {
+    const { dict } = await getServerDictionary();
     return {
-      title: 'Product Not Found'
+      title: dict.productDetail.notFound
     };
   }
 
@@ -27,7 +31,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: product.description.slice(0, 150),
       type: 'website',
       url: `http://localhost:3000/products/${product.slug}`,
-      images: product.images.length ? [{ url: product.images[0], alt: product.title }] : undefined
+      images: product.images.length
+        ? product.images.map((url) => ({ url, alt: product.title }))
+        : undefined
     },
     twitter: {
       card: 'summary_large_image',
@@ -40,51 +46,45 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = await fetchProductBySlug(slug);
+  const [{ dict }, product] = await Promise.all([getServerDictionary(), fetchProductBySlug(slug)]);
+  const d = dict.productDetail;
 
   if (!product) {
     notFound();
   }
 
   return (
-    <main className="oc-section">
-      <div className="oc-container grid gap-8 md:grid-cols-2">
-        <section className="oc-surface p-4">
-        <Image
-          src={product.images[0] ?? 'https://placehold.co/1200x900?text=Carpet'}
-          alt={product.title}
-          width={1200}
-          height={900}
-          priority
-          className="h-[500px] w-full object-cover"
-        />
-        </section>
+    <MotionSection className="oc-section">
+      <div className="oc-container grid gap-12 md:grid-cols-2">
+        <ProductImageGallery images={product.images} title={product.title} />
 
-        <section className="space-y-5">
-          <p className="oc-kicker">{product.category.name}</p>
-          <h1 className="font-display text-4xl uppercase leading-tight tracking-[0.1em]">{product.title}</h1>
-          <p className="text-sm font-semibold uppercase tracking-[0.12em]">{product.price.toFixed(2)} GEL</p>
+        <section className="space-y-8">
+          <p className="oc-eyebrow">{product.category.name}</p>
+          <h1 className="oc-heading-sm">{product.title}</h1>
+          <p className="text-lg text-[var(--oc-ink)]">
+            <FormattedPrice amount={product.price} />
+          </p>
 
-          <dl className="oc-surface grid grid-cols-2 gap-3 p-4 text-sm">
+          <dl className="grid grid-cols-2 gap-6 border-t border-[var(--oc-line)] pt-8 text-sm">
             <div>
-              <dt className="text-[var(--oc-muted)]">Size</dt>
-              <dd className="mt-1 font-medium">{product.attributes.size ?? 'N/A'}</dd>
+              <dt className="text-[var(--oc-muted)]">{d.size}</dt>
+              <dd className="mt-1 font-medium">{product.attributes.size ?? d.na}</dd>
             </div>
             <div>
-              <dt className="text-[var(--oc-muted)]">Color</dt>
-              <dd className="mt-1 font-medium">{product.attributes.color ?? 'N/A'}</dd>
+              <dt className="text-[var(--oc-muted)]">{d.color}</dt>
+              <dd className="mt-1 font-medium">{product.attributes.color ?? d.na}</dd>
             </div>
             <div>
-              <dt className="text-[var(--oc-muted)]">Material</dt>
-              <dd className="mt-1 font-medium">{product.attributes.material ?? 'N/A'}</dd>
+              <dt className="text-[var(--oc-muted)]">{d.material}</dt>
+              <dd className="mt-1 font-medium">{product.attributes.material ?? d.na}</dd>
             </div>
             <div>
-              <dt className="text-[var(--oc-muted)]">SKU</dt>
+              <dt className="text-[var(--oc-muted)]">{d.sku}</dt>
               <dd className="mt-1 font-medium">{product.sku}</dd>
             </div>
           </dl>
 
-          <p className="leading-7 text-[var(--oc-muted)]">{product.description}</p>
+          <p className="text-[15px] leading-8 text-[var(--oc-muted)]">{product.description}</p>
 
           <AddToCartButton
             product={{
@@ -98,6 +98,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           />
         </section>
       </div>
-    </main>
+    </MotionSection>
   );
 }

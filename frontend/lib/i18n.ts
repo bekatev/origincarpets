@@ -1,70 +1,20 @@
+import { adminTranslations } from './i18n-admin';
+import { storefrontTranslations } from './i18n-storefront';
+
 export type Locale = 'en' | 'ka';
 
 export const LANG_COOKIE = 'site_lang';
 
-type Dictionary = {
-  common: {
-    language: string;
-    english: string;
-    georgian: string;
-    login: string;
-    cart: string;
-    close: string;
-    menu: string;
-  };
-  topbar: {
-    shipping: string;
-  };
-  nav: {
-    about: string;
-    carpets: string;
-    origin: string;
-    guides: string;
-    contact: string;
-    social: string;
-    appointment: string;
-  };
-  footer: {
-    description: string;
-    shop: string;
-    productCatalog: string;
-    checkout: string;
-    account: string;
-    register: string;
-    myOrders: string;
-  };
-  home: {
-    heroSubtitle: string;
-    heroTitle1: string;
-    heroTitle2: string;
-    heroBody: string;
-    featuredPieces: string;
-    memberLogin: string;
-    curatorSelection: string;
-    createAccount: string;
-    historyTitle: string;
-    historyP1: string;
-    historyP2: string;
-    historyP3: string;
-    categoriesTitle: string;
-    carpetTitle: string;
-    carpetBody: string;
-    kilimTitle: string;
-    kilimBody: string;
-    contactTitle: string;
-    policyReturn: string;
-    policyPrivacy: string;
-    socialMedia: string;
-  };
-};
-
-export const dictionaries: Record<Locale, Dictionary> = {
+export const dictionaries = {
   en: {
     common: {
       language: 'Language',
       english: 'ENG',
       georgian: 'GEO',
       login: 'Login',
+      logout: 'Log out',
+      profile: 'Profile',
+      admin: 'Admin',
       cart: 'Cart',
       close: 'Close',
       menu: 'Menu'
@@ -73,6 +23,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       shipping: 'Worldwide Delivery Available'
     },
     nav: {
+      shop: 'Shop',
       about: 'About Us',
       carpets: 'Carpets',
       origin: 'Carpet Origin',
@@ -91,7 +42,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       myOrders: 'My Orders'
     },
     home: {
-      heroSubtitle: 'Finest Caucasian and Oriental Carpets',
+      siteTitle: 'Finest Caucasian and Oriental Carpets',
+      heroSubtitle: 'Origin Carpets · Tbilisi',
       heroTitle1: 'Transform Your Space',
       heroTitle2: 'with Authentic Oriental Carpets',
       heroBody:
@@ -117,8 +69,18 @@ export const dictionaries: Record<Locale, Dictionary> = {
       contactTitle: 'Contact Us',
       policyReturn: 'Return and Refund policy',
       policyPrivacy: 'Customer privacy policy',
-      socialMedia: 'Social media'
-    }
+      socialMedia: 'Social media',
+      featuredCollection: 'Featured collection',
+      exploreCollection: 'Explore our collection',
+      editorialTitle:
+        'Handwoven carpets from the Caucasus and beyond — antique and contemporary, natural fibres, in many styles and sizes.',
+      editorialBody:
+        'Our gallery in Tbilisi holds a diverse collection of Georgian, Persian, Turkish, and Central Asian rugs. Each piece is chosen for its craftsmanship, colour, and story.',
+      readStory: 'Read the story',
+      aboutHeading: 'About us'
+    },
+    ...storefrontTranslations.en,
+    ...adminTranslations.en
   },
   ka: {
     common: {
@@ -126,6 +88,9 @@ export const dictionaries: Record<Locale, Dictionary> = {
       english: 'ENG',
       georgian: 'GEO',
       login: 'შესვლა',
+      logout: 'გასვლა',
+      profile: 'პროფილი',
+      admin: 'ადმინი',
       cart: 'კალათა',
       close: 'დახურვა',
       menu: 'მენიუ'
@@ -134,6 +99,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       shipping: 'მიწოდება მსოფლიოს მასშტაბით'
     },
     nav: {
+      shop: 'მაღაზია',
       about: 'ჩვენ შესახებ',
       carpets: 'ხალიჩები',
       origin: 'ხალიჩის წარმომავლობა',
@@ -152,7 +118,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       myOrders: 'ჩემი შეკვეთები'
     },
     home: {
-      heroSubtitle: 'კავკასიური და აღმოსავლური ხალიჩების საუკეთესო კოლექცია',
+      siteTitle: 'საუკეთესო კავკასიური და აღმოსავლური ხალიჩები',
+      heroSubtitle: 'Origin Carpets · თბილისი',
       heroTitle1: 'შეცვალეთ თქვენი სივრცე',
       heroTitle2: 'ავთენტური აღმოსავლური ხალიჩებით',
       heroBody:
@@ -178,11 +145,27 @@ export const dictionaries: Record<Locale, Dictionary> = {
       contactTitle: 'კონტაქტი',
       policyReturn: 'დაბრუნებისა და ანაზღაურების პოლიტიკა',
       policyPrivacy: 'მომხმარებლის კონფიდენციალურობის პოლიტიკა',
-      socialMedia: 'სოციალური მედია'
-    }
+      socialMedia: 'სოციალური მედია',
+      featuredCollection: 'რჩეული კოლექცია',
+      exploreCollection: 'გაეცანით კოლექციას',
+      editorialTitle:
+        'ხელნაქსოვი ხალიჩები კავკასიიდან და მის გარშემო — ანტიკური და თანამედროვე, ბუნებრივი ბოჭკოთი, სხვადასხვა სტილსა და ზომაში.',
+      editorialBody:
+        'ჩვენი თბილისის გალერეა მდიდარ კოლექციას აერთიანებს ქართული, სპარსული, თურქული და ცენტრალური აზიური ხალიჩებს. თითოეული ნამუშევარი შერჩეულია ხელოვნების, ფერისა და ისტორიისთვის.',
+      readStory: 'წაიკითხეთ ისტორია',
+      aboutHeading: 'ჩვენ შესახებ'
+    },
+    ...storefrontTranslations.ka,
+    ...adminTranslations.ka
   }
 };
 
+export type Dictionary = (typeof dictionaries)[Locale];
+
 export function normalizeLocale(value?: string | null): Locale {
   return value === 'ka' ? 'ka' : 'en';
+}
+
+export function formatCount(template: string, count: number): string {
+  return template.replace('{count}', String(count));
 }

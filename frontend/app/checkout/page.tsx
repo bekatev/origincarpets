@@ -2,16 +2,23 @@
 
 import Link from 'next/link';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { RequireAuth } from '@/components/auth/require-auth';
 import { API_URL, apiRequest } from '@/lib/api';
+import { useCurrency } from '@/components/providers/currency-provider';
+import { useI18n } from '@/components/providers/i18n-provider';
 import { useCart } from '@/lib/cart';
+import { ShippingMethodPicker } from '@/components/checkout/shipping-method-picker';
 import { StripePaymentForm } from '@/components/checkout/stripe-payment-form';
+import { cn } from '@/lib/cn';
 
 type ShippingType = 'GEORGIA' | 'INTERNATIONAL';
 
 type ShippingQuote = {
   shippingType: ShippingType;
+  providerKey: string;
   shippingZone: { id: string; code: string; name: string };
   shippingCost: number;
   provider: string;
@@ -22,6 +29,9 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
+  const { formatPrice } = useCurrency();
+  const { dict } = useI18n();
+  const t = dict.checkout;
   const [shippingType, setShippingType] = useState<ShippingType>('GEORGIA');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -42,7 +52,9 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (shippingType === 'GEORGIA') {
       setCountryCode('GE');
+      return;
     }
+    setCountryCode((current) => (current === 'GE' ? 'US' : current));
   }, [shippingType]);
 
   useEffect(() => {
@@ -88,12 +100,12 @@ export default function CheckoutPage() {
 
     const token = localStorage.getItem('auth_token');
     if (!token) {
-      setError('Please login before checkout.');
+      setError(t.loginRequired);
       return;
     }
 
     if (!items.length) {
-      setError('Cart is empty.');
+      setError(t.cartEmpty);
       return;
     }
 
@@ -127,76 +139,71 @@ export default function CheckoutPage() {
 
       setCreatedOrder({ orderId: order.id, orderNumber: order.orderNumber });
       setIntent(intentRes);
-      setSuccess(`Order ${order.orderNumber} created. Please complete payment.`);
+      setSuccess(t.orderCreated.replace('{orderNumber}', order.orderNumber));
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Checkout failed');
+      setError(submitError instanceof Error ? submitError.message : t.failed);
     } finally {
       setBusy(false);
     }
   }
 
-  if (!items.length && !createdOrder) {
-    return (
-      <main className="oc-section">
-        <div className="oc-container max-w-4xl">
-          <h1 className="oc-heading">Checkout</h1>
-          <p className="mt-3 text-sm text-[var(--oc-muted)]">Your cart is empty.</p>
-          <Link href="/products" className="mt-4 inline-flex text-xs font-semibold uppercase tracking-[0.14em] text-[var(--oc-brand)] hover:text-[var(--oc-brand-soft)]">
-            Go to products
-          </Link>
-        </div>
-      </main>
-    );
-  }
-
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
   return (
+    <RequireAuth>
+    {!items.length && !createdOrder ? (
+      <main className="oc-section">
+        <div className="oc-container max-w-4xl">
+          <h1 className="oc-heading">{t.title}</h1>
+          <p className="mt-3 text-sm text-[var(--oc-muted)]">{t.empty}</p>
+          <Link href="/products" className="oc-link mt-4 inline-flex text-xs font-semibold uppercase tracking-[0.14em]">
+            {t.browseProducts}
+          </Link>
+        </div>
+      </main>
+    ) : (
     <main className="oc-section">
       <div className="oc-container grid gap-8 lg:grid-cols-[1.5fr_1fr]">
-        <section className="oc-surface space-y-4 p-5">
-          <h1 className="font-display text-3xl uppercase tracking-[0.1em]">Checkout</h1>
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="oc-surface space-y-4 p-5"
+        >
+          <h1 className="font-display text-3xl uppercase tracking-[0.1em]">{t.title}</h1>
 
         {!createdOrder ? (
           <form onSubmit={onCreateOrder} className="mt-2 space-y-4">
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em]">Shipping type</p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShippingType('GEORGIA')}
-                  className={`oc-btn px-3 py-2 ${
-                    shippingType === 'GEORGIA' ? 'border-[var(--oc-brand)] bg-[var(--oc-brand)] text-white' : 'border-[var(--oc-line)] bg-white'
-                  }`}
-                >
-                  Georgia (Free)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShippingType('INTERNATIONAL')}
-                  className={`oc-btn px-3 py-2 ${
-                    shippingType === 'INTERNATIONAL' ? 'border-[var(--oc-brand)] bg-[var(--oc-brand)] text-white' : 'border-[var(--oc-line)] bg-white'
-                  }`}
-                >
-                  International
-                </button>
-              </div>
-            </div>
+            <ShippingMethodPicker
+              dict={t}
+              shippingType={shippingType}
+              quote={quote}
+              loadingQuote={loadingQuote}
+              formatPrice={formatPrice}
+              onSelect={setShippingType}
+            />
 
             <div className="grid gap-3 md:grid-cols-2">
-              <input className="oc-input" placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-              <input className="oc-input" placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-              <input className="oc-input" placeholder="Country code (GE/US/DE...)" value={countryCode} onChange={(e) => setCountryCode(e.target.value.toUpperCase())} required />
-              <input className="oc-input" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} required />
-              <input className="oc-input" placeholder="Region" value={region} onChange={(e) => setRegion(e.target.value)} />
-              <input className="oc-input" placeholder="Postal code" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
+              <input className="oc-input" placeholder={t.fullName} value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+              <input className="oc-input" placeholder={t.phone} value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <input
+                className={cn('oc-input', shippingType === 'GEORGIA' && 'opacity-60')}
+                placeholder={t.countryCode}
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value.toUpperCase())}
+                readOnly={shippingType === 'GEORGIA'}
+                required
+              />
+              <input className="oc-input" placeholder={t.city} value={city} onChange={(e) => setCity(e.target.value)} required />
+              <input className="oc-input" placeholder={t.region} value={region} onChange={(e) => setRegion(e.target.value)} />
+              <input className="oc-input" placeholder={t.postalCode} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
             </div>
 
-            <input className="oc-input" placeholder="Address line 1" value={line1} onChange={(e) => setLine1(e.target.value)} required />
-            <input className="oc-input" placeholder="Address line 2 (optional)" value={line2} onChange={(e) => setLine2(e.target.value)} />
+            <input className="oc-input" placeholder={t.address1} value={line1} onChange={(e) => setLine1(e.target.value)} required />
+            <input className="oc-input" placeholder={t.address2} value={line2} onChange={(e) => setLine2(e.target.value)} />
 
             <button disabled={busy} type="submit" className="oc-btn-primary">
-              {busy ? 'Creating order...' : 'Create order'}
+              {busy ? t.creating : t.createOrder}
             </button>
           </form>
         ) : intent?.clientSecret && createdOrder && token ? (
@@ -207,53 +214,70 @@ export default function CheckoutPage() {
               paymentIntentId={intent.paymentIntentId}
               clientSecret={intent.clientSecret}
               onPaid={(message) => {
-                setSuccess(`${message} Order ${createdOrder.orderNumber}.`);
+                setSuccess(
+                  t.paymentSuccess.replace('{message}', message).replace('{orderNumber}', createdOrder.orderNumber)
+                );
                 clearCart();
               }}
             />
           </Elements>
         ) : (
-          <p className="text-sm text-red-700">Stripe publishable key is missing. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.</p>
+          <p className="text-sm text-red-700">{t.stripeMissing}</p>
         )}
 
           {error && <p className="text-sm text-red-700">{error}</p>}
           {success && <p className="text-sm text-green-700">{success}</p>}
-        </section>
+        </motion.section>
 
-        <aside className="oc-surface h-fit p-5">
-          <h2 className="font-display text-2xl uppercase tracking-[0.1em]">Order Summary</h2>
+        <motion.aside
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
+          className="oc-surface h-fit p-5"
+        >
+          <h2 className="font-display text-2xl uppercase tracking-[0.1em]">{t.summary}</h2>
         <div className="mt-4 space-y-2 text-sm">
           {items.map((item) => (
             <div key={item.id} className="flex items-center justify-between">
               <span>
                 {item.title} × {item.quantity}
               </span>
-              <span>{(item.price * item.quantity).toFixed(2)} GEL</span>
+              <span>{formatPrice(item.price * item.quantity)}</span>
             </div>
           ))}
         </div>
 
         <div className="mt-4 border-t border-[var(--oc-line)] pt-3 text-sm">
           <div className="flex items-center justify-between">
-            <span>Subtotal</span>
-            <span>{subtotal.toFixed(2)} GEL</span>
+            <span>{t.subtotal}</span>
+            <span>{formatPrice(subtotal)}</span>
           </div>
           <div className="mt-1 flex items-center justify-between">
-            <span>Shipping {quote ? `(${quote.shippingZone.name})` : ''}</span>
-            <span>{loadingQuote ? '...' : `${shippingEstimate.toFixed(2)} GEL`}</span>
+            <span>
+              {t.shipping} {quote ? `(${quote.shippingZone.name})` : ''}
+            </span>
+            <span>{loadingQuote ? '...' : formatPrice(shippingEstimate)}</span>
           </div>
           {quote && (
-            <p className="mt-1 text-xs text-[var(--oc-muted)]">
-              Provider: {quote.provider} • ETA {quote.deliveryDays.min ?? '?'}-{quote.deliveryDays.max ?? '?'} days
+            <p className="mt-2 text-xs leading-relaxed text-[var(--oc-muted)]">
+              {t.shippingProvider}:{' '}
+              {quote.providerKey === 'georgian_post' ? t.methods.georgianPost.title : t.methods.dhlExpress.title}
+              <br />
+              {t.shippingEta}:{' '}
+              {t.shippingDays
+                .replace('{min}', String(quote.deliveryDays.min ?? '?'))
+                .replace('{max}', String(quote.deliveryDays.max ?? '?'))}
             </p>
           )}
           <div className="mt-2 flex items-center justify-between text-base font-semibold">
-            <span>Total</span>
-            <span>{total.toFixed(2)} GEL</span>
+            <span>{t.total}</span>
+            <span>{formatPrice(total)}</span>
           </div>
         </div>
-        </aside>
+        </motion.aside>
       </div>
     </main>
+    )}
+    </RequireAuth>
   );
 }
