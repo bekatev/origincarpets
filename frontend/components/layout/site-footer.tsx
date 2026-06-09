@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
+import { DecorationDivider } from '@/components/home/decoration-divider';
 import { FacebookIcon, InstagramIcon } from '@/components/icons/social-icons';
 import { MastercardIcon, VisaIcon } from '@/components/icons/payment-icons';
 import { useI18n } from '@/components/providers/i18n-provider';
@@ -22,7 +23,8 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-[var(--oc-line)] bg-[var(--oc-bg)]">
+    <footer className="bg-[var(--oc-bg)]">
+      <DecorationDivider />
       <div className="oc-container py-16 sm:py-20">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5 lg:gap-8">
           <div>

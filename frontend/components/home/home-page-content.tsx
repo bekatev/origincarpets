@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { BrandLogo } from '@/components/brand/brand-logo';
+import { DecorationDivider } from '@/components/home/decoration-divider';
+import { DecorationMotif } from '@/components/home/decoration-motif';
 import { FeaturedProductCard } from '@/components/home/featured-product-card';
 import { useI18n } from '@/components/providers/i18n-provider';
 import type { ProductItem } from '@/lib/products';
@@ -14,15 +16,16 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
   return (
     <main>
       <section className="relative">
-        <div className="relative aspect-[16/10] w-full sm:aspect-[16/9] lg:aspect-[21/9]">
+        <div className="relative aspect-[16/10] w-full overflow-hidden sm:aspect-[16/9] lg:aspect-[21/9]">
           <Image
             src={stockImages.hero}
             alt=""
             fill
             priority
-            className="object-cover"
+            className="object-cover object-center"
             sizes="100vw"
           />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--oc-bg)]/20 via-transparent to-transparent" />
         </div>
         <div className="oc-container-narrow py-14 text-center sm:py-20">
           <p className="oc-eyebrow">{dict.home.heroSubtitle}</p>
@@ -34,8 +37,10 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
         </div>
       </section>
 
+      <DecorationDivider />
+
       {featured.length > 0 && (
-        <section className="oc-section-tight border-t border-[var(--oc-line)]">
+        <section className="oc-section-tight">
           <div className="oc-container">
             <h2 className="oc-heading-sm text-center">{dict.home.featuredCollection}</h2>
             <div className="mt-12 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
@@ -52,7 +57,9 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
         </section>
       )}
 
-      <section className="oc-section border-t border-[var(--oc-line)]">
+      <DecorationDivider className="my-2" />
+
+      <section className="oc-section">
         <div className="oc-container">
           <div className="oc-container-narrow text-center">
             <h2 className="font-display text-2xl font-normal leading-[1.35] tracking-[-0.01em] text-[var(--oc-ink)] sm:text-3xl lg:text-4xl">
@@ -65,7 +72,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
                 src={stockImages.collection}
                 alt=""
                 fill
-                className="object-cover"
+                className="object-cover object-center"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
             </div>
@@ -80,8 +87,11 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
         </div>
       </section>
 
-      <section id="about-us" className="oc-section border-t border-[var(--oc-line)] bg-[var(--oc-bg-secondary)]">
-        <div className="oc-container grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
+      <DecorationDivider className="my-2" />
+
+      <section id="about-us" className="relative oc-section bg-[var(--oc-bg-secondary)]">
+        <DecorationMotif size="lg" />
+        <div className="oc-container relative grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
           <div>
             <p className="oc-eyebrow">{dict.home.aboutHeading}</p>
             <h2 className="oc-heading-sm mt-4">{dict.home.historyTitle}</h2>
@@ -94,26 +104,28 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
               {dict.home.createAccount}
             </Link>
           </div>
-          <div className="relative aspect-[3/4] overflow-hidden">
+          <div className="relative aspect-[3/4] overflow-hidden bg-[var(--oc-bg)]">
             <Image
               src={stockImages.about}
               alt=""
               fill
-              className="object-cover"
+              className="object-cover object-center grayscale-[15%]"
               sizes="(max-width: 1024px) 100vw, 50vw"
             />
           </div>
         </div>
       </section>
 
-      <section id="carpet-origin" className="oc-section border-t border-[var(--oc-line)]">
+      <DecorationDivider className="my-2" />
+
+      <section id="carpet-origin" className="oc-section">
         <div className="oc-container grid gap-12 lg:grid-cols-2">
-          <div className="relative aspect-[4/3] overflow-hidden">
+          <div className="relative aspect-[4/3] overflow-hidden bg-[var(--oc-bg-secondary)]">
             <Image
               src={stockImages.gallery}
               alt=""
               fill
-              className="object-cover"
+              className="object-cover object-center"
               sizes="(max-width: 1024px) 100vw, 50vw"
             />
           </div>
@@ -131,8 +143,11 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
         </div>
       </section>
 
-      <section id="contact-us" className="oc-section border-t border-[var(--oc-line)]">
-        <div className="oc-container-narrow text-center">
+      <DecorationDivider className="my-2" />
+
+      <section id="contact-us" className="relative oc-section">
+        <DecorationMotif size="sm" className="opacity-80" />
+        <div className="oc-container-narrow relative text-center">
           <div className="flex justify-center">
             <BrandLogo size="md" />
           </div>
