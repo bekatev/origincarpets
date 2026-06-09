@@ -1,4 +1,5 @@
 import { adminTranslations } from './i18n-admin';
+import { footerTranslations } from './i18n-footer';
 import { storefrontTranslations } from './i18n-storefront';
 
 export type Locale = 'en' | 'ka';
@@ -79,6 +80,7 @@ export const dictionaries = {
       readStory: 'Read the story',
       aboutHeading: 'About us'
     },
+    footerLinks: footerTranslations.en,
     ...storefrontTranslations.en,
     ...adminTranslations.en
   },
@@ -155,6 +157,7 @@ export const dictionaries = {
       readStory: 'წაიკითხეთ ისტორია',
       aboutHeading: 'ჩვენ შესახებ'
     },
+    footerLinks: footerTranslations.ka,
     ...storefrontTranslations.ka,
     ...adminTranslations.ka
   }

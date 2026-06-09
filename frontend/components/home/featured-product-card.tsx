@@ -5,7 +5,7 @@ import { ProductCardFoldMedia } from '@/components/products/product-card-fold-me
 import { FormattedPrice } from '@/components/products/formatted-price';
 import type { ProductItem } from '@/lib/products';
 
-export function FeaturedProductCard({ product }: { product: ProductItem }) {
+export function FeaturedProductCard({ product, priority = false }: { product: ProductItem; priority?: boolean }) {
   return (
     <article className="group">
       <Link href={`/products/${product.slug}`} className="block">
@@ -13,6 +13,7 @@ export function FeaturedProductCard({ product }: { product: ProductItem }) {
           images={product.images}
           alt={product.title}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          priority={priority}
         />
         <div className="mt-4 space-y-1.5 text-center">
           <h3 className="font-display text-lg leading-snug text-[var(--oc-ink)] transition group-hover:opacity-60">

@@ -1,5 +1,5 @@
 import { API_ORIGIN, API_URL } from './api';
-import { buildFacetsFromProducts, mergeFacetOptions } from './product-facets';
+import { buildFacetsFromProducts } from './product-facets';
 
 export interface ProductCategory {
   id: string;
@@ -70,10 +70,8 @@ export interface ProductListResponse {
 
 async function apiFetch<T>(path: string): Promise<T | null> {
   try {
-    const isDev = process.env.NODE_ENV === 'development';
     const response = await fetch(`${API_URL}${path}`, {
-      cache: isDev ? 'no-store' : 'force-cache',
-      ...(isDev ? {} : { next: { revalidate: 300, tags: ['products'] } })
+      next: { revalidate: 300, tags: ['products'] }
     });
 
     if (!response.ok) {
@@ -148,31 +146,29 @@ export async function fetchProductFilters(): Promise<ProductFilterOptions> {
     ages: []
   };
 
-  const [categories, fromApi, catalog] = await Promise.all([
+  const [categories, fromApi] = await Promise.all([
     fetchCategories(),
-    apiFetch<ProductFilterOptions>('/products/filters'),
-    fetchProducts({ limit: '500' })
+    apiFetch<ProductFilterOptions>('/products/filters')
   ]);
 
-  const fromProducts = buildFacetsFromProducts(categories, catalog.items);
-
-  if (!fromApi) {
-    return fromProducts.categories.length || fromProducts.materials.length
-      ? fromProducts
-      : { ...empty, categories };
+  if (fromApi) {
+    return {
+      categories: fromApi.categories?.length ? fromApi.categories : categories,
+      materials: fromApi.materials ?? [],
+      sizes: fromApi.sizes ?? [],
+      origins: fromApi.origins ?? [],
+      colors: fromApi.colors ?? [],
+      periods: fromApi.periods ?? [],
+      ages: fromApi.ages ?? []
+    };
   }
 
-  const normalized: ProductFilterOptions = {
-    categories: fromApi.categories?.length ? fromApi.categories : categories,
-    materials: fromApi.materials ?? [],
-    sizes: fromApi.sizes ?? [],
-    origins: fromApi.origins ?? [],
-    colors: fromApi.colors ?? [],
-    periods: fromApi.periods ?? [],
-    ages: fromApi.ages ?? []
-  };
+  const catalog = await fetchProducts({ limit: '500' });
+  const fromProducts = buildFacetsFromProducts(categories, catalog.items);
 
-  return mergeFacetOptions(normalized, fromProducts);
+  return fromProducts.categories.length || fromProducts.materials.length
+    ? fromProducts
+    : { ...empty, categories };
 }
 
 export async function fetchProductBySlug(slug: string): Promise<ProductItem | null> {

@@ -15,14 +15,16 @@ export function AddToCartButton({
 }) {
   const router = useRouter();
   const { isAuthenticated, ready } = useAuth();
-  const { addToCart } = useCart();
+  const { addToCart, isInCart } = useCart();
   const { dict } = useI18n();
   const [added, setAdded] = useState(false);
+  const inCart = isInCart(product.id);
 
   return (
     <button
       type="button"
       className={className ?? 'oc-btn-primary'}
+      disabled={inCart}
       onClick={() => {
         if (ready && !isAuthenticated) {
           router.push('/login');
@@ -33,7 +35,7 @@ export function AddToCartButton({
         setTimeout(() => setAdded(false), 1000);
       }}
     >
-      {added ? dict.cartActions.added : dict.cartActions.add}
+      {inCart ? dict.cartActions.inCart : added ? dict.cartActions.added : dict.cartActions.add}
     </button>
   );
 }

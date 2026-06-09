@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export function ProductImageGallery({
   images,
@@ -26,26 +25,18 @@ export function ProductImageGallery({
   return (
     <div className="space-y-4">
       <div className="oc-surface relative overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
+        <div className="relative flex min-h-[420px] w-full items-center justify-center bg-[var(--oc-bg-secondary)] md:min-h-[520px]">
+          <Image
             key={activeUrl}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="relative flex min-h-[420px] w-full items-center justify-center bg-[var(--oc-bg-secondary)] md:min-h-[520px]"
-          >
-            <Image
-              src={activeUrl}
-              alt={`${title} — image ${activeIndex + 1} of ${urls.length}`}
-              width={1200}
-              height={900}
-              priority={activeIndex === 0}
-              className="h-auto max-h-[70vh] w-full object-contain"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-          </motion.div>
-        </AnimatePresence>
+            src={activeUrl}
+            alt={`${title} — image ${activeIndex + 1} of ${urls.length}`}
+            width={1200}
+            height={900}
+            priority={activeIndex === 0}
+            className="h-auto max-h-[70vh] w-full object-contain"
+            sizes="(max-width: 768px) 100vw, 50vw"
+          />
+        </div>
         {urls.length > 1 && (
           <p className="absolute bottom-3 right-3 rounded-full bg-black/50 px-3 py-1 text-xs uppercase tracking-wider text-white backdrop-blur-sm">
             {activeIndex + 1} / {urls.length}
@@ -73,6 +64,7 @@ export function ProductImageGallery({
                 alt=""
                 width={96}
                 height={96}
+                loading="lazy"
                 className="h-full w-full object-cover"
               />
             </button>

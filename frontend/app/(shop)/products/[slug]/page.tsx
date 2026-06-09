@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { MotionSection } from '@/components/motion/section';
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
 import { FormattedPrice } from '@/components/products/formatted-price';
 import { ProductImageGallery } from '@/components/products/product-image-gallery';
@@ -54,7 +53,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   }
 
   return (
-    <MotionSection className="oc-section">
+    <section className="oc-section">
       <div className="oc-container grid gap-12 md:grid-cols-2">
         <ProductImageGallery images={product.images} title={product.title} />
 
@@ -98,6 +97,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           />
         </section>
       </div>
-    </MotionSection>
+    </section>
   );
 }

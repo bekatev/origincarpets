@@ -28,16 +28,16 @@ type CartContextValue = {
   items: CartItem[];
   totalItems: number;
   subtotal: number;
-  addToCart: (product: CartProduct, quantity?: number) => void;
+  addToCart: (product: CartProduct) => void;
   removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
+  isInCart: (productId: string) => boolean;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-function clampQuantity(quantity: number): number {
-  return Math.max(1, Math.min(99, quantity));
+function normalizeCartItems(items: CartItem[]): CartItem[] {
+  return items.map((item) => ({ ...item, quantity: 1 }));
 }
 
 async function syncCartToBackend(items: CartItem[]): Promise<void> {
@@ -71,7 +71,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     async function loadCartForUser() {
-      setIsHydrated(false);
       clearLegacyCartStorage();
 
       if (!user) {
@@ -80,26 +79,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      setItems(normalizeCartItems(readCartFromStorage(user.id)));
+      setIsHydrated(true);
+
       const token = readStoredToken();
+      if (!token) return;
 
       try {
-        if (token) {
-          const remoteItems = await fetchUserCart(token);
-          if (!cancelled) {
-            setItems(remoteItems);
-            writeCartToStorage(user.id, remoteItems);
-          }
-        } else if (!cancelled) {
-          setItems(readCartFromStorage(user.id));
+        const remoteItems = await fetchUserCart(token);
+        if (!cancelled) {
+          const normalized = normalizeCartItems(remoteItems);
+          setItems(normalized);
+          writeCartToStorage(user.id, normalized);
         }
       } catch {
-        if (!cancelled) {
-          setItems(readCartFromStorage(user.id));
-        }
-      } finally {
-        if (!cancelled) {
-          setIsHydrated(true);
-        }
+        // Keep the local cart that was shown immediately.
       }
     }
 
@@ -114,20 +108,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (!isHydrated || !user) return;
 
     writeCartToStorage(user.id, items);
-    void syncCartToBackend(items);
+
+    const timer = window.setTimeout(() => {
+      void syncCartToBackend(items);
+    }, 500);
+
+    return () => window.clearTimeout(timer);
   }, [items, isHydrated, user?.id]);
 
-  const addToCart = useCallback((product: CartProduct, quantity = 1) => {
-    const qty = clampQuantity(quantity);
+  const addToCart = useCallback((product: CartProduct) => {
     setItems((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: clampQuantity(item.quantity + qty) } : item
-        );
+      if (prev.some((item) => item.id === product.id)) {
+        return prev;
       }
 
-      return [...prev, { ...product, quantity: qty }];
+      return [...prev, { ...product, quantity: 1 }];
     });
   }, []);
 
@@ -135,16 +130,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => prev.filter((item) => item.id !== productId));
   }, []);
 
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      setItems((prev) => prev.filter((item) => item.id !== productId));
-      return;
-    }
-
-    setItems((prev) =>
-      prev.map((item) => (item.id === productId ? { ...item, quantity: clampQuantity(quantity) } : item))
-    );
-  }, []);
+  const isInCart = useCallback(
+    (productId: string) => items.some((item) => item.id === productId),
+    [items]
+  );
 
   const clearCart = useCallback(() => {
     setItems([]);
@@ -156,14 +145,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<CartContextValue>(
     () => ({
       items,
-      totalItems: items.reduce((sum, item) => sum + item.quantity, 0),
-      subtotal: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+      totalItems: items.length,
+      subtotal: items.reduce((sum, item) => sum + item.price, 0),
       addToCart,
       removeFromCart,
-      updateQuantity,
-      clearCart
+      clearCart,
+      isInCart
     }),
-    [items, addToCart, removeFromCart, updateQuantity, clearCart]
+    [items, addToCart, removeFromCart, clearCart, isInCart]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

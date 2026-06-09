@@ -9,7 +9,7 @@ import { useI18n } from '@/components/providers/i18n-provider';
 import { useCart } from '@/lib/cart';
 
 export default function CartPage() {
-  const { items, subtotal, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { items, subtotal, removeFromCart, clearCart } = useCart();
   const { formatPrice } = useCurrency();
   const { dict } = useI18n();
   const c = dict.cart;
@@ -62,30 +62,10 @@ export default function CartPage() {
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-display text-lg uppercase tracking-[0.08em]">{item.title}</p>
-                    <p className="text-sm text-[var(--oc-muted)]">
-                      {formatPrice(item.price)} {c.each}
-                    </p>
+                    <p className="text-sm text-[var(--oc-muted)]">{formatPrice(item.price)}</p>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      className="oc-btn-secondary px-3 py-1"
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center text-sm">{item.quantity}</span>
-                    <button
-                      type="button"
-                      className="oc-btn-secondary px-3 py-1"
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  <p className="w-28 text-right text-sm font-semibold">{formatPrice(item.price * item.quantity)}</p>
+                  <p className="w-28 text-right text-sm font-semibold">{formatPrice(item.price)}</p>
                   <button
                     type="button"
                     className="text-xs font-semibold uppercase tracking-[0.14em] text-red-700 hover:underline"

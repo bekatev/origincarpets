@@ -1,23 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import type { ProductItem } from '@/lib/products';
 import { ProductCardFoldMedia } from '@/components/products/product-card-fold-media';
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
 import { FormattedPrice } from '@/components/products/formatted-price';
 
-export function ProductCard({ product }: { product: ProductItem }) {
+export function ProductCard({ product, priority = false }: { product: ProductItem; priority?: boolean }) {
   const cover = product.images[0];
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-8%' }}
-      transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-      className="group"
-    >
+    <article className="group">
       <Link
         href={`/products/${product.slug}`}
         className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--oc-ink)]"
@@ -27,6 +20,7 @@ export function ProductCard({ product }: { product: ProductItem }) {
           images={product.images}
           alt={product.title}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          priority={priority}
         />
       </Link>
       <div className="mt-4 space-y-2">
@@ -52,6 +46,6 @@ export function ProductCard({ product }: { product: ProductItem }) {
           />
         ) : null}
       </div>
-    </motion.article>
+    </article>
   );
 }

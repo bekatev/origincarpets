@@ -4,8 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { BrandLogo } from '@/components/brand/brand-logo';
 import { FeaturedProductCard } from '@/components/home/featured-product-card';
-import { MotionSection } from '@/components/motion/section';
-import { Reveal } from '@/components/motion/reveal';
 import { useI18n } from '@/components/providers/i18n-provider';
 import type { ProductItem } from '@/lib/products';
 import { stockImages } from '@/lib/stock-images';
@@ -41,8 +39,8 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
           <div className="oc-container">
             <h2 className="oc-heading-sm text-center">{dict.home.featuredCollection}</h2>
             <div className="mt-12 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-              {featured.map((product) => (
-                <FeaturedProductCard key={product.id} product={product} />
+              {featured.map((product, index) => (
+                <FeaturedProductCard key={product.id} product={product} priority={index < 4} />
               ))}
             </div>
             <div className="mt-14 text-center">
@@ -82,9 +80,9 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
         </div>
       </section>
 
-      <MotionSection id="about-us" className="oc-section border-t border-[var(--oc-line)] bg-[var(--oc-bg-secondary)]">
+      <section id="about-us" className="oc-section border-t border-[var(--oc-line)] bg-[var(--oc-bg-secondary)]">
         <div className="oc-container grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
-          <Reveal>
+          <div>
             <p className="oc-eyebrow">{dict.home.aboutHeading}</p>
             <h2 className="oc-heading-sm mt-4">{dict.home.historyTitle}</h2>
             <div className="mt-8 space-y-5">
@@ -95,7 +93,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             <Link href="/register" className="oc-link oc-link-arrow mt-8 inline-flex">
               {dict.home.createAccount}
             </Link>
-          </Reveal>
+          </div>
           <div className="relative aspect-[3/4] overflow-hidden">
             <Image
               src={stockImages.about}
@@ -106,9 +104,9 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             />
           </div>
         </div>
-      </MotionSection>
+      </section>
 
-      <MotionSection id="carpet-origin" className="oc-section border-t border-[var(--oc-line)]">
+      <section id="carpet-origin" className="oc-section border-t border-[var(--oc-line)]">
         <div className="oc-container grid gap-12 lg:grid-cols-2">
           <div className="relative aspect-[4/3] overflow-hidden">
             <Image
@@ -131,7 +129,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             </div>
           </div>
         </div>
-      </MotionSection>
+      </section>
 
       <section id="contact-us" className="oc-section border-t border-[var(--oc-line)]">
         <div className="oc-container-narrow text-center">
@@ -158,8 +156,12 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             <Link href="/products" className="hover:text-[var(--oc-ink)]">
               {dict.nav.shop}
             </Link>
-            <span>{dict.home.policyReturn}</span>
-            <span>{dict.home.policyPrivacy}</span>
+            <Link href="/policies/return-refund" className="hover:text-[var(--oc-ink)]">
+              {dict.home.policyReturn}
+            </Link>
+            <Link href="/policies/privacy" className="hover:text-[var(--oc-ink)]">
+              {dict.home.policyPrivacy}
+            </Link>
           </div>
         </div>
       </section>

@@ -41,16 +41,18 @@ export function ProductCardFoldMedia({
             alt={alt}
             fill
             priority={priority}
+            loading={priority ? undefined : 'lazy'}
             className="object-cover"
             sizes={sizes}
           />
         </div>
       </div>
 
-      <div className="product-reveal__panel absolute inset-0 overflow-hidden">
-        <div className="product-reveal__panel-inner relative h-full w-full">
-          <Image src={src} alt="" fill className="object-cover" sizes={sizes} aria-hidden />
-        </div>
+      <div className="product-reveal__panel absolute inset-0 overflow-hidden" aria-hidden>
+        <div
+          className="product-reveal__panel-inner h-full w-full bg-cover bg-center"
+          style={{ backgroundImage: `url("${src}")` }}
+        />
       </div>
     </div>
   );

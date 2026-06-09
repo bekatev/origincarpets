@@ -1,6 +1,4 @@
 import type { Metadata } from 'next';
-import { MotionSection } from '@/components/motion/section';
-import { Reveal } from '@/components/motion/reveal';
 import { ProductCard } from '@/components/products/product-card';
 import { ProductFilters } from '@/components/products/product-filters';
 import { formatCount } from '@/lib/i18n';
@@ -40,15 +38,15 @@ export default async function ProductsPage({
       : formatCount(p.countMany, products.meta.total);
 
   return (
-    <MotionSection className="oc-section">
+    <section className="oc-section">
       <div className="oc-container space-y-14">
-        <Reveal className="oc-container-narrow space-y-4 text-center">
+        <div className="oc-container-narrow space-y-4 text-center">
           <p className="oc-eyebrow">{p.catalog}</p>
           <h1 className="oc-heading">{p.title}</h1>
           <p className="oc-lead mx-auto max-w-2xl">
             {countLabel} — {p.intro}
           </p>
-        </Reveal>
+        </div>
 
         <div className="grid gap-12 lg:grid-cols-[minmax(240px,280px)_1fr] lg:gap-16">
           <ProductFilters facets={facets} current={params} />
@@ -58,14 +56,14 @@ export default async function ProductsPage({
               <p className="py-12 text-center text-sm text-[var(--oc-muted)]">{p.noResults}</p>
             ) : (
               <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 xl:grid-cols-3">
-                {products.items.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                {products.items.map((product, index) => (
+                  <ProductCard key={product.id} product={product} priority={index < 6} />
                 ))}
               </div>
             )}
           </div>
         </div>
       </div>
-    </MotionSection>
+    </section>
   );
 }

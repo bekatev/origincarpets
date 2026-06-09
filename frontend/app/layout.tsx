@@ -7,8 +7,6 @@ import { CartProvider } from '@/lib/cart';
 import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { I18nProvider } from '@/components/providers/i18n-provider';
-import { SmoothScrollProvider } from '@/components/providers/smooth-scroll-provider';
-import { PageTransition } from '@/components/motion/page-transition';
 import { CurrencySwitcher } from '@/components/layout/currency-switcher';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { AuthProvider } from '@/components/providers/auth-provider';
@@ -77,18 +75,16 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <CurrencyProvider initialCurrency={currency}>
               <AuthProvider>
               <CartProvider>
-                <SmoothScrollProvider>
                 <p className="border-b border-[var(--oc-line)] py-2.5 text-center text-[10px] font-medium uppercase tracking-[0.28em] text-[var(--oc-muted)]">
                   {dict.topbar.shipping}
                 </p>
 
                 <SiteHeader />
 
-                <PageTransition>{children}</PageTransition>
+                {children}
 
                 <SiteFooter />
-                  <CurrencySwitcher />
-                </SmoothScrollProvider>
+                <CurrencySwitcher />
               </CartProvider>
               </AuthProvider>
             </CurrencyProvider>

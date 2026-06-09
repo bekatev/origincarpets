@@ -239,10 +239,8 @@ export default function CheckoutPage() {
         <div className="mt-4 space-y-2 text-sm">
           {items.map((item) => (
             <div key={item.id} className="flex items-center justify-between">
-              <span>
-                {item.title} × {item.quantity}
-              </span>
-              <span>{formatPrice(item.price * item.quantity)}</span>
+              <span>{item.title}</span>
+              <span>{formatPrice(item.price)}</span>
             </div>
           ))}
         </div>

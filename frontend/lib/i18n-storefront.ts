@@ -2,7 +2,7 @@
 export const storefrontTranslations = {
   en: {
     theme: { light: 'Light', dark: 'Dark' },
-    cartActions: { add: 'Add to cart', added: 'Added' },
+    cartActions: { add: 'Add to cart', added: 'Added', inCart: 'In cart' },
     products: {
       catalog: 'Catalog',
       title: 'Carpet Collection',
@@ -161,7 +161,7 @@ export const storefrontTranslations = {
   },
   ka: {
     theme: { light: 'ღია', dark: 'მუქი' },
-    cartActions: { add: 'კალათაში დამატება', added: 'დაემატა' },
+    cartActions: { add: 'კალათაში დამატება', added: 'დაემატა', inCart: 'კალათაშია' },
     products: {
       catalog: 'კატალოგი',
       title: 'ხალიჩების კოლექცია',

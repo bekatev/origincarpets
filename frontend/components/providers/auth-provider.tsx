@@ -25,31 +25,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    async function hydrateAuth() {
-      syncFromStorage();
+    syncFromStorage();
+    setReady(true);
 
-      const token = readStoredToken();
-      if (token) {
-        try {
-          const profile = await apiRequest<AuthUser>('/auth/me', token);
-          if (!cancelled) {
-            persistAuth(token, profile);
-            setUser(profile);
-          }
-        } catch {
-          if (!cancelled) {
-            clearAuthStorage();
-            setUser(null);
-          }
+    const token = readStoredToken();
+    if (!token) return;
+
+    void (async () => {
+      try {
+        const profile = await apiRequest<AuthUser>('/auth/me', token);
+        if (!cancelled) {
+          persistAuth(token, profile);
+          setUser(profile);
+        }
+      } catch {
+        if (!cancelled) {
+          clearAuthStorage();
+          setUser(null);
         }
       }
-
-      if (!cancelled) {
-        setReady(true);
-      }
-    }
-
-    void hydrateAuth();
+    })();
 
     const onStorage = (event: StorageEvent) => {
       if (event.key === 'auth_user' || event.key === 'auth_token') {
