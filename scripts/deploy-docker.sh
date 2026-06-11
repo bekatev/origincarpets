@@ -4,8 +4,11 @@ set -euo pipefail
 APP_DIR="${APP_DIR:-/opt/carp}"
 cd "$APP_DIR"
 
-echo "==> Prune unused Docker data (keep disk free)"
-docker system prune -f >/dev/null 2>&1 || true
+echo "==> Free disk before build"
+docker builder prune -af >/dev/null 2>&1 || true
+docker image prune -af >/dev/null 2>&1 || true
+docker container prune -f >/dev/null 2>&1 || true
+rm -rf /root/.npm /tmp/* 2>/dev/null || true
 
 if [[ -f .db-credentials ]]; then
   # shellcheck disable=SC1091
@@ -20,7 +23,7 @@ fi
 # shellcheck disable=SC1091
 set -a && source backend/.env && set +a
 
-echo "==> Prisma migrate (docker)"
+echo "==> Prisma migrate"
 docker run --rm --network host \
   -v "$APP_DIR:/app" -w /app/backend \
   -e DATABASE_URL="$DATABASE_URL" \
@@ -32,16 +35,13 @@ if [[ -f backups/production.restore.sql && ! -f backups/.restore-complete ]]; th
     backups/production.restore.sql > backups/production.restore.pg10.sql
   psql "$DATABASE_URL" -v ON_ERROR_STOP=0 -f backups/production.restore.pg10.sql || true
   touch backups/.restore-complete
-elif [[ -f backups/production.restore.dump ]]; then
-  echo "==> Restore Postgres custom backup (via Docker)"
-  docker run --rm --network host \
-    -v "$APP_DIR/backups:/backup" \
-    -e DATABASE_URL="$DATABASE_URL" \
-    postgres:16 bash -lc 'pg_restore --clean --if-exists --no-owner --dbname="$DATABASE_URL" /backup/production.restore.dump || true'
 fi
 
 echo "==> Build and start Docker app"
 docker-compose -f docker-compose.prod.yml build
 docker-compose -f docker-compose.prod.yml up -d --force-recreate
+
+echo "==> Post-deploy cleanup"
+docker image prune -af >/dev/null 2>&1 || true
 
 echo "==> Docker deploy done"

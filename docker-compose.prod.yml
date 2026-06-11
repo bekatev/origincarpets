@@ -2,6 +2,7 @@ version: '3.3'
 
 services:
   carp:
+    image: carp_carp:latest
     build:
       context: .
       dockerfile: Dockerfile
