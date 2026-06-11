@@ -37,9 +37,15 @@ jobs:
           printf '%s\n' "$DROPLET_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-          echo "==> Stream image (no file saved on server disk)"
+          echo "==> Stream image (stop app, remove old image, then load)"
           cat carp-image.tgz | ssh $SSH_OPTS "${DROPLET_USER}@${DROPLET_HOST}" \
-            'docker system prune -af >/dev/null 2>&1 || true; rm -f /tmp/carp-image.tgz; gunzip | docker load'
+            'set -euo pipefail
+             docker stop origincarpets-app 2>/dev/null || true
+             docker rm origincarpets-app 2>/dev/null || true
+             docker rmi carp_carp:latest -f 2>/dev/null || true
+             docker system prune -af >/dev/null 2>&1 || true
+             rm -f /tmp/carp-image.tgz
+             gunzip | docker load'
           echo "==> Migrate and restart"
           ssh $SSH_OPTS "${DROPLET_USER}@${DROPLET_HOST}" 'bash -s' <<'REMOTE'
           set -euo pipefail
