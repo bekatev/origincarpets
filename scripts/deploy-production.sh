@@ -6,7 +6,24 @@ cd "$APP_DIR"
 
 echo "==> Deploy starting (site stays up during build)"
 
-# Reclaim space without stopping the running container or removing its image.
+PREV_SHA="$(git rev-parse HEAD 2>/dev/null || true)"
+git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
+if [ ! -d .git ]; then
+  git init
+  git remote add origin https://github.com/bekatev/origincarpets.git
+fi
+git fetch origin main
+git reset --hard origin/main
+NEW_SHA="$(git rev-parse HEAD)"
+
+NEEDS_BUILD=1
+if [ -n "$PREV_SHA" ] && [ "$PREV_SHA" != "$NEW_SHA" ]; then
+  if ! git diff --name-only "$PREV_SHA" "$NEW_SHA" | grep -qv '^frontend/public/'; then
+    NEEDS_BUILD=0
+    echo "==> Only static assets changed — skipping Docker rebuild"
+  fi
+fi
+
 docker image prune -f >/dev/null 2>&1 || true
 docker builder prune -f --filter "until=72h" >/dev/null 2>&1 || true
 
@@ -17,16 +34,18 @@ fi
 
 bash scripts/deploy-migrate.sh
 
-echo "==> Build new image (old container still serving traffic)"
-export DOCKER_BUILDKIT=1
-export COMPOSE_DOCKER_CLI_BUILD=1
-docker-compose -f docker-compose.prod.yml build
+if [ "$NEEDS_BUILD" -eq 1 ]; then
+  echo "==> Build new image (old container still serving traffic)"
+  export DOCKER_BUILDKIT=1
+  export COMPOSE_DOCKER_CLI_BUILD=1
+  docker-compose -f docker-compose.prod.yml build
+  echo "==> Swap to new container (brief downtime while Next.js starts)"
+  docker-compose -f docker-compose.prod.yml up -d --force-recreate --no-build
+  docker image prune -f >/dev/null 2>&1 || true
+else
+  echo "==> Reload static files (no downtime)"
+  docker-compose -f docker-compose.prod.yml up -d --no-build
+fi
 
-echo "==> Swap to new container (brief downtime, a few seconds)"
-docker-compose -f docker-compose.prod.yml up -d --force-recreate --no-build
-
-echo "==> Remove old unused images"
-docker image prune -f >/dev/null 2>&1 || true
-
-echo "==> Deploy complete"
+echo "==> Deploy complete ($(git log -1 --oneline))"
 docker ps --filter name=origincarpets-app

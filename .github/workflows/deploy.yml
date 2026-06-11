@@ -28,11 +28,5 @@ jobs:
           set -euo pipefail
           git config --global --add safe.directory /opt/carp
           cd /opt/carp
-          if [ ! -d .git ]; then
-            git init
-            git remote add origin https://github.com/bekatev/origincarpets.git
-          fi
-          git fetch origin main
-          git reset --hard origin/main
           bash scripts/deploy-production.sh
           REMOTE

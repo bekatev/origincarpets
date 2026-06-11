@@ -11,6 +11,9 @@ services:
     container_name: origincarpets-app
     restart: unless-stopped
     network_mode: host
+    volumes:
+      # Editorial/brand images update on git pull — no Docker rebuild needed.
+      - ./frontend/public:/app/frontend/public:ro
     env_file:
       - backend/.env
     environment:
