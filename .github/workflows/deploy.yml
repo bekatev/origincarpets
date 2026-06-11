@@ -12,32 +12,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Create deployment archive
-        run: |
-          tar czf /tmp/deploy.tgz \
-            --exclude=.git \
-            --exclude=node_modules \
-            --exclude=frontend/.next \
-            --exclude=backend/dist \
-            --exclude=backups \
-            --exclude=backend/.env \
-            --exclude=.db-credentials \
-            -C . .
-
-      - name: Copy archive to droplet
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DROPLET_HOST }}
-          username: ${{ secrets.DROPLET_USER }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          source: /tmp/deploy.tgz
-          target: /opt/carp
-          overwrite: true
-
-      - name: Extract, build, and restart app
+      - name: Deploy on droplet
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DROPLET_HOST }}
@@ -46,7 +21,12 @@ jobs:
           command_timeout: 45m
           script: |
             set -euo pipefail
+            git config --global --add safe.directory /opt/carp
             cd /opt/carp
-            tar xzf deploy.tgz
-            rm -f deploy.tgz
+            if [ ! -d .git ]; then
+              git init
+              git remote add origin https://github.com/bekatev/origincarpets.git
+            fi
+            git fetch origin main
+            git reset --hard origin/main
             bash scripts/deploy-docker.sh
