@@ -37,11 +37,7 @@ if [[ -f backups/production.restore.sql && ! -f backups/.restore-complete ]]; th
   touch backups/.restore-complete
 fi
 
-echo "==> Build and start Docker app"
-docker-compose -f docker-compose.prod.yml build
-docker-compose -f docker-compose.prod.yml up -d --force-recreate
-
-echo "==> Post-deploy cleanup"
-docker image prune -af >/dev/null 2>&1 || true
+echo "==> Build and swap (site stays up during build)"
+bash scripts/deploy-production.sh
 
 echo "==> Docker deploy done"

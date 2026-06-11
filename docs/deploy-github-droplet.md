@@ -1,6 +1,6 @@
 # GitHub → live site (Droplet auto-deploy)
 
-Every push to **`main`** runs `.github/workflows/deploy.yml`, copies the repo to the server, and runs `scripts/deploy-docker.sh`.
+Every push to **`main`** runs `.github/workflows/deploy.yml`, which pulls the latest code on the server and runs `scripts/deploy-production.sh` (builds a new image while the site stays up, then swaps containers).
 
 Production URL: **https://origincarpets.com**
 
@@ -36,7 +36,7 @@ In GitHub: **Repository → Settings → Secrets and variables → Actions → N
 git push origin main
 ```
 
-Watch **Actions** tab on GitHub. First deploy takes ~10–15 minutes (Docker build).
+Watch **Actions** tab on GitHub. Small frontend-only changes usually deploy in **~3–5 minutes**; full rebuilds can take ~10 minutes. The live site keeps running during the build and is only down for a few seconds during the container swap.
 
 ## What is never overwritten on the server
 
@@ -47,5 +47,5 @@ Watch **Actions** tab on GitHub. First deploy takes ~10–15 minutes (Docker bui
 ## Manual deploy (if needed)
 
 ```bash
-ssh root@157.230.122.82 'cd /opt/carp && bash scripts/deploy-docker.sh'
+ssh root@157.230.122.82 'cd /opt/carp && git pull origin main && bash scripts/deploy-production.sh'
 ```

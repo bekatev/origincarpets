@@ -6,27 +6,14 @@ on:
 
 concurrency:
   group: production-deploy
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    timeout-minutes: 25
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build Docker image on GitHub
-        run: |
-          docker build -t carp_carp:latest \
-            --build-arg NEXT_PUBLIC_API_URL=https://origincarpets.com/api \
-            -f Dockerfile .
-          docker save carp_carp:latest | gzip > carp-image.tgz
-          ls -lh carp-image.tgz
-
-      - name: Stream image to droplet and restart
+      - name: Deploy on droplet (build while site stays up)
         env:
           DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
           DROPLET_USER: ${{ secrets.DROPLET_USER }}
@@ -37,16 +24,6 @@ jobs:
           printf '%s\n' "$DROPLET_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-          echo "==> Stream image (stop app, remove old image, then load)"
-          cat carp-image.tgz | ssh $SSH_OPTS "${DROPLET_USER}@${DROPLET_HOST}" \
-            'set -euo pipefail
-             docker stop origincarpets-app 2>/dev/null || true
-             docker rm origincarpets-app 2>/dev/null || true
-             docker rmi carp_carp:latest -f 2>/dev/null || true
-             docker system prune -af >/dev/null 2>&1 || true
-             rm -f /tmp/carp-image.tgz
-             gunzip | docker load'
-          echo "==> Migrate and restart"
           ssh $SSH_OPTS "${DROPLET_USER}@${DROPLET_HOST}" 'bash -s' <<'REMOTE'
           set -euo pipefail
           git config --global --add safe.directory /opt/carp
@@ -57,8 +34,5 @@ jobs:
           fi
           git fetch origin main
           git reset --hard origin/main
-          bash scripts/deploy-migrate.sh
-          docker-compose -f docker-compose.prod.yml up -d --force-recreate --no-build
-          docker image prune -f >/dev/null 2>&1 || true
-          echo "==> Deploy complete"
+          bash scripts/deploy-production.sh
           REMOTE
