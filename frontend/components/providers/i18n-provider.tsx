@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { LANG_COOKIE, dictionaries, normalizeLocale, type Dictionary, type Locale } from '@/lib/i18n';
 
 type I18nContextValue = {
@@ -14,18 +14,24 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 export function I18nProvider({ initialLocale, children }: { initialLocale: Locale; children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+
+  const setLocale = useCallback((nextLocale: Locale) => {
+    const normalized = normalizeLocale(nextLocale);
+    setLocaleState(normalized);
+    document.cookie = `${LANG_COOKIE}=${normalized}; path=/; max-age=31536000; samesite=lax`;
+    document.documentElement.lang = normalized;
+  }, []);
+
   const value = useMemo<I18nContextValue>(() => {
     return {
       locale,
-      setLocale: (nextLocale: Locale) => {
-        const normalized = normalizeLocale(nextLocale);
-        setLocaleState(normalized);
-        document.cookie = `${LANG_COOKIE}=${normalized}; path=/; max-age=31536000; samesite=lax`;
-        window.location.reload();
-      },
+      setLocale,
       dict: dictionaries[locale]
     };
-  }, [locale]);
+  }, [locale, setLocale]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

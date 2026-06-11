@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { Inter, Playfair_Display } from 'next/font/google';
 import { CartProvider } from '@/lib/cart';
 import { SiteHeader } from '@/components/layout/site-header';
+import { SiteTopbar } from '@/components/layout/site-topbar';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { I18nProvider } from '@/components/providers/i18n-provider';
 import { CurrencySwitcher } from '@/components/layout/currency-switcher';
@@ -13,7 +14,7 @@ import { AuthProvider } from '@/components/providers/auth-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { ThemeScript } from '@/components/layout/theme-script';
 import { CURRENCY_COOKIE, normalizeCurrency } from '@/lib/currency';
-import { LANG_COOKIE, DEFAULT_LOCALE, dictionaries, normalizeLocale } from '@/lib/i18n';
+import { LANG_COOKIE, DEFAULT_LOCALE, normalizeLocale } from '@/lib/i18n';
 import { stockImages } from '@/lib/stock-images';
 import { THEME_COOKIE, normalizeTheme } from '@/lib/theme';
 
@@ -63,7 +64,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const locale = cookieLocale ? normalizeLocale(cookieLocale) : DEFAULT_LOCALE;
   const currency = normalizeCurrency(cookieStore.get(CURRENCY_COOKIE)?.value);
   const theme = normalizeTheme(cookieStore.get(THEME_COOKIE)?.value);
-  const dict = dictionaries[locale];
 
   return (
     <html lang={locale} className={theme === 'dark' ? 'dark' : undefined} suppressHydrationWarning>
@@ -76,9 +76,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <CurrencyProvider initialCurrency={currency}>
               <AuthProvider>
               <CartProvider>
-                <p className="border-b border-[var(--oc-line)] py-2.5 text-center text-[10px] font-medium uppercase tracking-[0.28em] text-[var(--oc-muted)]">
-                  {dict.topbar.shipping}
-                </p>
+                <SiteTopbar />
 
                 <SiteHeader />
 
