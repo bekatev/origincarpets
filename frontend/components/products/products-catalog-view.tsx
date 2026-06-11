@@ -1,0 +1,54 @@
+'use client';
+
+import { ProductCard } from '@/components/products/product-card';
+import { ProductFilters } from '@/components/products/product-filters';
+import { useI18n } from '@/components/providers/i18n-provider';
+import { formatCount } from '@/lib/i18n';
+import type { ProductFilterOptions, ProductItem, ProductListFilters } from '@/lib/products';
+
+export function ProductsCatalogView({
+  facets,
+  products,
+  params
+}: {
+  facets: ProductFilterOptions;
+  products: { items: ProductItem[]; meta: { total: number } };
+  params: ProductListFilters;
+}) {
+  const { dict } = useI18n();
+  const p = dict.products;
+  const countLabel =
+    products.meta.total === 1
+      ? formatCount(p.countOne, products.meta.total)
+      : formatCount(p.countMany, products.meta.total);
+
+  return (
+    <section className="oc-section">
+      <div className="oc-container space-y-14">
+        <div className="oc-container-narrow space-y-4 text-center">
+          <p className="oc-eyebrow">{p.catalog}</p>
+          <h1 className="oc-heading">{p.title}</h1>
+          <p className="oc-lead mx-auto max-w-2xl">
+            {countLabel} — {p.intro}
+          </p>
+        </div>
+
+        <div className="grid gap-12 lg:grid-cols-[minmax(240px,280px)_1fr] lg:gap-16">
+          <ProductFilters facets={facets} current={params} />
+
+          <div className="min-w-0 space-y-6">
+            {products.items.length === 0 ? (
+              <p className="py-12 text-center text-sm text-[var(--oc-muted)]">{p.noResults}</p>
+            ) : (
+              <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 xl:grid-cols-3">
+                {products.items.map((product, index) => (
+                  <ProductCard key={product.id} product={product} priority={index < 6} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

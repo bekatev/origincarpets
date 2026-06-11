@@ -18,10 +18,10 @@ export function LanguageSwitcher() {
       type="button"
       onClick={() => setLocale(nextLocale)}
       aria-label={`${dict.common.language}: ${LOCALE_LABELS[locale]}. Switch to ${LOCALE_LABELS[nextLocale]}.`}
-      title={`${LOCALE_LABELS[locale]} → ${LOCALE_LABELS[nextLocale]}`}
+      title={LOCALE_LABELS[nextLocale]}
       className="inline-flex items-center transition hover:opacity-60"
     >
-      <LocaleFlagIcon locale={locale} />
+      <LocaleFlagIcon locale={nextLocale} />
     </button>
   );
 }
