@@ -3,75 +3,162 @@
 import Link from 'next/link';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
 import { RequireAuth } from '@/components/auth/require-auth';
-import { API_URL, apiRequest } from '@/lib/api';
+import { apiRequest } from '@/lib/api';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { useCart } from '@/lib/cart';
+import { PaymentMethodPicker } from '@/components/checkout/payment-method-picker';
 import { ShippingMethodPicker } from '@/components/checkout/shipping-method-picker';
-import { StripePaymentForm } from '@/components/checkout/stripe-payment-form';
-import { cn } from '@/lib/cn';
+import { fetchPaymentConfig, startIpayPayment, type PaymentConfig } from '@/lib/payments';
+import {
+  fetchDeliveryCities,
+  fetchDeliveryCountries,
+  fetchDeliveryMethods,
+  fetchShippingQuote,
+  type DeliveryCity,
+  type DeliveryCountry,
+  type DeliveryMethod,
+  type DeliveryMethodKey,
+  type ShippingQuote
+} from '@/lib/shipping';
 
-type ShippingType = 'GEORGIA' | 'INTERNATIONAL';
-
-type ShippingQuote = {
-  shippingType: ShippingType;
-  providerKey: string;
-  shippingZone: { id: string; code: string; name: string };
-  shippingCost: number;
-  provider: string;
-  deliveryDays: { min: number | null; max: number | null };
-};
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '');
+const defaultPaymentConfig: PaymentConfig = { card: false };
 
 export default function CheckoutPage() {
-  const { items, subtotal, clearCart } = useCart();
+  const { items, subtotal } = useCart();
   const { formatPrice } = useCurrency();
-  const { dict } = useI18n();
+  const { dict, locale } = useI18n();
   const t = dict.checkout;
-  const [shippingType, setShippingType] = useState<ShippingType>('GEORGIA');
+  const [countries, setCountries] = useState<DeliveryCountry[]>([]);
+  const [cities, setCities] = useState<DeliveryCity[]>([]);
+  const [methods, setMethods] = useState<DeliveryMethod[]>([]);
+  const [deliveryCountryId, setDeliveryCountryId] = useState('');
+  const [deliveryCityId, setDeliveryCityId] = useState('');
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethodKey | ''>('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [countryCode, setCountryCode] = useState('GE');
-  const [city, setCity] = useState('Tbilisi');
   const [region, setRegion] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [line1, setLine1] = useState('');
   const [line2, setLine2] = useState('');
   const [quote, setQuote] = useState<ShippingQuote | null>(null);
-  const [createdOrder, setCreatedOrder] = useState<{ orderId: string; orderNumber: string } | null>(null);
-  const [intent, setIntent] = useState<{ paymentIntentId: string; clientSecret: string } | null>(null);
+  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(defaultPaymentConfig);
   const [busy, setBusy] = useState(false);
+  const [loadingCountries, setLoadingCountries] = useState(true);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingMethods, setLoadingMethods] = useState(false);
   const [loadingQuote, setLoadingQuote] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    if (shippingType === 'GEORGIA') {
-      setCountryCode('GE');
-      return;
-    }
-    setCountryCode((current) => (current === 'GE' ? 'US' : current));
-  }, [shippingType]);
-
-  useEffect(() => {
     let cancelled = false;
 
-    async function loadShippingQuote() {
+    async function loadCountries() {
+      setLoadingCountries(true);
+      try {
+        const data = await fetchDeliveryCountries();
+        if (cancelled) return;
+        setCountries(data);
+        const georgia = data.find((country) => country.abbr === 'GE');
+        if (georgia) {
+          setDeliveryCountryId(georgia.id);
+        } else if (data[0]) {
+          setDeliveryCountryId(data[0].id);
+        }
+      } catch {
+        if (!cancelled) {
+          setError(t.countriesLoadFailed);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingCountries(false);
+        }
+      }
+    }
+
+    void loadCountries();
+    return () => {
+      cancelled = true;
+    };
+  }, [t.countriesLoadFailed]);
+
+  useEffect(() => {
+    if (!deliveryCountryId) return;
+
+    let cancelled = false;
+    setDeliveryCityId('');
+    setDeliveryMethod('');
+    setQuote(null);
+
+    async function loadCitiesAndMethods() {
+      setLoadingCities(true);
+      setLoadingMethods(true);
+      try {
+        const [cityData, methodData] = await Promise.all([
+          fetchDeliveryCities(deliveryCountryId),
+          fetchDeliveryMethods(deliveryCountryId)
+        ]);
+
+        if (cancelled) return;
+
+        setCities(cityData);
+        setMethods(methodData);
+
+        const tbilisi = cityData.find((city) => city.nameEn.toLowerCase().includes('tbilisi'));
+        if (tbilisi) {
+          setDeliveryCityId(tbilisi.id);
+        } else if (cityData[0]) {
+          setDeliveryCityId(cityData[0].id);
+        }
+
+        const recommended = methodData.find((method) => method.recommended) ?? methodData[0];
+        if (recommended) {
+          setDeliveryMethod(recommended.value);
+        }
+      } catch {
+        if (!cancelled) {
+          setError(t.citiesLoadFailed);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingCities(false);
+          setLoadingMethods(false);
+        }
+      }
+    }
+
+    void loadCitiesAndMethods();
+    return () => {
+      cancelled = true;
+    };
+  }, [deliveryCountryId, t.citiesLoadFailed]);
+
+  useEffect(() => {
+    if (!deliveryCountryId || !deliveryCityId || !deliveryMethod || !items.length) {
+      setQuote(null);
+      return;
+    }
+
+    const countryId = deliveryCountryId;
+    const cityId = deliveryCityId;
+    const method = deliveryMethod;
+
+    let cancelled = false;
+
+    async function loadQuote() {
       setLoadingQuote(true);
       try {
-        const params = new URLSearchParams({
-          type: shippingType,
-          countryCode: countryCode || (shippingType === 'GEORGIA' ? 'GE' : 'US')
+        const payload = await fetchShippingQuote({
+          items: items.map((item) => ({ productId: item.id, quantity: item.quantity })),
+          deliveryCountryId: countryId,
+          deliveryCityId: cityId,
+          deliveryMethod: method
         });
-        const response = await fetch(`${API_URL}/shipping/cost?${params.toString()}`);
-        const payload = (await response.json()) as ShippingQuote;
 
         if (!cancelled) {
-          setQuote(response.ok ? payload : null);
+          setQuote(payload);
         }
       } catch {
         if (!cancelled) {
@@ -84,14 +171,33 @@ export default function CheckoutPage() {
       }
     }
 
-    void loadShippingQuote();
+    void loadQuote();
     return () => {
       cancelled = true;
     };
-  }, [shippingType, countryCode]);
+  }, [deliveryCountryId, deliveryCityId, deliveryMethod, items]);
 
-  const shippingEstimate = quote?.shippingCost ?? 0;
+  const shippingIsFree = Boolean(quote?.freeShipping) || Number(quote?.shippingCost ?? 0) === 0;
+  const shippingEstimate = shippingIsFree ? 0 : Number(quote?.shippingCost ?? 0);
   const total = useMemo(() => subtotal + shippingEstimate, [subtotal, shippingEstimate]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchPaymentConfig().then((config) => {
+      if (!cancelled) {
+        setPaymentConfig(config);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const selectedCountry = countries.find((country) => country.id === deliveryCountryId);
+  const countryLabel = (country: DeliveryCountry) =>
+    locale === 'ka' && country.nameGe ? country.nameGe : country.nameEn;
+  const cityLabel = (city: DeliveryCity) =>
+    locale === 'ka' && city.nameGe ? city.nameGe : city.nameEn;
 
   async function onCreateOrder(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -109,6 +215,16 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (!deliveryCountryId || !deliveryCityId || !deliveryMethod) {
+      setError(t.deliverySelectionRequired);
+      return;
+    }
+
+    if (!paymentConfig.card) {
+      setError(t.paymentMethods.card.unavailable);
+      return;
+    }
+
     setBusy(true);
 
     try {
@@ -117,12 +233,12 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: items.map((item) => ({ productId: item.id, quantity: item.quantity })),
-          shippingType,
+          deliveryCountryId,
+          deliveryCityId,
+          deliveryMethod,
           shippingAddress: {
             fullName,
             phone: phone || undefined,
-            countryCode,
-            city,
             region: region || undefined,
             postalCode: postalCode || undefined,
             line1,
@@ -131,15 +247,9 @@ export default function CheckoutPage() {
         })
       });
 
-      const intentRes = await apiRequest<{ paymentIntentId: string; clientSecret: string }>('/payments/intent', token, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id })
-      });
-
-      setCreatedOrder({ orderId: order.id, orderNumber: order.orderNumber });
-      setIntent(intentRes);
-      setSuccess(t.orderCreated.replace('{orderNumber}', order.orderNumber));
+      setSuccess(t.cardRedirecting);
+      const ipay = await startIpayPayment(token, order.id);
+      window.location.href = ipay.paymentUrl;
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : t.failed);
     } finally {
@@ -147,11 +257,9 @@ export default function CheckoutPage() {
     }
   }
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-
   return (
     <RequireAuth>
-    {!items.length && !createdOrder ? (
+    {!items.length ? (
       <main className="oc-section">
         <div className="oc-container max-w-4xl">
           <h1 className="oc-heading">{t.title}</h1>
@@ -171,30 +279,58 @@ export default function CheckoutPage() {
           className="oc-surface space-y-4 p-5"
         >
           <h1 className="font-display text-3xl uppercase tracking-[0.1em]">{t.title}</h1>
+          <p className="text-sm text-[var(--oc-muted)]">{t.georgianPostNote}</p>
+          <p className="text-xs uppercase tracking-[0.14em] text-[var(--oc-brand)]">{t.worldwideComingSoon}</p>
 
-        {!createdOrder ? (
           <form onSubmit={onCreateOrder} className="mt-2 space-y-4">
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="block space-y-1">
+                <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--oc-muted)]">
+                  {t.country}
+                </span>
+                <p className="oc-input bg-[var(--oc-bg-secondary)] text-[var(--oc-ink)]">
+                  {loadingCountries
+                    ? t.loading
+                    : selectedCountry
+                      ? countryLabel(selectedCountry)
+                      : 'Georgia'}
+                </p>
+              </div>
+
+              <label className="block space-y-1">
+                <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--oc-muted)]">
+                  {t.city}
+                </span>
+                <select
+                  className="oc-input"
+                  value={deliveryCityId}
+                  onChange={(e) => setDeliveryCityId(e.target.value)}
+                  disabled={loadingCities || !deliveryCountryId}
+                  required
+                >
+                  <option value="">{loadingCities ? t.loading : t.selectCity}</option>
+                  {cities.map((city) => (
+                    <option key={city.id} value={city.id}>
+                      {cityLabel(city)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
             <ShippingMethodPicker
               dict={t}
-              shippingType={shippingType}
+              methods={methods}
+              selectedMethod={deliveryMethod}
               quote={quote}
               loadingQuote={loadingQuote}
               formatPrice={formatPrice}
-              onSelect={setShippingType}
+              onSelect={setDeliveryMethod}
             />
 
             <div className="grid gap-3 md:grid-cols-2">
               <input className="oc-input" placeholder={t.fullName} value={fullName} onChange={(e) => setFullName(e.target.value)} required />
               <input className="oc-input" placeholder={t.phone} value={phone} onChange={(e) => setPhone(e.target.value)} />
-              <input
-                className={cn('oc-input', shippingType === 'GEORGIA' && 'opacity-60')}
-                placeholder={t.countryCode}
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value.toUpperCase())}
-                readOnly={shippingType === 'GEORGIA'}
-                required
-              />
-              <input className="oc-input" placeholder={t.city} value={city} onChange={(e) => setCity(e.target.value)} required />
               <input className="oc-input" placeholder={t.region} value={region} onChange={(e) => setRegion(e.target.value)} />
               <input className="oc-input" placeholder={t.postalCode} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
             </div>
@@ -202,28 +338,16 @@ export default function CheckoutPage() {
             <input className="oc-input" placeholder={t.address1} value={line1} onChange={(e) => setLine1(e.target.value)} required />
             <input className="oc-input" placeholder={t.address2} value={line2} onChange={(e) => setLine2(e.target.value)} />
 
-            <button disabled={busy} type="submit" className="oc-btn-primary">
+            <PaymentMethodPicker dict={t} config={paymentConfig} />
+
+            <button
+              disabled={busy || loadingQuote || !quote || !paymentConfig.card}
+              type="submit"
+              className="oc-btn-primary"
+            >
               {busy ? t.creating : t.createOrder}
             </button>
           </form>
-        ) : intent?.clientSecret && createdOrder && token ? (
-          <Elements stripe={stripePromise} options={{ clientSecret: intent.clientSecret }}>
-            <StripePaymentForm
-              token={token}
-              orderId={createdOrder.orderId}
-              paymentIntentId={intent.paymentIntentId}
-              clientSecret={intent.clientSecret}
-              onPaid={(message) => {
-                setSuccess(
-                  t.paymentSuccess.replace('{message}', message).replace('{orderNumber}', createdOrder.orderNumber)
-                );
-                clearCart();
-              }}
-            />
-          </Elements>
-        ) : (
-          <p className="text-sm text-red-700">{t.stripeMissing}</p>
-        )}
 
           {error && <p className="text-sm text-red-700">{error}</p>}
           {success && <p className="text-sm text-green-700">{success}</p>}
@@ -252,14 +376,15 @@ export default function CheckoutPage() {
           </div>
           <div className="mt-1 flex items-center justify-between">
             <span>
-              {t.shipping} {quote ? `(${quote.shippingZone.name})` : ''}
+              {t.shipping} {quote ? `(${quote.shippingZone.name})` : selectedCountry ? `(${countryLabel(selectedCountry)})` : ''}
             </span>
-            <span>{loadingQuote ? '...' : formatPrice(shippingEstimate)}</span>
+            <span>
+              {loadingQuote ? '...' : shippingIsFree ? t.shippingFree : formatPrice(shippingEstimate)}
+            </span>
           </div>
           {quote && (
             <p className="mt-2 text-xs leading-relaxed text-[var(--oc-muted)]">
-              {t.shippingProvider}:{' '}
-              {quote.providerKey === 'georgian_post' ? t.methods.georgianPost.title : t.methods.dhlExpress.title}
+              {t.shippingProvider}: {t.methods.georgianPost.title}
               <br />
               {t.shippingEta}:{' '}
               {t.shippingDays

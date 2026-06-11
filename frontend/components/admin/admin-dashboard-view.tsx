@@ -20,6 +20,13 @@ type Category = {
   description?: string | null;
 };
 
+type ProductShipping = {
+  weightKg: number | null;
+  lengthCm: number | null;
+  widthCm: number | null;
+  heightCm: number | null;
+};
+
 type Product = {
   id: string;
   slug: string;
@@ -28,9 +35,11 @@ type Product = {
   description: string;
   price: number;
   isActive: boolean;
+  isPublished: boolean;
   images: string[];
   category: { id: string; name: string; slug: string };
   attributes: { size: string | null; color: string | null; material: string | null };
+  shipping?: ProductShipping;
 };
 
 type AdminOverview = { orders: number; revenue: number; products: number; customers: number };
@@ -39,7 +48,13 @@ type AdminOrder = {
   id: string;
   orderNumber: string;
   status: 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'CONFIRMED' | 'FULFILLED' | 'REFUNDED';
+  currency: string;
+  subtotal: number;
+  shippingCost: number;
+  merchantShippingCostGel: number | null;
   total: number;
+  parcelTrackingNumber: string | null;
+  parcelRegistrationError: string | null;
   createdAt: string;
   customer: { id: string; email: string; name: string | null };
   itemsCount: number;
@@ -64,8 +79,12 @@ type ProductFormState = {
   size: string;
   color: string;
   material: string;
+  weightKg: string;
+  lengthCm: string;
+  widthCm: string;
+  heightCm: string;
   imagesText: string;
-  isActive: boolean;
+  isPublished: boolean;
 };
 
 const emptyProduct: ProductFormState = {
@@ -78,9 +97,82 @@ const emptyProduct: ProductFormState = {
   size: '',
   color: '',
   material: '',
+  weightKg: '',
+  lengthCm: '',
+  widthCm: '',
+  heightCm: '',
   imagesText: '',
-  isActive: true
+  isPublished: true
 };
+
+function parseOptionalNumber(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+const emptyShipping: ProductShipping = {
+  weightKg: null,
+  lengthCm: null,
+  widthCm: null,
+  heightCm: null
+};
+
+function normalizeProduct(product: Product): Product {
+  const isPublished = product.isPublished ?? product.isActive;
+  return {
+    ...product,
+    isPublished,
+    isActive: isPublished,
+    shipping: product.shipping ?? emptyShipping
+  };
+}
+
+function hasShippingData(shipping?: ProductShipping) {
+  return Boolean(
+    shipping?.weightKg != null &&
+      shipping?.lengthCm != null &&
+      shipping?.widthCm != null &&
+      shipping?.heightCm != null
+  );
+}
+
+function hasFormShippingData(form: Pick<ProductFormState, 'weightKg' | 'lengthCm' | 'widthCm' | 'heightCm'>) {
+  return (
+    parseOptionalNumber(form.weightKg) != null &&
+    parseOptionalNumber(form.lengthCm) != null &&
+    parseOptionalNumber(form.widthCm) != null &&
+    parseOptionalNumber(form.heightCm) != null
+  );
+}
+
+function applyShippingField(
+  setProductForm: Dispatch<SetStateAction<ProductFormState>>,
+  field: 'weightKg' | 'lengthCm' | 'widthCm' | 'heightCm',
+  value: string
+) {
+  setProductForm((prev) => {
+    const next = { ...prev, [field]: value };
+    if (!hasFormShippingData(next)) {
+      next.isPublished = false;
+    }
+    return next;
+  });
+}
+
+function isFormFieldMissing(value: string) {
+  return !value.trim();
+}
+
+function missingShippingInputClass(isEditing: boolean, value: string) {
+  return cn(
+    'oc-input',
+    isEditing &&
+      isFormFieldMissing(value) &&
+      'border-red-600 bg-red-50/40 text-red-800 placeholder:text-red-400 dark:border-red-500 dark:bg-red-950/20 dark:text-red-300'
+  );
+}
 
 const ORDER_STATUS_OPTIONS = ['PENDING', 'PAID', 'SHIPPED', 'DELIVERED'] as const;
 
@@ -96,6 +188,7 @@ export function AdminDashboardView() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [productsTotal, setProductsTotal] = useState(0);
   const [categoryForm, setCategoryForm] = useState({ name: '', slug: '', description: '' });
   const [productForm, setProductForm] = useState<ProductFormState>(emptyProduct);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -112,14 +205,15 @@ export function AdminDashboardView() {
       apiRequest<AdminOrder[]>('/admin/orders', authToken),
       apiRequest<Customer[]>('/admin/customers', authToken),
       apiRequest<Category[]>('/products/admin/categories/all', authToken),
-      apiRequest<{ items: Product[] }>('/products/admin/all?limit=200', authToken)
+      apiRequest<{ items: Product[]; meta: { total: number } }>('/products/admin/all?limit=500', authToken)
     ]);
 
     setOverview(overviewData);
     setOrders(ordersData);
     setCustomers(customersData);
     setCategories(categoryData);
-    setProducts(productData.items);
+    setProducts(productData.items.map(normalizeProduct));
+    setProductsTotal(productData.meta?.total ?? productData.items.length);
 
     if (!productForm.categoryId && categoryData.length) {
       setProductForm((prev) => ({ ...prev, categoryId: categoryData[0].id }));
@@ -197,8 +291,12 @@ export function AdminDashboardView() {
         size: productForm.size || undefined,
         color: productForm.color || undefined,
         material: productForm.material || undefined,
+        weightKg: parseOptionalNumber(productForm.weightKg),
+        lengthCm: parseOptionalNumber(productForm.lengthCm),
+        widthCm: parseOptionalNumber(productForm.widthCm),
+        heightCm: parseOptionalNumber(productForm.heightCm),
         images: parsedImages,
-        isActive: productForm.isActive
+        isPublished: productForm.isPublished
       };
       const path = editingProductId ? `/products/${editingProductId}` : '/products';
       await apiRequest(path, token, {
@@ -227,6 +325,31 @@ export function AdminDashboardView() {
       flash(a.products.deleted);
     } catch (actionError) {
       flashError(actionError instanceof Error ? actionError.message : a.products.deleteFailed);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onTogglePublished(product: Product) {
+    if (!token) return;
+    if (!product.isPublished && !hasShippingData(product.shipping)) {
+      flashError(a.products.publishRequiresShipping);
+      return;
+    }
+    setBusy(true);
+    try {
+      await apiRequest(`/products/${product.id}`, token, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPublished: !product.isPublished })
+      });
+      await loadAll(token);
+      if (editingProductId === product.id) {
+        setProductForm((prev) => ({ ...prev, isPublished: !product.isPublished }));
+      }
+      flash(a.products.updated);
+    } catch (actionError) {
+      flashError(actionError instanceof Error ? actionError.message : a.products.saveFailed);
     } finally {
       setBusy(false);
     }
@@ -318,8 +441,12 @@ export function AdminDashboardView() {
       size: product.attributes.size ?? '',
       color: product.attributes.color ?? '',
       material: product.attributes.material ?? '',
+      weightKg: product.shipping?.weightKg?.toString() ?? '',
+      lengthCm: product.shipping?.lengthCm?.toString() ?? '',
+      widthCm: product.shipping?.widthCm?.toString() ?? '',
+      heightCm: product.shipping?.heightCm?.toString() ?? '',
       imagesText: product.images.join('\n'),
-      isActive: product.isActive
+      isPublished: product.isPublished
     });
     setTab('products');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -409,6 +536,7 @@ export function AdminDashboardView() {
               <ProductsTab
                 a={a}
                 products={products}
+                productsTotal={productsTotal}
                 categories={categories}
                 productForm={productForm}
                 setProductForm={setProductForm}
@@ -418,6 +546,7 @@ export function AdminDashboardView() {
                 onUpload={onUploadImage}
                 onEdit={startEdit}
                 onDelete={onDeleteProduct}
+                onTogglePublished={onTogglePublished}
                 onCancelEdit={() => {
                   setEditingProductId(null);
                   setProductForm({ ...emptyProduct, categoryId: categories[0]?.id ?? '' });
@@ -498,10 +627,38 @@ function OrdersTab({
                 {new Date(order.createdAt).toLocaleString()} ·{' '}
                 {a.orders.items.replace('{count}', String(order.itemsCount))}
               </p>
+              <dl className="mt-3 grid gap-1 text-xs text-[var(--oc-muted)] sm:grid-cols-2">
+                <div>
+                  <dt className="uppercase tracking-[0.12em]">{a.orders.customerShipping}</dt>
+                  <dd className="mt-0.5 text-[var(--oc-ink)]">
+                    {order.shippingCost === 0 ? a.orders.customerShippingFree : `${order.shippingCost.toFixed(2)} ${order.currency}`}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="uppercase tracking-[0.12em]">{a.orders.merchantGpCost}</dt>
+                  <dd className="mt-0.5 font-medium text-[var(--oc-ink)]">
+                    {order.merchantShippingCostGel != null
+                      ? `₾${order.merchantShippingCostGel.toFixed(2)}`
+                      : a.orders.merchantGpCostUnavailable}
+                  </dd>
+                </div>
+                {order.parcelTrackingNumber && (
+                  <div className="sm:col-span-2">
+                    <dt className="uppercase tracking-[0.12em]">{a.orders.tracking}</dt>
+                    <dd className="mt-0.5 font-mono text-[var(--oc-ink)]">{order.parcelTrackingNumber}</dd>
+                  </div>
+                )}
+                {order.parcelRegistrationError && (
+                  <div className="sm:col-span-2">
+                    <dt className="uppercase tracking-[0.12em] text-amber-700">{a.orders.parcelError}</dt>
+                    <dd className="mt-0.5 text-amber-800">{order.parcelRegistrationError}</dd>
+                  </div>
+                )}
+              </dl>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-sm font-semibold uppercase tracking-[0.08em]">
-                {order.total.toFixed(2)} GEL
+                {order.total.toFixed(2)} {order.currency}
               </span>
               <select
                 className="oc-input min-w-[10rem] py-2 text-sm"
@@ -642,6 +799,7 @@ function CategoriesTab({
 function ProductsTab({
   a,
   products,
+  productsTotal,
   categories,
   productForm,
   setProductForm,
@@ -651,10 +809,12 @@ function ProductsTab({
   onUpload,
   onEdit,
   onDelete,
+  onTogglePublished,
   onCancelEdit
 }: {
   a: AdminDict;
   products: Product[];
+  productsTotal: number;
   categories: Category[];
   productForm: ProductFormState;
   setProductForm: Dispatch<SetStateAction<ProductFormState>>;
@@ -664,8 +824,38 @@ function ProductsTab({
   onUpload: (file: File | null) => void;
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
+  onTogglePublished: (product: Product) => void;
   onCancelEdit: () => void;
 }) {
+  const [showMissingShippingOnly, setShowMissingShippingOnly] = useState(false);
+  const [showUnpublishedOnly, setShowUnpublishedOnly] = useState(false);
+
+  const visibleProducts = useMemo(() => {
+    let list = products;
+    if (showMissingShippingOnly) {
+      list = list.filter((product) => !hasShippingData(product.shipping));
+    }
+    if (showUnpublishedOnly) {
+      list = list.filter((product) => !product.isPublished);
+    }
+    return list;
+  }, [products, showMissingShippingOnly, showUnpublishedOnly]);
+
+  const missingShippingCount = useMemo(
+    () => products.filter((product) => !hasShippingData(product.shipping)).length,
+    [products]
+  );
+
+  const storefrontVisibleCount = useMemo(
+    () => products.filter((product) => product.isPublished && hasShippingData(product.shipping)).length,
+    [products]
+  );
+
+  const unpublishedCount = useMemo(
+    () => products.filter((product) => !product.isPublished).length,
+    [products]
+  );
+
   return (
     <div className="space-y-12">
       <section className="oc-surface p-6 sm:p-8">
@@ -710,10 +900,90 @@ function ProductsTab({
             <Field label={a.products.material}>
               <input className="oc-input" value={productForm.material} onChange={(e) => setProductForm((p) => ({ ...p, material: e.target.value }))} />
             </Field>
-            <label className="flex cursor-pointer items-center gap-3 border border-[var(--oc-line)] px-4 py-3 text-sm">
-              <input type="checkbox" checked={productForm.isActive} onChange={(e) => setProductForm((p) => ({ ...p, isActive: e.target.checked }))} />
-              {a.products.active}
+            <label
+              className={cn(
+                'flex items-center gap-3 border border-[var(--oc-line)] px-4 py-3 text-sm',
+                hasFormShippingData(productForm) ? 'cursor-pointer' : 'cursor-not-allowed opacity-70'
+              )}
+            >
+              <input
+                type="checkbox"
+                checked={hasFormShippingData(productForm) && productForm.isPublished}
+                disabled={!hasFormShippingData(productForm)}
+                onChange={(e) => setProductForm((p) => ({ ...p, isPublished: e.target.checked }))}
+                className="h-4 w-4 accent-[var(--oc-ink)] disabled:cursor-not-allowed"
+              />
+              <span>
+                <span className="font-medium text-[var(--oc-ink)]">{a.products.isPublished}</span>
+                <span className="mt-0.5 block text-xs text-[var(--oc-muted)]">
+                  {hasFormShippingData(productForm)
+                    ? a.products.isPublishedHint
+                    : a.products.isPublishedBlockedHint}
+                </span>
+              </span>
             </label>
+          </div>
+          <div className="space-y-3 border border-[var(--oc-line)] p-4">
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--oc-muted)]">
+                {a.products.shippingSection}
+              </p>
+              <p className="mt-1 text-xs text-[var(--oc-muted)]">{a.products.shippingHint}</p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Field
+                label={a.products.weightKg}
+                highlightMissing={Boolean(editingProductId && isFormFieldMissing(productForm.weightKg))}
+              >
+                <input
+                  type="number"
+                  min={0.1}
+                  step="0.1"
+                  className={missingShippingInputClass(Boolean(editingProductId), productForm.weightKg)}
+                  value={productForm.weightKg}
+                  onChange={(e) => applyShippingField(setProductForm, 'weightKg', e.target.value)}
+                />
+              </Field>
+              <Field
+                label={a.products.lengthCm}
+                highlightMissing={Boolean(editingProductId && isFormFieldMissing(productForm.lengthCm))}
+              >
+                <input
+                  type="number"
+                  min={10}
+                  step="1"
+                  className={missingShippingInputClass(Boolean(editingProductId), productForm.lengthCm)}
+                  value={productForm.lengthCm}
+                  onChange={(e) => applyShippingField(setProductForm, 'lengthCm', e.target.value)}
+                />
+              </Field>
+              <Field
+                label={a.products.widthCm}
+                highlightMissing={Boolean(editingProductId && isFormFieldMissing(productForm.widthCm))}
+              >
+                <input
+                  type="number"
+                  min={10}
+                  step="1"
+                  className={missingShippingInputClass(Boolean(editingProductId), productForm.widthCm)}
+                  value={productForm.widthCm}
+                  onChange={(e) => applyShippingField(setProductForm, 'widthCm', e.target.value)}
+                />
+              </Field>
+              <Field
+                label={a.products.heightCm}
+                highlightMissing={Boolean(editingProductId && isFormFieldMissing(productForm.heightCm))}
+              >
+                <input
+                  type="number"
+                  min={5}
+                  step="1"
+                  className={missingShippingInputClass(Boolean(editingProductId), productForm.heightCm)}
+                  value={productForm.heightCm}
+                  onChange={(e) => applyShippingField(setProductForm, 'heightCm', e.target.value)}
+                />
+              </Field>
+            </div>
           </div>
           <Field label={a.products.uploadImage}>
             <input type="file" accept="image/*" className="text-sm" onChange={(e) => onUpload(e.target.files?.[0] ?? null)} />
@@ -735,33 +1005,117 @@ function ProductsTab({
       </section>
 
       <section>
-        <h2 className="oc-eyebrow mb-6">{a.products.existing}</h2>
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="oc-eyebrow">{a.products.existing}</h2>
+            <p className="mt-1 text-xs text-[var(--oc-muted)]">
+              {a.products.catalogSummary
+                .replace('{total}', String(productsTotal))
+                .replace('{storefront}', String(storefrontVisibleCount))
+                .replace('{missing}', String(missingShippingCount))
+                .replace('{inactive}', String(unpublishedCount))}
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 sm:items-end">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--oc-muted)]">
+              <input
+                type="checkbox"
+                checked={showMissingShippingOnly}
+                onChange={(e) => setShowMissingShippingOnly(e.target.checked)}
+                className="h-4 w-4 accent-[var(--oc-ink)]"
+              />
+              <span>
+                {a.products.showMissingShippingOnly}
+                {missingShippingCount > 0 && (
+                  <span className="ml-1 text-amber-700">({missingShippingCount})</span>
+                )}
+              </span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--oc-muted)]">
+              <input
+                type="checkbox"
+                checked={showUnpublishedOnly}
+                onChange={(e) => setShowUnpublishedOnly(e.target.checked)}
+                className="h-4 w-4 accent-[var(--oc-ink)]"
+              />
+              <span>
+                {a.products.showUnpublishedOnly}
+                {unpublishedCount > 0 && (
+                  <span className="ml-1 text-slate-600 dark:text-slate-400">({unpublishedCount})</span>
+                )}
+              </span>
+            </label>
+          </div>
+        </div>
         {!products.length ? (
           <EmptyState text={a.products.empty} />
+        ) : visibleProducts.length === 0 ? (
+          <EmptyState
+            text={
+              showUnpublishedOnly && !showMissingShippingOnly
+                ? a.products.emptyUnpublished
+                : a.products.emptyMissingShipping
+            }
+          />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {products.map((product) => (
+            {visibleProducts.map((product) => (
               <article key={product.id} className="oc-surface overflow-hidden">
                 {product.images[0] && (
                   <div className="relative aspect-[4/3] border-b border-[var(--oc-line)] bg-[var(--oc-bg-secondary)]">
-                    <Image src={product.images[0]} alt={product.title} fill className="object-cover" sizes="(max-width: 640px) 100vw, 50vw" />
+                    <img
+                      src={product.images[0]}
+                      alt={product.title}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
                   </div>
                 )}
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-display text-base uppercase tracking-[0.06em]">{product.title}</h3>
-                    {!product.isActive && (
-                      <span className="shrink-0 text-[10px] uppercase tracking-[0.14em] text-[var(--oc-muted)]">
-                        {a.products.inactive}
-                      </span>
-                    )}
                   </div>
                   <p className="mt-1 text-xs text-[var(--oc-muted)]">
-                    {product.category.name} · ${product.price.toFixed(2)}
+                    {product.sku} · {product.category.name} · ${product.price.toFixed(2)}
                   </p>
-                  <div className="mt-4 flex gap-4 text-xs uppercase tracking-[0.14em]">
+                  <p
+                    className={cn(
+                      'mt-1 text-[10px] uppercase tracking-[0.12em]',
+                      product.isPublished ? 'text-green-700' : 'text-slate-600 dark:text-slate-400'
+                    )}
+                  >
+                    {product.isPublished ? a.products.published : a.products.unpublished}
+                  </p>
+                  <p className={cn('mt-1 text-[10px] uppercase tracking-[0.12em]', hasShippingData(product.shipping) ? 'text-green-700' : 'text-amber-700')}>
+                    {hasShippingData(product.shipping) ? a.products.shippingReady : a.products.shippingMissing}
+                  </p>
+                  <label
+                    className={cn(
+                      'mt-3 flex items-center gap-2 text-xs text-[var(--oc-muted)]',
+                      hasShippingData(product.shipping) || product.isPublished ? 'cursor-pointer' : 'cursor-not-allowed opacity-70'
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={product.isPublished}
+                      disabled={busy || (!product.isPublished && !hasShippingData(product.shipping))}
+                      onChange={() => onTogglePublished(product)}
+                      className="h-4 w-4 accent-[var(--oc-ink)] disabled:cursor-not-allowed"
+                    />
+                    <span>{a.products.isPublished}</span>
+                  </label>
+                  <div className="mt-4 flex flex-wrap gap-4 text-xs uppercase tracking-[0.14em]">
                     <button type="button" className="text-[var(--oc-brand)] hover:underline" onClick={() => onEdit(product)}>
                       {a.products.editBtn}
+                    </button>
+                    <button
+                      type="button"
+                      className="text-[var(--oc-muted)] hover:text-[var(--oc-ink)] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={busy || (!product.isPublished && !hasShippingData(product.shipping))}
+                      onClick={() => onTogglePublished(product)}
+                    >
+                      {product.isPublished ? a.products.unpublishBtn : a.products.publishBtn}
                     </button>
                     <button type="button" className="text-red-600 hover:underline dark:text-red-400" onClick={() => onDelete(product.id)}>
                       {a.products.deleteBtn}
@@ -777,10 +1131,25 @@ function ProductsTab({
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({
+  label,
+  children,
+  highlightMissing = false
+}: {
+  label: string;
+  children: ReactNode;
+  highlightMissing?: boolean;
+}) {
   return (
     <label className="block space-y-2">
-      <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--oc-muted)]">{label}</span>
+      <span
+        className={cn(
+          'text-[10px] font-medium uppercase tracking-[0.2em]',
+          highlightMissing ? 'text-red-600 dark:text-red-400' : 'text-[var(--oc-muted)]'
+        )}
+      >
+        {label}
+      </span>
       {children}
     </label>
   );

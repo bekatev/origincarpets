@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { hasCompleteShipping, PUBLIC_SHIPPABLE_PRODUCT_WHERE } from '../products/shipping-dimensions';
 
 @Injectable()
 export class CartService {
@@ -28,7 +29,8 @@ export class CartService {
       return { items: [], subtotal: 0 };
     }
 
-    return this.serializeCart(cart.items);
+    const shippableItems = cart.items.filter((item) => hasCompleteShipping(item.product));
+    return this.serializeCart(shippableItems);
   }
 
   async syncCart(userId: string, items: Array<{ productId: string; quantity: number }>) {
@@ -37,10 +39,10 @@ export class CartService {
 
     if (ids.length) {
       const count = await this.prisma.product.count({
-        where: { id: { in: ids }, isActive: true }
+        where: { id: { in: ids }, isActive: true, ...PUBLIC_SHIPPABLE_PRODUCT_WHERE }
       });
       if (count !== ids.length) {
-        throw new BadRequestException('Some products are invalid or inactive');
+        throw new BadRequestException('Some products are unavailable for purchase');
       }
     }
 

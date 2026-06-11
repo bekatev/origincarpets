@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { RequireAuth } from '@/components/auth/require-auth';
 import { useCurrency } from '@/components/providers/currency-provider';
@@ -50,11 +49,11 @@ export default function CartPage() {
                   className="oc-surface flex items-center gap-4 p-4"
                 >
                   {item.image ? (
-                    <Image
+                    <img
                       src={item.image}
                       alt={item.title}
-                      width={240}
-                      height={180}
+                      loading="lazy"
+                      decoding="async"
                       className="h-20 w-28 border border-[var(--oc-line)] object-cover"
                     />
                   ) : (

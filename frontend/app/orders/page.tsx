@@ -15,6 +15,7 @@ type OrderSummary = {
   total: number;
   createdAt: string;
   itemsCount: number;
+  parcelTrackingNumber?: string | null;
 };
 
 export default function OrdersPage() {
@@ -63,6 +64,11 @@ export default function OrdersPage() {
                     <p className="text-sm text-[var(--oc-muted)]">
                       {new Date(order.createdAt).toLocaleString()} • {order.itemsCount} {o.items}
                     </p>
+                    {order.parcelTrackingNumber && (
+                      <p className="mt-1 text-xs text-[var(--oc-muted)]">
+                        {o.tracking}: {order.parcelTrackingNumber}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-semibold uppercase tracking-[0.08em]">{formatPrice(order.total)}</p>

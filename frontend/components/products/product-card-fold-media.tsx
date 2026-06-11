@@ -1,12 +1,10 @@
 'use client';
 
-import Image from 'next/image';
 import { useMemo } from 'react';
 
 type ProductCardFoldMediaProps = {
   images: string[];
   alt: string;
-  sizes: string;
   priority?: boolean;
   className?: string;
 };
@@ -14,7 +12,6 @@ type ProductCardFoldMediaProps = {
 export function ProductCardFoldMedia({
   images,
   alt,
-  sizes,
   priority = false,
   className = ''
 }: ProductCardFoldMediaProps) {
@@ -36,14 +33,13 @@ export function ProductCardFoldMedia({
     >
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute inset-0 scale-110">
-          <Image
+          {/* Native img — legacy product files are served by nginx at the site root, not via /_next/image */}
+          <img
             src={src}
             alt={alt}
-            fill
-            priority={priority}
-            loading={priority ? undefined : 'lazy'}
-            className="object-cover"
-            sizes={sizes}
+            loading={priority ? 'eager' : 'lazy'}
+            decoding="async"
+            className="h-full w-full object-cover"
           />
         </div>
       </div>

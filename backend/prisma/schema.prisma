@@ -110,6 +110,7 @@ model Product {
   sizeLabel      String?
   widthCm        Int?
   lengthCm       Int?
+  heightCm       Int?
   weightKg       Decimal?     @db.Decimal(8, 2)
   metadata       Json?
   createdAt      DateTime     @default(now())
@@ -166,6 +167,35 @@ model ProductAttributeValue {
   @@index([attributeId, value])
 }
 
+model DeliveryCountry {
+  id        String         @id @default(cuid())
+  gpostId   Int            @unique
+  nameEn    String
+  nameGe    String?
+  abbr      String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  cities    DeliveryCity[]
+
+  @@index([abbr])
+}
+
+model DeliveryCity {
+  id        String          @id @default(cuid())
+  gpostId   Int             @unique
+  nameEn    String
+  nameGe    String?
+  countryId String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  country   DeliveryCountry @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  addresses ShippingAddress[]
+
+  @@index([countryId, nameEn])
+}
+
 model ShippingZone {
   id                String    @id @default(cuid())
   name              String
@@ -192,6 +222,7 @@ model ShippingAddress {
   id             String        @id @default(cuid())
   userId         String
   shippingZoneId String?
+  deliveryCityId String?
   type           AddressType   @default(SHIPPING)
   fullName       String
   phone          String?
@@ -207,12 +238,14 @@ model ShippingAddress {
 
   user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   shippingZone   ShippingZone? @relation(fields: [shippingZoneId], references: [id])
+  deliveryCity   DeliveryCity? @relation(fields: [deliveryCityId], references: [id])
   shippingOrders Order[]       @relation("OrderShippingAddress")
   billingOrders  Order[]       @relation("OrderBillingAddress")
 
   @@index([userId, type, isDefault])
   @@index([countryCode, city])
   @@index([shippingZoneId])
+  @@index([deliveryCityId])
 }
 
 model Order {
@@ -222,16 +255,23 @@ model Order {
   status            OrderStatus      @default(PENDING)
   currency          String           @default("GEL")
   subtotal          Decimal          @db.Decimal(12, 2)
-  shippingCost      Decimal          @db.Decimal(12, 2)
-  discount          Decimal          @default(0) @db.Decimal(12, 2)
+  shippingCost             Decimal          @db.Decimal(12, 2)
+  merchantShippingCostGel  Decimal?         @db.Decimal(10, 2)
+  discount                 Decimal          @default(0) @db.Decimal(12, 2)
   tax               Decimal          @default(0) @db.Decimal(12, 2)
   total             Decimal          @db.Decimal(12, 2)
-  notes             String?
-  shippingZoneId    String
-  shippingAddressId String
-  billingAddressId  String?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  notes                    String?
+  shippingZoneId           String
+  shippingAddressId        String
+  billingAddressId         String?
+  deliveryMethod           String?
+  gpostParcelTypeId        Int?
+  parcelInternalCode       String?
+  parcelTrackingNumber     String?
+  parcelRegisteredAt       DateTime?
+  parcelRegistrationError  String?
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
 
   user              User             @relation(fields: [userId], references: [id])
   shippingZone      ShippingZone     @relation(fields: [shippingZoneId], references: [id])

@@ -70,6 +70,22 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               <dd className="mt-1 font-medium">{product.attributes.size ?? d.na}</dd>
             </div>
             <div>
+              <dt className="text-[var(--oc-muted)]">{d.dimensions}</dt>
+              <dd className="mt-1 font-medium">
+                {product.shipping?.lengthCm && product.shipping?.widthCm
+                  ? `${product.shipping.lengthCm} × ${product.shipping.widthCm} ${d.dimensionUnit}`
+                  : d.na}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[var(--oc-muted)]">{d.weight}</dt>
+              <dd className="mt-1 font-medium">
+                {product.shipping?.weightKg != null
+                  ? `${product.shipping.weightKg} ${d.weightUnit}`
+                  : d.na}
+              </dd>
+            </div>
+            <div>
               <dt className="text-[var(--oc-muted)]">{d.color}</dt>
               <dd className="mt-1 font-medium">{product.attributes.color ?? d.na}</dd>
             </div>

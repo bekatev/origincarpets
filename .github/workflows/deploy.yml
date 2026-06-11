@@ -1,0 +1,47 @@
+name: Deploy to production
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy files to droplet
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          source: "."
+          target: "/opt/carp"
+          overwrite: true
+          rm: false
+          exclude: |
+            .git
+            node_modules
+            frontend/.next
+            backend/dist
+            backups
+            backend/.env
+            .db-credentials
+
+      - name: Build and restart app
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          command_timeout: 45m
+          script: |
+            set -euo pipefail
+            cd /opt/carp
+            bash scripts/deploy-docker.sh

@@ -1,12 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ShippingService } from '../shipping/shipping.service';
 import { syncOrigincarpetsProducts } from './origincarpets-sync';
 
 type ManageableOrderStatus = 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED';
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(AdminService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly shippingService: ShippingService
+  ) {}
 
   async overview() {
     const [ordersCount, productsCount, usersCount, revenueAgg] = await Promise.all([
@@ -41,7 +47,14 @@ export class AdminService {
       id: order.id,
       orderNumber: order.orderNumber,
       status: order.status,
+      currency: order.currency,
+      subtotal: Number(order.subtotal),
+      shippingCost: Number(order.shippingCost),
+      merchantShippingCostGel:
+        order.merchantShippingCostGel != null ? Number(order.merchantShippingCostGel) : null,
       total: Number(order.total),
+      parcelTrackingNumber: order.parcelTrackingNumber,
+      parcelRegistrationError: order.parcelRegistrationError,
       createdAt: order.createdAt,
       customer: {
         id: order.user.id,
@@ -53,15 +66,40 @@ export class AdminService {
   }
 
   async updateOrderStatus(orderId: string, status: ManageableOrderStatus) {
-    const existing = await this.prisma.order.findUnique({ where: { id: orderId }, select: { id: true } });
+    const existing = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, status: true, parcelInternalCode: true }
+    });
     if (!existing) {
       throw new NotFoundException('Order not found');
     }
 
-    const order = await this.prisma.order.update({
-      where: { id: orderId },
-      data: { status }
+    const order = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.order.update({
+        where: { id: orderId },
+        data: { status }
+      });
+
+      if (status === 'PAID' && existing.status !== 'PAID') {
+        await tx.payment.updateMany({
+          where: { orderId, status: 'PENDING', method: 'BANK_TRANSFER' },
+          data: { status: 'CAPTURED', paidAt: new Date() }
+        });
+      }
+
+      return updated;
     });
+
+    if (status === 'PAID' && !existing.parcelInternalCode) {
+      try {
+        const parcel = await this.shippingService.registerOrderParcel(orderId);
+        if (!parcel.success && 'error' in parcel) {
+          this.logger.warn(`Georgian Post parcel registration failed for order ${orderId}: ${parcel.error}`);
+        }
+      } catch (error) {
+        this.logger.error(`Georgian Post parcel registration error for order ${orderId}`, error);
+      }
+    }
 
     return {
       id: order.id,

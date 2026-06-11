@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { GPOST_DELIVERY_METHODS } from '../shipping/georgian-post.constants';
 import { ShippingService } from '../shipping/shipping.service';
+import { PUBLIC_SHIPPABLE_PRODUCT_WHERE } from '../products/shipping-dimensions';
 import { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
@@ -22,14 +24,30 @@ export class OrdersService {
 
     const productIds = Array.from(grouped.keys());
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds }, isActive: true }
+      where: { id: { in: productIds }, isActive: true, ...PUBLIC_SHIPPABLE_PRODUCT_WHERE }
     });
 
     if (products.length !== productIds.length) {
-      throw new BadRequestException('One or more products are invalid/inactive');
+      throw new BadRequestException('One or more products are unavailable for purchase');
     }
 
-    const shipping = await this.shippingService.calculate(dto.shippingType, dto.shippingAddress.countryCode);
+    const deliveryCity = await this.prisma.deliveryCity.findUnique({
+      where: { id: dto.deliveryCityId },
+      include: { country: true }
+    });
+
+    if (!deliveryCity || deliveryCity.countryId !== dto.deliveryCountryId) {
+      throw new BadRequestException('Invalid delivery city for selected country');
+    }
+
+    const method = GPOST_DELIVERY_METHODS[dto.deliveryMethod];
+    const shipping = await this.shippingService.quote({
+      items: dto.items,
+      deliveryCountryId: dto.deliveryCountryId,
+      deliveryCityId: dto.deliveryCityId,
+      deliveryMethod: dto.deliveryMethod
+    });
+
     const shippingZone = shipping.shippingZone;
     const subtotal = products.reduce((sum, product) => {
       const qty = grouped.get(product.id) ?? 0;
@@ -37,17 +55,20 @@ export class OrdersService {
     }, 0);
 
     const shippingCost = Number(shipping.shippingCost);
+    const merchantShippingCostGel =
+      shipping.shippingCostGel != null ? Number(shipping.shippingCostGel) : null;
     const total = subtotal + shippingCost;
 
     const shippingAddress = await this.prisma.shippingAddress.create({
       data: {
         userId,
         shippingZoneId: shippingZone.id,
+        deliveryCityId: deliveryCity.id,
         type: 'SHIPPING',
         fullName: dto.shippingAddress.fullName,
         phone: dto.shippingAddress.phone,
-        countryCode: dto.shippingAddress.countryCode,
-        city: dto.shippingAddress.city,
+        countryCode: deliveryCity.country.abbr,
+        city: deliveryCity.nameEn,
         region: dto.shippingAddress.region,
         postalCode: dto.shippingAddress.postalCode,
         line1: dto.shippingAddress.line1,
@@ -60,12 +81,15 @@ export class OrdersService {
         userId,
         orderNumber: this.buildOrderNumber(),
         status: 'PENDING',
-        currency: 'GEL',
+        currency: 'USD',
         subtotal,
         shippingCost,
+        merchantShippingCostGel,
         total,
         shippingZoneId: shippingZone.id,
         shippingAddressId: shippingAddress.id,
+        deliveryMethod: dto.deliveryMethod,
+        gpostParcelTypeId: method.gpostId,
         items: {
           create: products.map((product) => {
             const quantity = grouped.get(product.id) ?? 0;
@@ -96,7 +120,7 @@ export class OrdersService {
       subtotal: Number(order.subtotal),
       shippingCost: Number(order.shippingCost),
       total: Number(order.total),
-      shippingType: dto.shippingType,
+      deliveryMethod: dto.deliveryMethod,
       shippingProvider: shipping.provider,
       shippingAddress: {
         fullName: order.shippingAddress.fullName,
@@ -127,6 +151,7 @@ export class OrdersService {
       status: order.status,
       total: Number(order.total),
       createdAt: order.createdAt,
+      parcelTrackingNumber: order.parcelTrackingNumber,
       itemsCount: order.items.length
     }));
   }

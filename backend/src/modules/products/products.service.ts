@@ -6,6 +6,13 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { ListProductsDto } from './dto/list-products.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import {
+  CANNOT_PUBLISH_INCOMPLETE_SHIPPING,
+  hasCompleteShipping,
+  mergeShippingFields,
+  PUBLIC_SHIPPABLE_PRODUCT_WHERE,
+  resolveProductPublication
+} from './shipping-dimensions';
 
 const PRODUCT_INCLUDE = {
   category: true,
@@ -39,7 +46,7 @@ export class ProductsService {
   }
 
   async listAdminProducts(query: ListProductsDto) {
-    return this.queryProducts(query, false);
+    return this.queryProducts(query, false, 500);
   }
 
   async getBySlug(slug: string) {
@@ -48,7 +55,7 @@ export class ProductsService {
       include: PRODUCT_INCLUDE
     });
 
-    if (!product || !product.isActive) {
+    if (!product || !product.isActive || !hasCompleteShipping(product)) {
       throw new NotFoundException('Product not found');
     }
 
@@ -67,7 +74,7 @@ export class ProductsService {
     const [categories, products] = await Promise.all([
       this.listCategories(),
       this.prisma.product.findMany({
-        where: { isActive: true },
+        where: { isActive: true, ...PUBLIC_SHIPPABLE_PRODUCT_WHERE },
         select: {
           material: true,
           sizeLabel: true,
@@ -168,6 +175,17 @@ export class ProductsService {
     await this.ensureCategoryExists(dto.categoryId);
     const colorAttribute = dto.color ? await this.getOrCreateColorAttribute() : null;
 
+    const shipping = mergeShippingFields(null, dto);
+    const requestedPublished = dto.isPublished !== undefined ? dto.isPublished : dto.isActive;
+    const publication = resolveProductPublication({
+      shipping,
+      requestedPublished,
+      isCreate: true
+    });
+    if (publication.rejectPublish) {
+      throw new BadRequestException(CANNOT_PUBLISH_INCOMPLETE_SHIPPING);
+    }
+
     const product = await this.prisma.product.create({
       data: {
         title: dto.title,
@@ -178,7 +196,11 @@ export class ProductsService {
         categoryId: dto.categoryId,
         sizeLabel: dto.size,
         material: dto.material,
-        isActive: dto.isActive ?? true,
+        weightKg: dto.weightKg,
+        lengthCm: dto.lengthCm,
+        widthCm: dto.widthCm,
+        heightCm: dto.heightCm,
+        isActive: publication.isActive,
         images: dto.images?.length
           ? {
               create: dto.images.map((url, index) => ({ url, sortOrder: index, isPrimary: index === 0 }))
@@ -198,12 +220,31 @@ export class ProductsService {
   }
 
   async updateProduct(id: string, dto: UpdateProductDto) {
-    await this.ensureProductExists(id);
+    const existing = await this.prisma.product.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException('Product not found');
+    }
     if (dto.categoryId) {
       await this.ensureCategoryExists(dto.categoryId);
     }
 
     const colorAttribute = dto.color ? await this.getOrCreateColorAttribute() : null;
+
+    const shipping = mergeShippingFields(existing, dto);
+    const requestedPublished =
+      dto.isPublished !== undefined
+        ? dto.isPublished
+        : dto.isActive !== undefined
+          ? dto.isActive
+          : undefined;
+    const publication = resolveProductPublication({
+      shipping,
+      requestedPublished,
+      currentPublished: existing.isActive
+    });
+    if (publication.rejectPublish) {
+      throw new BadRequestException(CANNOT_PUBLISH_INCOMPLETE_SHIPPING);
+    }
 
     await this.prisma.product.update({
       where: { id },
@@ -216,7 +257,11 @@ export class ProductsService {
         ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
         ...(dto.size !== undefined ? { sizeLabel: dto.size } : {}),
         ...(dto.material !== undefined ? { material: dto.material } : {}),
-        ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {})
+        ...(dto.weightKg !== undefined ? { weightKg: dto.weightKg } : {}),
+        ...(dto.lengthCm !== undefined ? { lengthCm: dto.lengthCm } : {}),
+        ...(dto.widthCm !== undefined ? { widthCm: dto.widthCm } : {}),
+        ...(dto.heightCm !== undefined ? { heightCm: dto.heightCm } : {}),
+        isActive: publication.isActive
       }
     });
 
@@ -258,7 +303,9 @@ export class ProductsService {
   private buildProductWhere(query: ListProductsDto, onlyActive: boolean): Prisma.ProductWhereInput {
     const and: Prisma.ProductWhereInput[] = [];
 
-    if (onlyActive) and.push({ isActive: true });
+    if (onlyActive) {
+      and.push({ isActive: true, ...PUBLIC_SHIPPABLE_PRODUCT_WHERE });
+    }
 
     if (query.search) {
       and.push({
@@ -337,9 +384,9 @@ export class ProductsService {
     return and.length ? { AND: and } : {};
   }
 
-  private async queryProducts(query: ListProductsDto, onlyActive: boolean) {
+  private async queryProducts(query: ListProductsDto, onlyActive: boolean, maxLimit = 100) {
     const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const limit = Math.min(query.limit ?? 20, maxLimit);
 
     const where = this.buildProductWhere(query, onlyActive);
 
@@ -388,6 +435,7 @@ export class ProductsService {
       description: product.description,
       price: Number(product.price),
       isActive: product.isActive,
+      isPublished: product.isActive,
       category: { id: product.category.id, name: product.category.name, slug: product.category.slug },
       origin: product.origin,
       attributes: {
@@ -396,6 +444,12 @@ export class ProductsService {
         color: colorValue,
         period: readMetadata(product.metadata)?.period?.label ?? null,
         age: readMetadata(product.metadata)?.period?.ageTitle ?? null
+      },
+      shipping: {
+        weightKg: product.weightKg != null ? Number(product.weightKg) : null,
+        lengthCm: product.lengthCm,
+        widthCm: product.widthCm,
+        heightCm: product.heightCm
       },
       images: product.images.map((image) => image.url),
       createdAt: product.createdAt,

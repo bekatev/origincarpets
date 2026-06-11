@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 import type { PrismaClient } from '@prisma/client';
+import { hasCompleteShipping, legacyMetresToCm, resolveLegacyHeightCm } from '../products/shipping-dimensions';
 
 type LegacyLocalized = {
   en?: string;
@@ -172,8 +173,16 @@ async function importOne(prisma: PrismaClient, product: LegacyProduct, colorAttr
   const description = pickText(product.description, title);
   const slug = normalizeProductSlug(product);
   const price = Number.isFinite(product.price) ? Number(product.price) : 0;
-  const width = Number.isFinite(product.dimensions?.width) ? Number(product.dimensions?.width) : undefined;
-  const length = Number.isFinite(product.dimensions?.length) ? Number(product.dimensions?.length) : undefined;
+  const widthCm = legacyMetresToCm(
+    Number.isFinite(product.dimensions?.width) ? Number(product.dimensions?.width) : undefined
+  );
+  const lengthCm = legacyMetresToCm(
+    Number.isFinite(product.dimensions?.length) ? Number(product.dimensions?.length) : undefined
+  );
+  const heightCm = resolveLegacyHeightCm(
+    Number.isFinite(product.dimensions?.height) ? Number(product.dimensions?.height) : undefined,
+    lengthCm
+  );
   const weight = Number.isFinite(product.weight) ? Number(product.weight) : undefined;
 
   const originCountry = pickText(product.origin?.country?.name);
@@ -199,10 +208,13 @@ async function importOne(prisma: PrismaClient, product: LegacyProduct, colorAttr
       material: pickText(product.material?.title) || undefined,
       sizeLabel: pickText(product.size?.title) || undefined,
       origin,
-      widthCm: width ? Math.round(width * 100) : undefined,
-      lengthCm: length ? Math.round(length * 100) : undefined,
+      widthCm,
+      lengthCm,
+      heightCm,
       weightKg: weight,
-      isActive: Boolean(product.isPublished ?? true),
+      isActive:
+        hasCompleteShipping({ weightKg: weight, lengthCm, widthCm, heightCm }) &&
+        Boolean(product.isPublished ?? true),
       isFeatured: Boolean(product.isFeatured ?? false),
       metadata: {
         legacySource: 'origincarpets.com',
@@ -222,7 +234,8 @@ async function importOne(prisma: PrismaClient, product: LegacyProduct, colorAttr
         },
         productType: pickText(product.prodType) || null,
         originalDimensions: product.originalDimensions ?? null,
-        rawDimensions: product.dimensions ?? null
+        rawDimensions: product.dimensions ?? null,
+        legacyWeight: weight ?? null
       }
     },
     create: {
@@ -235,10 +248,13 @@ async function importOne(prisma: PrismaClient, product: LegacyProduct, colorAttr
       material: pickText(product.material?.title) || undefined,
       sizeLabel: pickText(product.size?.title) || undefined,
       origin,
-      widthCm: width ? Math.round(width * 100) : undefined,
-      lengthCm: length ? Math.round(length * 100) : undefined,
+      widthCm,
+      lengthCm,
+      heightCm,
       weightKg: weight,
-      isActive: Boolean(product.isPublished ?? true),
+      isActive:
+        hasCompleteShipping({ weightKg: weight, lengthCm, widthCm, heightCm }) &&
+        Boolean(product.isPublished ?? true),
       isFeatured: Boolean(product.isFeatured ?? false),
       metadata: {
         legacySource: 'origincarpets.com',
@@ -258,7 +274,8 @@ async function importOne(prisma: PrismaClient, product: LegacyProduct, colorAttr
         },
         productType: pickText(product.prodType) || null,
         originalDimensions: product.originalDimensions ?? null,
-        rawDimensions: product.dimensions ?? null
+        rawDimensions: product.dimensions ?? null,
+        legacyWeight: weight ?? null
       }
     }
   });

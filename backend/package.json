@@ -10,7 +10,9 @@
     "prisma:migrate": "prisma migrate dev",
     "import:origincarpets": "ts-node src/scripts/import-origincarpets.ts sync",
     "import:origincarpets:full": "ts-node src/scripts/import-origincarpets.ts full",
-    "backfill:filters": "ts-node src/scripts/backfill-product-filters.ts"
+    "backfill:filters": "ts-node src/scripts/backfill-product-filters.ts",
+    "sync:gpost": "ts-node src/scripts/sync-gpost-locations.ts",
+    "backfill:shipping": "ts-node src/scripts/backfill-product-shipping.ts"
   },
   "dependencies": {
     "@nestjs/common": "latest",
@@ -21,6 +23,7 @@
     "@nestjs/platform-express": "latest",
     "@prisma/client": "^6.19.3",
     "@types/multer": "^2.1.0",
+    "axios": "^1.17.0",
     "bcrypt": "latest",
     "class-transformer": "latest",
     "class-validator": "latest",

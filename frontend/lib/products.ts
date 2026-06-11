@@ -50,12 +50,31 @@ export interface ProductItem {
     period?: string | null;
     age?: string | null;
   };
+  shipping?: {
+    weightKg: number | null;
+    lengthCm: number | null;
+    widthCm: number | null;
+    heightCm: number | null;
+  };
 }
 
-function toPublicImageUrl(url: string): string {
-  if (!url) return url;
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  return `${API_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`;
+function toPublicImageUrl(url: unknown): string {
+  if (typeof url !== 'string' || !url) return '';
+
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    try {
+      const parsed = new URL(url);
+      // Legacy uploads are served at the site root by nginx — use a path so the browser loads them directly.
+      if (parsed.hostname === 'origincarpets.com' || parsed.hostname === 'www.origincarpets.com') {
+        return parsed.pathname;
+      }
+    } catch {
+      return url;
+    }
+    return url;
+  }
+
+  return url.startsWith('/') ? url : `/${url}`;
 }
 
 export interface ProductListResponse {

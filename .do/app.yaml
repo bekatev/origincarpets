@@ -1,0 +1,121 @@
+# DigitalOcean App Platform — GitHub auto-deploy
+# Repo: https://github.com/bekatev/origincarpets
+#
+# Import: DO Control Panel → Apps → Create App → GitHub → Edit your app spec → paste this file
+# Or: doctl apps create --spec .do/app.yaml
+
+name: origincarpets
+region: fra
+
+features:
+  - buildpack-stack=ubuntu-22
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+
+databases:
+  - name: db
+    engine: PG
+    version: "16"
+    production: true
+    cluster_name: origincarpets-db
+
+ingress:
+  rules:
+    - match:
+        authority:
+          exact: origincarpets.com
+        path:
+          prefix: /
+      component:
+        name: web
+    - match:
+        authority:
+          exact: www.origincarpets.com
+        path:
+          prefix: /
+      component:
+        name: web
+    - match:
+        authority:
+          exact: api.origincarpets.com
+        path:
+          prefix: /
+      component:
+        name: api
+
+services:
+  - name: api
+    github:
+      repo: bekatev/origincarpets
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    environment_slug: node-js
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 4000
+    build_command: >-
+      npm ci &&
+      cd backend &&
+      npx prisma generate &&
+      cd .. &&
+      npm run build --workspace backend &&
+      cd backend &&
+      npx prisma migrate deploy
+    run_command: cd backend && node dist/main.js
+    health_check:
+      http_path: /api/payments/config
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "4000"
+      - key: DATABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        value: ${db.DATABASE_URL}
+      - key: FRONTEND_URL
+        value: https://origincarpets.com
+      - key: JWT_SECRET
+        scope: RUN_TIME
+        type: SECRET
+      - key: GEL_PER_USD
+        value: "2.69"
+      - key: IPAY_API_URL
+        value: https://ipay.ge/opay/api/v1
+      - key: IPAY_CLIENT_ID
+        scope: RUN_TIME
+        type: SECRET
+      - key: IPAY_CLIENT_SECRET
+        scope: RUN_TIME
+        type: SECRET
+      - key: IPAY_REDIRECT_URL
+        value: https://api.origincarpets.com/api/payments/ipay/callback
+      - key: GPOST_API_URL
+        value: https://istore.gpost.ge/api/
+      - key: GPOST_USERNAME
+        scope: RUN_TIME
+        type: SECRET
+      - key: GPOST_PASSWORD
+        scope: RUN_TIME
+        type: SECRET
+
+  - name: web
+    github:
+      repo: bekatev/origincarpets
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    environment_slug: node-js
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 3000
+    build_command: npm ci && npm run build --workspace frontend
+    run_command: cd frontend && npm start
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        scope: BUILD_AND_RUN_TIME
+        value: https://api.origincarpets.com/api

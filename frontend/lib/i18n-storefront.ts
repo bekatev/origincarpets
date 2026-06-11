@@ -42,10 +42,14 @@ export const storefrontTranslations = {
     productDetail: {
       notFound: 'Product Not Found',
       size: 'Size',
+      dimensions: 'Dimensions',
+      weight: 'Weight',
       color: 'Color',
       material: 'Material',
       sku: 'SKU',
-      na: 'N/A'
+      na: 'N/A',
+      dimensionUnit: 'cm',
+      weightUnit: 'kg'
     },
     cart: {
       title: 'Shopping Cart',
@@ -55,50 +59,81 @@ export const storefrontTranslations = {
       each: 'each',
       remove: 'Remove',
       subtotal: 'Subtotal',
-      shippingNote: 'Shipping and taxes are calculated at checkout.',
+      shippingNote: 'Free domestic delivery within Georgia. Worldwide shipping coming soon.',
       checkout: 'Proceed to checkout'
     },
     checkout: {
       title: 'Checkout',
       empty: 'Your cart is empty.',
       browse: 'Browse products',
-      shippingType: 'Shipping method',
-      georgia: 'Georgia',
-      georgiaFree: 'Georgia (Free)',
-      international: 'International',
+      shippingType: 'Georgian Post service',
+      georgianPostNote:
+        'We currently deliver within Georgia only, via Georgian Post from our Tbilisi gallery. Delivery is free.',
+      worldwideComingSoon: 'Worldwide shipping is coming soon.',
+      country: 'Country',
+      city: 'City',
+      selectCountry: 'Select country',
+      selectCity: 'Select city',
+      loading: 'Loading…',
+      methodsLoading: 'Loading delivery services…',
       shippingFree: 'Free',
       shippingProvider: 'Carrier',
       shippingEta: 'Estimated delivery',
       shippingDays: '{min}–{max} business days',
+      businessDays: 'business days',
+      shippingEstimateWarning: 'Live rate unavailable — showing an estimated shipping cost.',
+      countriesLoadFailed: 'Could not load delivery countries.',
+      citiesLoadFailed: 'Could not load cities for the selected country.',
+      deliverySelectionRequired: 'Please select country, city, and delivery service.',
       browseProducts: 'Browse products',
       methods: {
         georgianPost: {
           title: 'Georgian Post',
-          badge: 'Georgia',
-          description:
-            'Nationwide delivery across Georgia through the national postal network. Orders ship from our Tbilisi gallery.',
-          eta: '2–5 business days'
+          badge: 'Georgian Post'
         },
-        dhlExpress: {
-          title: 'DHL Express',
-          badge: 'International',
-          description:
-            'Express door-to-door delivery with full tracking and customs support — the safest option for valuable hand-woven carpets abroad.',
-          why: 'Recommended for overseas orders',
-          eta: '5–12 business days'
-        }
+        recommended: 'Recommended'
       },
       fullName: 'Full name',
       phone: 'Phone',
-      countryCode: 'Country code (GE/US/DE...)',
-      city: 'City',
       region: 'Region',
       postalCode: 'Postal code',
       address1: 'Address line 1',
       address2: 'Address line 2 (optional)',
       creating: 'Creating order...',
-      createOrder: 'Create order',
-      stripeMissing: 'Stripe publishable key is missing. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.',
+      createOrder: 'Continue to payment',
+      paymentMethod: 'Payment method',
+      paymentMethods: {
+        card: {
+          title: 'Visa / Mastercard',
+          description: 'Pay securely online with your card via iPay.',
+          unavailable: 'Card payments are not configured yet. Add iPay credentials on the server.'
+        },
+        bank: {
+          title: 'Bank transfer',
+          description: 'Wire the total to our bank account. We ship after payment is confirmed.',
+          unavailable: 'Bank transfer is temporarily unavailable.'
+        },
+        paypal: {
+          title: 'PayPal',
+          description: 'Pay with your PayPal account.',
+          unavailable: 'PayPal is not configured yet. Add PayPal credentials on the server.'
+        }
+      },
+      bankTransfer: {
+        title: 'Bank transfer instructions',
+        intro: 'Use the details below and include your order number as the payment reference.',
+        amount: 'Amount to pay',
+        reference: 'Payment reference',
+        accountHolder: 'Account holder',
+        bankName: 'Bank',
+        iban: 'IBAN',
+        swift: 'SWIFT / BIC',
+        contactForDetails: 'For full wire details, email {email}.',
+        pendingNote:
+          'Your order stays pending until we confirm the transfer. We will email you once payment is received.',
+        orderPlaced: 'Order {orderNumber} placed. Complete the bank transfer to confirm.'
+      },
+      cardRedirecting: 'Redirecting to secure card payment…',
       summary: 'Order Summary',
       subtotal: 'Subtotal',
       shipping: 'Shipping',
@@ -110,14 +145,20 @@ export const storefrontTranslations = {
       paymentSuccess: '{message} Order {orderNumber}.'
     },
     payment: {
-      title: 'Pay with card (Stripe test mode)',
+      title: 'Complete payment',
+      paypalTitle: 'Pay with PayPal',
       payNow: 'Confirm payment',
       paying: 'Processing payment...',
-      cardNotReady: 'Card input is not ready',
       failed: 'Payment failed',
       success: 'Payment successful. Order marked as PAID.',
-      confirmFailed: 'Failed to confirm payment on server',
-      testCard: 'Use Stripe test card: 4242 4242 4242 4242'
+      confirmFailed: 'Failed to confirm payment on server'
+    },
+    checkoutResult: {
+      title: 'Payment result',
+      success: 'Thank you — your payment was received. We will prepare your order for shipping.',
+      pending: 'If you completed payment, it may take a moment to confirm. Check your orders page.',
+      viewOrders: 'View my orders',
+      continueShopping: 'Continue shopping'
     },
     auth: {
       loginTitle: 'Login',
@@ -146,7 +187,8 @@ export const storefrontTranslations = {
       loginRequired: 'Please login to view your orders.',
       empty: 'No orders yet.',
       loadFailed: 'Failed loading orders',
-      items: 'item(s)'
+      items: 'item(s)',
+      tracking: 'Tracking'
     },
     homeExtra: {
       curator1: 'Karabakh kilim with Roses — $800',
@@ -201,10 +243,14 @@ export const storefrontTranslations = {
     productDetail: {
       notFound: 'პროდუქტი ვერ მოიძებნა',
       size: 'ზომა',
+      dimensions: 'ზომები',
+      weight: 'წონა',
       color: 'ფერი',
       material: 'მასალა',
       sku: 'არტიკული',
-      na: '—'
+      na: '—',
+      dimensionUnit: 'სმ',
+      weightUnit: 'კგ'
     },
     cart: {
       title: 'საყიდლების კალათა',
@@ -214,50 +260,81 @@ export const storefrontTranslations = {
       each: 'თითო',
       remove: 'წაშლა',
       subtotal: 'ქვეჯამი',
-      shippingNote: 'მიწოდება და გადასახადები გამოითვლება შეკვეთისას.',
+      shippingNote: 'უფასო მიწოდება საქართველოს ფარგლებში. საერთაშორისო მიწოდება მალე.',
       checkout: 'შეკვეთის გაფორმება'
     },
     checkout: {
       title: 'შეკვეთის გაფორმება',
       empty: 'თქვენი კალათა ცარიელია.',
       browse: 'პროდუქტების ნახვა',
-      shippingType: 'მიწოდების მეთოდი',
-      georgia: 'საქართველო',
-      georgiaFree: 'საქართველო (უფასო)',
-      international: 'საერთაშორისო',
+      shippingType: 'საქართველოს ფოსტის სერვისი',
+      georgianPostNote:
+        'ამ ეტაპზე მიწოდება ხორციელდება მხოლოდ საქართველოს ფარგლებში, საქართველოს ფოსტით ჩვენი თბილისის გალერეიდან. მიწოდება უფასოა.',
+      worldwideComingSoon: 'საერთაშორისო მიწოდება მალე დაემატება.',
+      country: 'ქვეყანა',
+      city: 'ქალაქი',
+      selectCountry: 'აირჩიეთ ქვეყანა',
+      selectCity: 'აირჩიეთ ქალაქი',
+      loading: 'იტვირთება…',
+      methodsLoading: 'მიწოდების სერვისები იტვირთება…',
       shippingFree: 'უფასო',
       shippingProvider: 'გადამზიდი',
       shippingEta: 'სავარაუდო მიწოდება',
       shippingDays: '{min}–{max} სამუშაო დღე',
+      businessDays: 'სამუშაო დღე',
+      shippingEstimateWarning: 'ცოცხალი ტარიფი მიუწვდომელია — ნაჩვენებია სავარაუდო ღირებულება.',
+      countriesLoadFailed: 'ქვეყნების ჩატვირთვა ვერ მოხერხდა.',
+      citiesLoadFailed: 'ქალაქების ჩატვირთვა ვერ მოხერხდა.',
+      deliverySelectionRequired: 'გთხოვთ აირჩიოთ ქვეყანა, ქალაქი და მიწოდების სერვისი.',
       browseProducts: 'პროდუქტების ნახვა',
       methods: {
         georgianPost: {
           title: 'საქართველოს ფოსტა',
-          badge: 'საქართველო',
-          description:
-            'მიწოდება საქართველოს მასშტაბით ეროვნული საფოსტო ქსელით. შეკვეთები გაიგზავნება ჩვენი თბილისის გალერეიდან.',
-          eta: '2–5 სამუშაო დღე'
+          badge: 'საქართველოს ფოსტა'
         },
-        dhlExpress: {
-          title: 'DHL Express',
-          badge: 'საერთაშორისო',
-          description:
-            'ექსპრეს მიწოდება კარიდან კარამდე, სრული თრექინგითა და საბაჟო მხარდაჭერით — ყველაზე უსაფრთხო არჩევანი ღირებული ხალიჩებისთვის უცხოეთში.',
-          why: 'რეკომენდებულია საერთაშორისო შეკვეთებისთვის',
-          eta: '5–12 სამუშაო დღე'
-        }
+        recommended: 'რეკომენდებული'
       },
       fullName: 'სახელი და გვარი',
       phone: 'ტელეფონი',
-      countryCode: 'ქვეყნის კოდი (GE/US/DE...)',
-      city: 'ქალაქი',
       region: 'რეგიონი',
       postalCode: 'საფოსტო ინდექსი',
       address1: 'მისამართი 1',
       address2: 'მისამართი 2 (არასავალდებულო)',
       creating: 'შეკვეთა იქმნება...',
-      createOrder: 'შეკვეთის შექმნა',
-      stripeMissing: 'Stripe გასაღები არ არის კონფიგურირებული.',
+      createOrder: 'გადახდაზე გადასვლა',
+      paymentMethod: 'გადახდის მეთოდი',
+      paymentMethods: {
+        card: {
+          title: 'Visa / Mastercard',
+          description: 'უსაფრთხო ონლაინ გადახდა ბარათით iPay-ის მეშვეობით.',
+          unavailable: 'ბარათით გადახდა ჯერ არ არის კონფიგურირებული.'
+        },
+        bank: {
+          title: 'საბანკო გადარიცხვა',
+          description: 'გადაირიცხეთ თანხა ჩვენს ანგარიშზე. გაგზავნა გადახდის დადასტურების შემდეგ.',
+          unavailable: 'საბანკო გადარიცხვა დროებით მიუწვდომელია.'
+        },
+        paypal: {
+          title: 'PayPal',
+          description: 'გადაიხადეთ PayPal ანგარიშით.',
+          unavailable: 'PayPal ჯერ არ არის კონფიგურირებული.'
+        }
+      },
+      bankTransfer: {
+        title: 'საბანკო გადარიცხვის ინსტრუქცია',
+        intro: 'გამოიყენეთ ქვემოთ მოცემული რეკვიზიტები და გადარიცხვის დანიშნულებაში მიუთითეთ შეკვეთის ნომერი.',
+        amount: 'გადასახდელი თანხა',
+        reference: 'გადარიცხვის დანიშნულება',
+        accountHolder: 'მიმღები',
+        bankName: 'ბანკი',
+        iban: 'IBAN',
+        swift: 'SWIFT / BIC',
+        contactForDetails: 'სრული რეკვიზიტებისთვის დაგვიკავშირდით: {email}.',
+        pendingNote:
+          'შეკვეთა მოცდის სტატუსზეა, სანამ გადარიცხვას არ დავადასტურებთ. გადახდის მიღების შემდეგ დაგიკავშირდებით.',
+        orderPlaced: 'შეკვეთა {orderNumber} მიღებულია. გადარიცხვის დასრულების შემდეგ დავადასტურებთ.'
+      },
+      cardRedirecting: 'ბარათით გადახდის გვერდზე გადამისამართება…',
       summary: 'შეკვეთის შინაარსი',
       subtotal: 'ქვეჯამი',
       shipping: 'მიწოდება',
@@ -269,14 +346,20 @@ export const storefrontTranslations = {
       paymentSuccess: '{message} შეკვეთა {orderNumber}.'
     },
     payment: {
-      title: 'ბარათით გადახდა (Stripe სატესტო რეჟიმი)',
+      title: 'გადახდის დასრულება',
+      paypalTitle: 'გადახდა PayPal-ით',
       payNow: 'გადახდის დადასტურება',
       paying: 'გადახდა მუშავდება...',
-      cardNotReady: 'ბარათის ველი მზად არ არის',
       failed: 'გადახდა ვერ მოხერხდა',
       success: 'გადახდა წარმატებით დასრულდა. შეკვეთა მონიშნულია როგორც გადახდილი.',
-      confirmFailed: 'გადახდის დადასტურება სერვერზე ვერ მოხერხდა',
-      testCard: 'Stripe სატესტო ბარათი: 4242 4242 4242 4242'
+      confirmFailed: 'გადახდის დადასტურება სერვერზე ვერ მოხერხდა'
+    },
+    checkoutResult: {
+      title: 'გადახდის შედეგი',
+      success: 'გმადლობთ — გადახდა მიღებულია. შეკვეთას მალე გავუგზავნით.',
+      pending: 'თუ გადახდა დაასრულეთ, დადასტურებას შეიძლება რამდენიმე წუთი დასჭირდეს. შეამოწმეთ შეკვეთები.',
+      viewOrders: 'ჩემი შეკვეთები',
+      continueShopping: 'შოპინგის გაგრძელება'
     },
     auth: {
       loginTitle: 'შესვლა',
@@ -305,7 +388,8 @@ export const storefrontTranslations = {
       loginRequired: 'შეკვეთების სანახავად გთხოვთ შეხვიდეთ ანგარიშში.',
       empty: 'შეკვეთები ჯერ არ გაქვთ.',
       loadFailed: 'შეკვეთების ჩატვირთვა ვერ მოხერხდა',
-      items: 'პროდუქტი'
+      items: 'პროდუქტი',
+      tracking: 'თრექინგი'
     },
     homeExtra: {
       curator1: 'ყარაბახის ვარდების ქილიმი — $800',

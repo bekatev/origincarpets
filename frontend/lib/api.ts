@@ -1,4 +1,18 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
+function resolveApiUrl(): string {
+  // Browser: always call the same host (production, staging, or localhost dev).
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/api`;
+  }
+
+  // Server-side in Docker/production.
+  if (process.env.INTERNAL_API_URL) {
+    return process.env.INTERNAL_API_URL;
+  }
+
+  return process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
+}
+
+export const API_URL = resolveApiUrl();
 export const API_ORIGIN = API_URL.replace(/\/api$/, '');
 
 export interface AuthUser {

@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsIn, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { IsInt, Max, Min } from 'class-validator';
+import type { GpostDeliveryMethodKey } from '../../shipping/georgian-post.constants';
 
 class CreateOrderItemDto {
   @IsString()
@@ -20,12 +21,6 @@ class ShippingAddressDto {
   @IsOptional()
   @IsString()
   phone?: string;
-
-  @IsString()
-  countryCode!: string;
-
-  @IsString()
-  city!: string;
 
   @IsOptional()
   @IsString()
@@ -49,8 +44,14 @@ export class CreateOrderDto {
   @Type(() => CreateOrderItemDto)
   items!: CreateOrderItemDto[];
 
-  @IsIn(['GEORGIA', 'INTERNATIONAL'])
-  shippingType!: 'GEORGIA' | 'INTERNATIONAL';
+  @IsString()
+  deliveryCountryId!: string;
+
+  @IsString()
+  deliveryCityId!: string;
+
+  @IsIn(['AVIA', 'EMS', 'CD-Parcel'])
+  deliveryMethod!: GpostDeliveryMethodKey;
 
   @ValidateNested()
   @Type(() => ShippingAddressDto)

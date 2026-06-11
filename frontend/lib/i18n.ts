@@ -21,7 +21,7 @@ export const dictionaries = {
       menu: 'Menu'
     },
     topbar: {
-      shipping: 'Worldwide Delivery Available'
+      shipping: 'Free delivery within Georgia'
     },
     nav: {
       shop: 'Shop',
@@ -34,7 +34,7 @@ export const dictionaries = {
       appointment: 'Book Virtual Appointment'
     },
     footer: {
-      description: 'Finest Caucasian and Oriental Carpets with local Georgian and international shipping.',
+      description: 'Finest Caucasian and Oriental Carpets with free delivery across Georgia. Worldwide shipping coming soon.',
       shop: 'Shop',
       productCatalog: 'Product Catalog',
       checkout: 'Checkout',
@@ -98,7 +98,7 @@ export const dictionaries = {
       menu: 'მენიუ'
     },
     topbar: {
-      shipping: 'მიწოდება მსოფლიოს მასშტაბით'
+      shipping: 'უფასო მიწოდება საქართველოში'
     },
     nav: {
       shop: 'მაღაზია',
@@ -111,7 +111,7 @@ export const dictionaries = {
       appointment: 'ვირტუალური შეხვედრის დაჯავშნა'
     },
     footer: {
-      description: 'კავკასიური და აღმოსავლური ხალიჩების საუკეთესო კოლექცია ადგილობრივი და საერთაშორისო მიწოდებით.',
+      description: 'კავკასიური და აღმოსავლური ხალიჩების საუკეთესო კოლექცია უფასო მიწოდებით საქართველოში. საერთაშორისო მიწოდება მალე.',
       shop: 'მაღაზია',
       productCatalog: 'პროდუქტების კატალოგი',
       checkout: 'შეკვეთის გაფორმება',

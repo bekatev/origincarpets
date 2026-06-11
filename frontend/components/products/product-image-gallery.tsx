@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 
 export function ProductImageGallery({
   images,
@@ -26,15 +25,13 @@ export function ProductImageGallery({
     <div className="space-y-4">
       <div className="oc-surface relative overflow-hidden">
         <div className="relative flex min-h-[420px] w-full items-center justify-center bg-[var(--oc-bg-secondary)] md:min-h-[520px]">
-          <Image
+          <img
             key={activeUrl}
             src={activeUrl}
             alt={`${title} — image ${activeIndex + 1} of ${urls.length}`}
-            width={1200}
-            height={900}
-            priority={activeIndex === 0}
+            loading={activeIndex === 0 ? 'eager' : 'lazy'}
+            decoding="async"
             className="h-auto max-h-[70vh] w-full object-contain"
-            sizes="(max-width: 768px) 100vw, 50vw"
           />
         </div>
         {urls.length > 1 && (
@@ -59,14 +56,7 @@ export function ProductImageGallery({
                   : 'border-[var(--oc-line)] opacity-70 hover:opacity-100'
               }`}
             >
-              <Image
-                src={url}
-                alt=""
-                width={96}
-                height={96}
-                loading="lazy"
-                className="h-full w-full object-cover"
-              />
+              <img src={url} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
             </button>
           ))}
         </div>

@@ -1,0 +1,19 @@
+version: '3.3'
+
+services:
+  carp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://origincarpets.com/api
+    container_name: origincarpets-app
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - backend/.env
+    environment:
+      NODE_ENV: production
+      FRONTEND_URL: https://origincarpets.com
+      NEXT_PUBLIC_API_URL: https://origincarpets.com/api
+      INTERNAL_API_URL: http://127.0.0.1:4000/api

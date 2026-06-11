@@ -1,41 +1,44 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { IsIn, IsOptional, IsString } from 'class-validator';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { IsString } from 'class-validator';
+import { ShippingQuoteDto } from './dto/shipping-quote.dto';
 import { ShippingService } from './shipping.service';
 
-class ShippingCostQueryDto {
-  @IsIn(['GEORGIA', 'INTERNATIONAL'])
-  type!: 'GEORGIA' | 'INTERNATIONAL';
-
-  @IsOptional()
+class CitiesQueryDto {
   @IsString()
-  countryCode?: string;
+  countryId!: string;
+}
+
+class MethodsQueryDto {
+  @IsString()
+  countryId!: string;
 }
 
 @Controller('shipping')
 export class ShippingController {
   constructor(private readonly shippingService: ShippingService) {}
 
-  @Get('options')
-  options() {
-    return this.shippingService.listOptions();
+  @Get('provider')
+  provider() {
+    return this.shippingService.listProvider();
   }
 
-  @Get('cost')
-  async cost(@Query() query: ShippingCostQueryDto) {
-    const countryCode = query.countryCode?.toUpperCase() ?? (query.type === 'GEORGIA' ? 'GE' : 'US');
-    const result = await this.shippingService.calculate(query.type, countryCode);
+  @Get('countries')
+  countries() {
+    return this.shippingService.listCountries();
+  }
 
-    return {
-      shippingType: result.shippingType,
-      providerKey: result.providerKey,
-      shippingZone: {
-        id: result.shippingZone.id,
-        code: result.shippingZone.code,
-        name: result.shippingZone.name
-      },
-      shippingCost: result.shippingCost,
-      provider: result.provider,
-      deliveryDays: result.deliveryDays
-    };
+  @Get('cities')
+  cities(@Query() query: CitiesQueryDto) {
+    return this.shippingService.listCities(query.countryId);
+  }
+
+  @Get('methods')
+  methods(@Query() query: MethodsQueryDto) {
+    return this.shippingService.listMethods(query.countryId);
+  }
+
+  @Post('quote')
+  quote(@Body() body: ShippingQuoteDto) {
+    return this.shippingService.quote(body);
   }
 }

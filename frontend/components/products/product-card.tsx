@@ -16,12 +16,7 @@ export function ProductCard({ product, priority = false }: { product: ProductIte
         className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--oc-ink)]"
         aria-label={`View ${product.title}`}
       >
-        <ProductCardFoldMedia
-          images={product.images}
-          alt={product.title}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          priority={priority}
-        />
+        <ProductCardFoldMedia images={product.images} alt={product.title} priority={priority} />
       </Link>
       <div className="mt-4 space-y-2">
         <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--oc-muted)]">{product.category.name}</p>

@@ -23,3 +23,9 @@ Monorepo ecommerce scaffold for carpet sales with Next.js frontend and NestJS ba
 
 Frontend: http://localhost:3000
 Backend: http://localhost:4000/api
+
+## Production deploy (DigitalOcean + GitHub)
+
+Push to `main` → auto-deploy via App Platform. Full guide: [docs/deploy-digitalocean.md](docs/deploy-digitalocean.md)
+
+Spec file: [.do/app.yaml](.do/app.yaml)
