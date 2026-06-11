@@ -5,6 +5,7 @@ import { FormattedPrice } from '@/components/products/formatted-price';
 import { ProductImageGallery } from '@/components/products/product-image-gallery';
 import { getServerDictionary } from '@/lib/i18n-server';
 import { fetchProductBySlug } from '@/lib/products';
+import { toPlainText } from '@/lib/text';
 
 export const revalidate = 300;
 
@@ -21,13 +22,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   return {
     title: product.title,
-    description: product.description.slice(0, 150),
+    description: toPlainText(product.description).slice(0, 150),
     alternates: {
       canonical: `/products/${product.slug}`
     },
     openGraph: {
       title: product.title,
-      description: product.description.slice(0, 150),
+      description: toPlainText(product.description).slice(0, 150),
       type: 'website',
       url: `http://localhost:3000/products/${product.slug}`,
       images: product.images.length
@@ -37,7 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     twitter: {
       card: 'summary_large_image',
       title: product.title,
-      description: product.description.slice(0, 150),
+      description: toPlainText(product.description).slice(0, 150),
       images: product.images.length ? [product.images[0]] : undefined
     }
   };
@@ -99,7 +100,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </div>
           </dl>
 
-          <p className="text-[15px] leading-8 text-[var(--oc-muted)]">{product.description}</p>
+          <p className="whitespace-pre-line text-[15px] leading-8 text-[var(--oc-muted)]">
+            {toPlainText(product.description)}
+          </p>
 
           <AddToCartButton
             product={{

@@ -207,7 +207,7 @@ export const storefrontTranslations = {
     products: {
       catalog: 'კატალოგი',
       title: 'ხალიჩების კოლექცია',
-      intro: 'მოძებნეთ და გაფილტრეთ ხალიჩები კატეგორიით, მასალით, ზომით, წარმომავლობით, ფერით, ასაკით, პერიოდით და სხვა.',
+      intro: 'მოძებნეთ და გაფილტრეთ ხალიჩები კატეგორიით, მასალით, ზომით, წარმომავლობით, ფერით და სხვა.',
       countOne: '{count} ნამუშევარი',
       countMany: '{count} ნამუშევარი',
       noResults: 'მოცემული ფილტრებით პროდუქტი ვერ მოიძებნა.'
@@ -237,7 +237,7 @@ export const storefrontTranslations = {
       price: 'ფასი',
       minPrice: 'მინ.',
       maxPrice: 'მაქს.',
-      apply: 'ფილტრის გამოყენება',
+      apply: 'გამოყენება',
       clear: 'გასუფთავება'
     },
     productDetail: {
@@ -363,7 +363,7 @@ export const storefrontTranslations = {
     },
     auth: {
       loginTitle: 'შესვლა',
-      loginSubtitle: 'შედით ანგარიშში შეკვეთებისა და პროფილის სამართავად.',
+      loginSubtitle: 'შედით ანგარიშში, რათა მართოთ შეკვეთები და პროფილი.',
       registerTitle: 'რეგისტრაცია',
       registerSubtitle: 'შექმენით ანგარიში შეკვეთისა და თვალთვალისთვის.',
       email: 'ელფოსტა',

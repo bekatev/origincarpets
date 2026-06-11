@@ -6,17 +6,19 @@ import { BrandLogo } from '@/components/brand/brand-logo';
 import { DecorationDivider } from '@/components/home/decoration-divider';
 import { DecorationMotif } from '@/components/home/decoration-motif';
 import { FeaturedProductCard } from '@/components/home/featured-product-card';
+import { useAuth } from '@/components/providers/auth-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
 import type { ProductItem } from '@/lib/products';
 import { stockImages } from '@/lib/stock-images';
 
 export function HomePageContent({ featured }: { featured: ProductItem[] }) {
   const { dict } = useI18n();
+  const { isAuthenticated, ready } = useAuth();
 
   return (
     <main>
       <section className="relative">
-        <div className="relative aspect-[16/10] w-full overflow-hidden sm:aspect-[16/9] lg:aspect-[21/9]">
+        <div className="relative aspect-[16/8] w-full overflow-hidden sm:aspect-[16/7] lg:aspect-[21/8]">
           <Image
             src={stockImages.hero}
             alt=""
@@ -100,8 +102,11 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
               <p className="oc-body">{dict.home.historyP2}</p>
               <p className="oc-body">{dict.home.historyP3}</p>
             </div>
-            <Link href="/register" className="oc-link oc-link-arrow mt-8 inline-flex">
-              {dict.home.createAccount}
+            <Link
+              href={ready && isAuthenticated ? '/orders' : '/register'}
+              className="oc-link oc-link-arrow mt-8 inline-flex"
+            >
+              {ready && isAuthenticated ? dict.home.goToProfile : dict.home.createAccount}
             </Link>
           </div>
           <div className="relative aspect-[3/4] overflow-hidden bg-[var(--oc-bg)]">
