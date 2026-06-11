@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { ProductDetailView } from '@/components/products/product-detail-view';
-import { ProductImageGallery } from '@/components/products/product-image-gallery';
+import { ProductDetailLayout } from '@/components/products/product-detail-layout';
 import { getServerDictionary } from '@/lib/i18n-server';
 import { fetchProductBySlug } from '@/lib/products';
 import { toPlainText } from '@/lib/text';
@@ -53,10 +52,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   return (
     <section className="oc-section">
-      <div className="oc-container grid gap-12 md:grid-cols-2">
-        <ProductImageGallery images={product.images} title={product.title} />
-        <ProductDetailView product={product} />
-      </div>
+      <ProductDetailLayout product={product} />
     </section>
   );
 }

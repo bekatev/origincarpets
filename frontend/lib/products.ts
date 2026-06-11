@@ -33,12 +33,18 @@ export interface ProductListFilters {
   page?: string;
 }
 
+export interface ProductLocalizations {
+  title?: { en?: string | null; ka?: string | null; ge?: string | null };
+  description?: { en?: string | null; ka?: string | null; ge?: string | null };
+}
+
 export interface ProductItem {
   id: string;
   slug: string;
   sku: string;
   title: string;
   description: string;
+  localizations?: ProductLocalizations;
   price: number;
   origin?: string | null;
   images: string[];

@@ -5,6 +5,7 @@ import { hasCompleteShipping, legacyMetresToCm, resolveLegacyHeightCm } from '..
 type LegacyLocalized = {
   en?: string;
   ka?: string;
+  ge?: string;
   ru?: string;
 };
 
@@ -80,7 +81,7 @@ function slugify(input: string) {
 }
 
 function pickText(localized?: LegacyLocalized, fallback = '') {
-  return localized?.en?.trim() || localized?.ka?.trim() || localized?.ru?.trim() || fallback;
+  return localized?.en?.trim() || localized?.ka?.trim() || localized?.ge?.trim() || localized?.ru?.trim() || fallback;
 }
 
 function toAssetUrl(raw?: string) {

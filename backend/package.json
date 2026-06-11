@@ -12,7 +12,8 @@
     "import:origincarpets:full": "ts-node src/scripts/import-origincarpets.ts full",
     "backfill:filters": "ts-node src/scripts/backfill-product-filters.ts",
     "sync:gpost": "ts-node src/scripts/sync-gpost-locations.ts",
-    "backfill:shipping": "ts-node src/scripts/backfill-product-shipping.ts"
+    "backfill:shipping": "ts-node src/scripts/backfill-product-shipping.ts",
+    "backfill:georgian": "ts-node src/scripts/backfill-product-georgian.ts"
   },
   "dependencies": {
     "@nestjs/common": "latest",

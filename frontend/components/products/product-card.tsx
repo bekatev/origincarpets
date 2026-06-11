@@ -1,12 +1,17 @@
 'use client';
 
 import Link from 'next/link';
+import { useMemo } from 'react';
 import type { ProductItem } from '@/lib/products';
 import { ProductCardFoldMedia } from '@/components/products/product-card-fold-media';
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
 import { FormattedPrice } from '@/components/products/formatted-price';
+import { useI18n } from '@/components/providers/i18n-provider';
+import { localizeProduct } from '@/lib/product-localization';
 
 export function ProductCard({ product, priority = false }: { product: ProductItem; priority?: boolean }) {
+  const { locale } = useI18n();
+  const localized = useMemo(() => localizeProduct(product, locale), [product, locale]);
   const cover = product.images[0];
 
   return (
@@ -14,9 +19,9 @@ export function ProductCard({ product, priority = false }: { product: ProductIte
       <Link
         href={`/products/${product.slug}`}
         className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--oc-ink)]"
-        aria-label={`View ${product.title}`}
+        aria-label={`View ${localized.title}`}
       >
-        <ProductCardFoldMedia images={product.images} alt={product.title} priority={priority} />
+        <ProductCardFoldMedia images={product.images} alt={localized.title} priority={priority} />
       </Link>
       <div className="mt-4 space-y-2">
         <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--oc-muted)]">{product.category.name}</p>
@@ -33,7 +38,7 @@ export function ProductCard({ product, priority = false }: { product: ProductIte
             product={{
               id: product.id,
               slug: product.slug,
-              title: product.title,
+              title: localized.title,
               price: product.price,
               image: cover
             }}

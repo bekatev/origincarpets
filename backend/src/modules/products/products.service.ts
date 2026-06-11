@@ -13,6 +13,7 @@ import {
   PUBLIC_SHIPPABLE_PRODUCT_WHERE,
   resolveProductPublication
 } from './shipping-dimensions';
+import { readLocalizedFields } from './product-localization';
 
 const PRODUCT_INCLUDE = {
   category: true,
@@ -427,12 +428,17 @@ export class ProductsService {
 
   private serializeProduct(product: Prisma.ProductGetPayload<{ include: typeof PRODUCT_INCLUDE }>) {
     const colorValue = product.attributes.find((entry) => entry.attribute.code === 'color')?.value ?? null;
+    const localized = readLocalizedFields(product.metadata);
     return {
       id: product.id,
       slug: product.slug,
       sku: product.sku,
       title: product.title,
       description: product.description,
+      localizations: {
+        title: localized.title ?? { en: product.title },
+        description: localized.description ?? { en: product.description }
+      },
       price: Number(product.price),
       isActive: product.isActive,
       isPublished: product.isActive,
