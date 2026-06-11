@@ -120,7 +120,7 @@ export const dictionaries = {
       myOrders: 'ჩემი შეკვეთები'
     },
     home: {
-      siteTitle: 'საუკეთესო კავკასიური და აღმოსავლური ხალიჩები',
+      siteTitle: 'საუკეთესო კავკასიური და აღმოსავლური ხალიჩები.',
       heroSubtitle: 'Origin Carpets · თბილისი',
       heroTitle1: 'შეცვალეთ თქვენი სივრცე',
       heroTitle2: 'ავთენტური აღმოსავლური ხალიჩებით',
