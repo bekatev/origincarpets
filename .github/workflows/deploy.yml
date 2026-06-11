@@ -15,26 +15,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Copy files to droplet
+      - name: Create deployment archive
+        run: |
+          tar czf /tmp/deploy.tgz \
+            --exclude=.git \
+            --exclude=node_modules \
+            --exclude=frontend/.next \
+            --exclude=backend/dist \
+            --exclude=backups \
+            --exclude=backend/.env \
+            --exclude=.db-credentials \
+            -C . .
+
+      - name: Copy archive to droplet
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          source: "."
-          target: "/opt/carp"
+          source: /tmp/deploy.tgz
+          target: /opt/carp
           overwrite: true
-          rm: false
-          exclude: |
-            .git
-            node_modules
-            frontend/.next
-            backend/dist
-            backups
-            backend/.env
-            .db-credentials
 
-      - name: Build and restart app
+      - name: Extract, build, and restart app
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DROPLET_HOST }}
@@ -44,4 +47,6 @@ jobs:
           script: |
             set -euo pipefail
             cd /opt/carp
+            tar xzf deploy.tgz
+            rm -f deploy.tgz
             bash scripts/deploy-docker.sh
