@@ -5,13 +5,27 @@ import { motion } from 'framer-motion';
 import { RequireAuth } from '@/components/auth/require-auth';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
+import { DeliveryComingSoon } from '@/components/storefront/delivery-coming-soon';
 import { useCart } from '@/lib/cart';
+import { PURCHASE_ENABLED } from '@/lib/storefront';
 
 export default function CartPage() {
   const { items, subtotal, removeFromCart, clearCart } = useCart();
   const { formatPrice } = useCurrency();
   const { dict } = useI18n();
   const c = dict.cart;
+
+  if (!PURCHASE_ENABLED) {
+    return (
+      <RequireAuth>
+        <main className="oc-section">
+          <div className="oc-container max-w-2xl">
+            <DeliveryComingSoon />
+          </div>
+        </main>
+      </RequireAuth>
+    );
+  }
 
   return (
     <RequireAuth>

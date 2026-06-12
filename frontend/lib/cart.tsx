@@ -1,6 +1,7 @@
 'use client';
 
 import { API_URL } from './api';
+import { PURCHASE_ENABLED } from './storefront';
 import { readStoredToken } from './auth';
 import {
   clearCartStorage,
@@ -117,6 +118,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items, isHydrated, user?.id]);
 
   const addToCart = useCallback((product: CartProduct) => {
+    if (!PURCHASE_ENABLED) return;
+
     setItems((prev) => {
       if (prev.some((item) => item.id === product.id)) {
         return prev;

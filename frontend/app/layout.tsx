@@ -14,7 +14,7 @@ import { AuthProvider } from '@/components/providers/auth-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { ThemeScript } from '@/components/layout/theme-script';
 import { CURRENCY_COOKIE, normalizeCurrency } from '@/lib/currency';
-import { LANG_COOKIE, DEFAULT_LOCALE, normalizeLocale } from '@/lib/i18n';
+import { LANG_COOKIE, resolveSiteLocale } from '@/lib/i18n';
 import { stockImages } from '@/lib/stock-images';
 import { THEME_COOKIE, normalizeTheme } from '@/lib/theme';
 
@@ -60,8 +60,7 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
-  const cookieLocale = cookieStore.get(LANG_COOKIE)?.value;
-  const locale = cookieLocale ? normalizeLocale(cookieLocale) : DEFAULT_LOCALE;
+  const locale = resolveSiteLocale(cookieStore.get(LANG_COOKIE)?.value);
   const currency = normalizeCurrency(cookieStore.get(CURRENCY_COOKIE)?.value);
   const theme = normalizeTheme(cookieStore.get(THEME_COOKIE)?.value);
 

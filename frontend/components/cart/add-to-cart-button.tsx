@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { useCart } from '@/lib/cart';
+import { PURCHASE_ENABLED } from '@/lib/storefront';
 
 export function AddToCartButton({
   product,
@@ -19,6 +20,14 @@ export function AddToCartButton({
   const { dict } = useI18n();
   const [added, setAdded] = useState(false);
   const inCart = isInCart(product.id);
+
+  if (!PURCHASE_ENABLED) {
+    return (
+      <button type="button" className={className ?? 'oc-btn-primary'} disabled>
+        {dict.storefront.purchaseComingSoon}
+      </button>
+    );
+  }
 
   return (
     <button

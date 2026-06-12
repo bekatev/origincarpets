@@ -6,6 +6,7 @@ import { FormattedPrice } from '@/components/products/formatted-price';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { localizeProduct } from '@/lib/product-localization';
 import type { ProductItem } from '@/lib/products';
+import { PURCHASE_ENABLED } from '@/lib/storefront';
 import { toPlainText } from '@/lib/text';
 
 export function ProductDetailView({ product }: { product: ProductItem }) {
@@ -57,6 +58,10 @@ export function ProductDetailView({ product }: { product: ProductItem }) {
       <p className="whitespace-pre-line text-[15px] leading-8 text-[var(--oc-muted)]">
         {toPlainText(localized.description)}
       </p>
+
+      {!PURCHASE_ENABLED ? (
+        <p className="text-sm text-[var(--oc-muted)]">{dict.storefront.deliveryComingSoonBody}</p>
+      ) : null}
 
       <AddToCartButton
         product={{

@@ -11,6 +11,7 @@ import { useCart } from '@/lib/cart';
 import { PaymentMethodPicker } from '@/components/checkout/payment-method-picker';
 import { ShippingMethodPicker } from '@/components/checkout/shipping-method-picker';
 import { fetchPaymentConfig, startIpayPayment, type PaymentConfig } from '@/lib/payments';
+import { DeliveryComingSoon } from '@/components/storefront/delivery-coming-soon';
 import {
   fetchDeliveryCities,
   fetchDeliveryCountries,
@@ -22,6 +23,7 @@ import {
   type DeliveryMethodKey,
   type ShippingQuote
 } from '@/lib/shipping';
+import { PURCHASE_ENABLED } from '@/lib/storefront';
 
 const defaultPaymentConfig: PaymentConfig = { card: false };
 
@@ -255,6 +257,18 @@ export default function CheckoutPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (!PURCHASE_ENABLED) {
+    return (
+      <RequireAuth>
+        <main className="oc-section">
+          <div className="oc-container max-w-2xl">
+            <DeliveryComingSoon />
+          </div>
+        </main>
+      </RequireAuth>
+    );
   }
 
   return (

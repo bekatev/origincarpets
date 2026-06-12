@@ -15,6 +15,10 @@ export function I18nProvider({ initialLocale, children }: { initialLocale: Local
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
   useEffect(() => {
+    setLocaleState(initialLocale);
+  }, [initialLocale]);
+
+  useEffect(() => {
     document.documentElement.lang = locale;
   }, [locale]);
 

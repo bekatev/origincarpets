@@ -22,7 +22,7 @@ export const dictionaries = {
       menu: 'Menu'
     },
     topbar: {
-      shipping: 'Free delivery within Georgia'
+      shipping: 'Delivery coming soon'
     },
     nav: {
       shop: 'Shop',
@@ -35,7 +35,7 @@ export const dictionaries = {
       appointment: 'Book Virtual Appointment'
     },
     footer: {
-      description: 'Finest Caucasian and Oriental Carpets with free delivery across Georgia. Worldwide shipping coming soon.',
+      description: 'Finest Caucasian and Oriental Carpets. Online ordering and delivery coming soon.',
       shop: 'Shop',
       productCatalog: 'Product Catalog',
       checkout: 'Checkout',
@@ -100,7 +100,7 @@ export const dictionaries = {
       menu: 'მენიუ'
     },
     topbar: {
-      shipping: 'უფასო მიწოდება საქართველოში'
+      shipping: 'მიწოდება მალე'
     },
     nav: {
       shop: 'მაღაზია',
@@ -113,7 +113,7 @@ export const dictionaries = {
       appointment: 'ვირტუალური შეხვედრის დაჯავშნა'
     },
     footer: {
-      description: 'კავკასიური და აღმოსავლური ხალიჩების საუკეთესო კოლექცია უფასო მიწოდებით საქართველოში. საერთაშორისო მიწოდება მალე.',
+      description: 'კავკასიური და აღმოსავლური ხალიჩების საუკეთესო კოლექცია. ონლაინ შეკვეთა და მიწოდება მალე.',
       shop: 'მაღაზია',
       productCatalog: 'პროდუქტების კატალოგი',
       checkout: 'შეკვეთის გაფორმება',
@@ -168,8 +168,16 @@ export const dictionaries = {
 
 export type Dictionary = (typeof dictionaries)[Locale];
 
+/** Resolve locale from cookie/storage value. Anything except explicit Georgian codes defaults to English. */
 export function normalizeLocale(value?: string | null): Locale {
-  return value === 'ka' ? 'ka' : DEFAULT_LOCALE;
+  if (!value) return DEFAULT_LOCALE;
+  const code = value.trim().toLowerCase();
+  if (code === 'ka' || code === 'ge' || code === 'geo') return 'ka';
+  return DEFAULT_LOCALE;
+}
+
+export function resolveSiteLocale(cookieValue?: string | null): Locale {
+  return normalizeLocale(cookieValue);
 }
 
 export function formatCount(template: string, count: number): string {

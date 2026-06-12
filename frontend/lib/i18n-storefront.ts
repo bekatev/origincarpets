@@ -1,6 +1,13 @@
 /** Storefront UI strings (products, cart, checkout, auth, filters). */
 export const storefrontTranslations = {
   en: {
+    storefront: {
+      purchaseComingSoon: 'Coming soon',
+      deliveryComingSoonTitle: 'Delivery & ordering coming soon',
+      deliveryComingSoonBody:
+        'We are preparing domestic and international delivery. Browse the collection now — online purchasing will be available shortly.',
+      browseCollection: 'Browse collection'
+    },
     theme: { light: 'Light', dark: 'Dark' },
     cartActions: { add: 'Add to cart', added: 'Added', inCart: 'In cart' },
     products: {
@@ -59,7 +66,7 @@ export const storefrontTranslations = {
       each: 'each',
       remove: 'Remove',
       subtotal: 'Subtotal',
-      shippingNote: 'Free domestic delivery within Georgia. Worldwide shipping coming soon.',
+      shippingNote: 'Online ordering and delivery are coming soon.',
       checkout: 'Proceed to checkout'
     },
     checkout: {
@@ -202,6 +209,13 @@ export const storefrontTranslations = {
     }
   },
   ka: {
+    storefront: {
+      purchaseComingSoon: 'მალე',
+      deliveryComingSoonTitle: 'მიწოდება და შეკვეთა მალე',
+      deliveryComingSoonBody:
+        'ვამზადებთ შიდა და საერთაშორისო მიწოდებას. ახლა გაეცანით კოლექციას — ონლაინ შეკვეთა მალე გაიხსნება.',
+      browseCollection: 'კოლექციის ნახვა'
+    },
     theme: { light: 'ღია', dark: 'მუქი' },
     cartActions: { add: 'კალათაში დამატება', added: 'დაემატა', inCart: 'კალათაშია' },
     products: {
@@ -260,7 +274,7 @@ export const storefrontTranslations = {
       each: 'თითო',
       remove: 'წაშლა',
       subtotal: 'ქვეჯამი',
-      shippingNote: 'უფასო მიწოდება საქართველოს ფარგლებში. საერთაშორისო მიწოდება მალე.',
+      shippingNote: 'ონლაინ შეკვეთა და მიწოდება მალე გაიხსნება.',
       checkout: 'შეკვეთის გაფორმება'
     },
     checkout: {

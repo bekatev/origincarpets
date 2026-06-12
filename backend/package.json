@@ -13,7 +13,8 @@
     "backfill:filters": "ts-node src/scripts/backfill-product-filters.ts",
     "sync:gpost": "ts-node src/scripts/sync-gpost-locations.ts",
     "backfill:shipping": "ts-node src/scripts/backfill-product-shipping.ts",
-    "backfill:georgian": "ts-node src/scripts/backfill-product-georgian.ts"
+    "backfill:georgian": "ts-node src/scripts/backfill-product-georgian.ts",
+    "test:gpost": "ts-node src/scripts/test-gpost-local.ts"
   },
   "dependencies": {
     "@nestjs/common": "latest",
