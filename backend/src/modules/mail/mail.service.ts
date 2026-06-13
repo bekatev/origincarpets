@@ -13,7 +13,7 @@ export class MailService {
     const port = Number(config.get<string>('SMTP_PORT', '587'));
     const user = config.get<string>('SMTP_USER');
     const pass = config.get<string>('SMTP_PASS');
-    this.from = config.get<string>('SMTP_FROM', 'Origin Carpets <noreply@origincarpets.com>');
+    this.from = config.get<string>('SMTP_FROM', 'Origin Carpets <noreply.origincarpets@gmail.com>');
 
     if (host && user && pass) {
       this.transporter = nodemailer.createTransport({
@@ -52,5 +52,6 @@ export class MailService {
     }
 
     await this.transporter.sendMail({ from: this.from, to, subject, text, html });
+    this.logger.log(`Password reset email sent to ${to}`);
   }
 }
