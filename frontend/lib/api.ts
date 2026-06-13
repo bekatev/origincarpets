@@ -65,6 +65,25 @@ export async function postJson<T>(path: string, body: unknown): Promise<T> {
   return payload as T;
 }
 
+export async function patchJson<T>(path: string, token: string, body: unknown): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+
+  const payload = await readPayload(response);
+
+  if (!response.ok) {
+    throwApiError(payload);
+  }
+
+  return payload as T;
+}
+
 export async function apiRequest<T>(path: string, token: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
     ...init,

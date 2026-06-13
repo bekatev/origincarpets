@@ -1,29 +1,18 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/components/providers/auth-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
-import { postJson, type AuthResponse } from '@/lib/api';
+import { postJson } from '@/lib/api';
 
-export default function LoginPage() {
-  const router = useRouter();
-  const { login, isAuthenticated, ready } = useAuth();
+export default function ForgotPasswordPage() {
   const { dict } = useI18n();
   const a = dict.auth;
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (ready && isAuthenticated) {
-      router.replace('/orders');
-    }
-  }, [ready, isAuthenticated, router]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,11 +21,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const data = await postJson<AuthResponse>('/auth/login', { email, password });
-      login(data);
-      router.push('/orders');
+      const result = await postJson<{ message: string }>('/auth/forgot-password', { email });
+      setSuccess(result.message || a.forgotPasswordSent);
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : a.loginFailed);
+      setError(submitError instanceof Error ? submitError.message : a.forgotPasswordFailed);
     } finally {
       setLoading(false);
     }
@@ -45,8 +33,8 @@ export default function LoginPage() {
   return (
     <main className="oc-section">
       <div className="oc-container max-w-md">
-        <h1 className="oc-heading text-3xl">{a.loginTitle}</h1>
-        <p className="mt-2 text-sm text-[var(--oc-muted)]">{a.loginSubtitle}</p>
+        <h1 className="oc-heading text-3xl">{a.forgotPasswordTitle}</h1>
+        <p className="mt-2 text-sm text-[var(--oc-muted)]">{a.forgotPasswordSubtitle}</p>
 
         <motion.form
           onSubmit={onSubmit}
@@ -63,38 +51,21 @@ export default function LoginPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
+              autoComplete="email"
             />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.14em]">{a.password}</label>
-            <input
-              type="password"
-              className="oc-input"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              minLength={8}
-            />
-            <p className="mt-2 text-right">
-              <Link href="/forgot-password" className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--oc-muted)] hover:text-[var(--oc-ink)]">
-                {a.forgotPasswordLink}
-              </Link>
-            </p>
           </div>
 
           {error && <p className="text-sm text-red-700">{error}</p>}
           {success && <p className="text-sm text-green-700">{success}</p>}
 
           <button type="submit" className="oc-btn-primary w-full" disabled={loading}>
-            {loading ? a.signingIn : a.loginButton}
+            {loading ? a.sendingResetLink : a.sendResetLink}
           </button>
         </motion.form>
 
         <p className="mt-4 text-sm text-[var(--oc-muted)]">
-          {a.noAccount}{' '}
-          <Link href="/register" className="oc-link font-medium">
-            {a.registerLink}
+          <Link href="/login" className="oc-link font-medium">
+            {a.backToLogin}
           </Link>
         </p>
       </div>

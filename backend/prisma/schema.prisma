@@ -68,9 +68,23 @@ model User {
   addresses    ShippingAddress[]
   cart         Cart?
   orders       Order[]
+  passwordResetTokens PasswordResetToken[]
 
   @@index([role, isActive])
   @@index([createdAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
 }
 
 model Category {
