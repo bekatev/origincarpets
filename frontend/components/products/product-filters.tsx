@@ -8,22 +8,26 @@ function FilterSelect({
   label,
   name,
   value,
-  options,
-  placeholder
+  options
 }: {
   label: string;
   name: string;
   value?: string;
   options: string[];
-  placeholder: string;
 }) {
   return (
     <div className="space-y-1">
       <label htmlFor={name} className="oc-kicker block">
         {label}
       </label>
-      <select id={name} name={name} defaultValue={value ?? ''} className="oc-input py-2 text-sm">
-        <option value="">{placeholder}</option>
+      <select
+        id={name}
+        name={name}
+        defaultValue={value ?? ''}
+        aria-label={label}
+        className="oc-input py-2 text-sm"
+      >
+        <option value="" />
         {options.map((option) => (
           <option key={option} value={option}>
             {option}
@@ -87,8 +91,14 @@ export function ProductFilters({
             <label htmlFor="category" className="oc-kicker block">
               {f.category}
             </label>
-            <select id="category" name="category" defaultValue={current.category ?? ''} className="oc-input py-2 text-sm">
-              <option value="">{f.allCategories}</option>
+            <select
+              id="category"
+              name="category"
+              defaultValue={current.category ?? ''}
+              aria-label={f.category}
+              className="oc-input py-2 text-sm"
+            >
+              <option value="" />
               {facets.categories.map((category) => (
                 <option key={category.id} value={category.slug}>
                   {category.name}
@@ -98,20 +108,26 @@ export function ProductFilters({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <FilterSelect label={f.material} name="material" value={current.material} options={facets.materials} placeholder={f.allMaterials} />
-            <FilterSelect label={f.size} name="size" value={current.size} options={facets.sizes} placeholder={f.allSizes} />
-            <FilterSelect label={f.origin} name="origin" value={current.origin} options={facets.origins} placeholder={f.allOrigins} />
-            <FilterSelect label={f.color} name="color" value={current.color} options={facets.colors} placeholder={f.allColors} />
-            <FilterSelect label={f.age} name="age" value={current.age} options={facets.ages} placeholder={f.allAges} />
-            <FilterSelect label={f.period} name="period" value={current.period} options={facets.periods} placeholder={f.allPeriods} />
+            <FilterSelect label={f.material} name="material" value={current.material} options={facets.materials} />
+            <FilterSelect label={f.size} name="size" value={current.size} options={facets.sizes} />
+            <FilterSelect label={f.origin} name="origin" value={current.origin} options={facets.origins} />
+            <FilterSelect label={f.color} name="color" value={current.color} options={facets.colors} />
+            <FilterSelect label={f.age} name="age" value={current.age} options={facets.ages} />
+            <FilterSelect label={f.period} name="period" value={current.period} options={facets.periods} />
           </div>
 
           <div className="space-y-1">
             <label htmlFor="georgian" className="oc-kicker block">
               {f.georgian}
             </label>
-            <select id="georgian" name="georgian" defaultValue={current.georgian ?? ''} className="oc-input py-2 text-sm">
-              <option value="">{f.allCarpets}</option>
+            <select
+              id="georgian"
+              name="georgian"
+              defaultValue={current.georgian ?? ''}
+              aria-label={f.georgian}
+              className="oc-input py-2 text-sm"
+            >
+              <option value="" />
               <option value="1">{f.georgianOnly}</option>
             </select>
           </div>
