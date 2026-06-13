@@ -5,6 +5,8 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { RequireAuth } from '@/components/auth/require-auth';
 import { apiRequest } from '@/lib/api';
+import { fetchAccountProfile } from '@/lib/account';
+import { readStoredToken } from '@/lib/auth';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { useCart } from '@/lib/cart';
@@ -44,6 +46,9 @@ export default function CheckoutPage() {
   const [postalCode, setPostalCode] = useState('');
   const [line1, setLine1] = useState('');
   const [line2, setLine2] = useState('');
+  const [saveAddress, setSaveAddress] = useState(false);
+  const [hasSavedAddress, setHasSavedAddress] = useState(false);
+  const [preferredCityId, setPreferredCityId] = useState<string | null>(null);
   const [quote, setQuote] = useState<ShippingQuote | null>(null);
   const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(defaultPaymentConfig);
   const [busy, setBusy] = useState(false);
@@ -56,19 +61,40 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     let cancelled = false;
+    const token = readStoredToken();
 
-    async function loadCountries() {
+    async function bootstrap() {
       setLoadingCountries(true);
       try {
-        const data = await fetchDeliveryCountries();
+        const countryData: DeliveryCountry[] = await fetchDeliveryCountries();
+        const profile = token ? await fetchAccountProfile(token) : null;
         if (cancelled) return;
-        setCountries(data);
-        const georgia = data.find((country) => country.abbr === 'GE');
-        if (georgia) {
-          setDeliveryCountryId(georgia.id);
-        } else if (data[0]) {
-          setDeliveryCountryId(data[0].id);
+
+        setCountries(countryData);
+        const saved = profile?.defaultShippingAddress;
+        const defaultCountry =
+          saved?.deliveryCountryId ??
+          countryData.find((country) => country.abbr === 'GE')?.id ??
+          countryData[0]?.id ??
+          '';
+
+        if (saved) {
+          setHasSavedAddress(true);
+          setFullName(saved.fullName);
+          setPhone(saved.phone ?? '');
+          setRegion(saved.region ?? '');
+          setPostalCode(saved.postalCode ?? '');
+          setLine1(saved.line1);
+          setLine2(saved.line2 ?? '');
+          setPreferredCityId(saved.deliveryCityId ?? null);
+        } else if (profile) {
+          const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ').trim();
+          if (name) setFullName(name);
+          if (profile.phone) setPhone(profile.phone);
+          setSaveAddress(true);
         }
+
+        setDeliveryCountryId(defaultCountry);
       } catch {
         if (!cancelled) {
           setError(t.countriesLoadFailed);
@@ -80,7 +106,7 @@ export default function CheckoutPage() {
       }
     }
 
-    void loadCountries();
+    void bootstrap();
     return () => {
       cancelled = true;
     };
@@ -108,11 +134,13 @@ export default function CheckoutPage() {
         setCities(cityData);
         setMethods(methodData);
 
+        const preferred = preferredCityId && cityData.some((city) => city.id === preferredCityId)
+          ? preferredCityId
+          : null;
         const tbilisi = cityData.find((city) => city.nameEn.toLowerCase().includes('tbilisi'));
-        if (tbilisi) {
-          setDeliveryCityId(tbilisi.id);
-        } else if (cityData[0]) {
-          setDeliveryCityId(cityData[0].id);
+        setDeliveryCityId(preferred ?? tbilisi?.id ?? cityData[0]?.id ?? '');
+        if (preferred) {
+          setPreferredCityId(null);
         }
 
         const recommended = methodData.find((method) => method.recommended) ?? methodData[0];
@@ -135,7 +163,7 @@ export default function CheckoutPage() {
     return () => {
       cancelled = true;
     };
-  }, [deliveryCountryId, t.citiesLoadFailed]);
+  }, [deliveryCountryId, preferredCityId, t.citiesLoadFailed]);
 
   useEffect(() => {
     if (!deliveryCountryId || !deliveryCityId || !deliveryMethod || !items.length) {
@@ -245,7 +273,8 @@ export default function CheckoutPage() {
             postalCode: postalCode || undefined,
             line1,
             line2: line2 || undefined
-          }
+          },
+          saveAddress: saveAddress || undefined
         })
       });
 
@@ -351,6 +380,18 @@ export default function CheckoutPage() {
 
             <input className="oc-input" placeholder={t.address1} value={line1} onChange={(e) => setLine1(e.target.value)} required />
             <input className="oc-input" placeholder={t.address2} value={line2} onChange={(e) => setLine2(e.target.value)} />
+
+            {!hasSavedAddress ? (
+              <label className="flex items-start gap-3 text-sm text-[var(--oc-muted)]">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={saveAddress}
+                  onChange={(event) => setSaveAddress(event.target.checked)}
+                />
+                <span>{t.saveAddressForFuture}</span>
+              </label>
+            ) : null}
 
             <PaymentMethodPicker dict={t} config={paymentConfig} />
 

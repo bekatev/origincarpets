@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsIn, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsIn, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { IsInt, Max, Min } from 'class-validator';
 import type { GpostDeliveryMethodKey } from '../../shipping/georgian-post.constants';
 
@@ -56,6 +56,10 @@ export class CreateOrderDto {
   @ValidateNested()
   @Type(() => ShippingAddressDto)
   shippingAddress!: ShippingAddressDto;
+
+  @IsOptional()
+  @IsBoolean()
+  saveAddress?: boolean;
 }
 
 export type CreateOrderItemInput = CreateOrderItemDto;

@@ -11,6 +11,7 @@ import { createHash, randomBytes } from 'crypto';
 import { compare, hash } from 'bcrypt';
 import type { User, UserRole } from '@prisma/client';
 import { MailService } from '../mail/mail.service';
+import { AddressesService } from '../users/addresses.service';
 import { UsersService } from '../users/users.service';
 import type { ChangePasswordDto } from './dto/change-password.dto';
 import type { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -28,6 +29,7 @@ export class AuthService {
 
   constructor(
     private readonly usersService: UsersService,
+    private readonly addressesService: AddressesService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly config: ConfigService
@@ -45,8 +47,14 @@ export class AuthService {
       passwordHash,
       firstName: dto.firstName,
       lastName: dto.lastName,
+      phone: dto.shippingAddress?.phone,
+      preferredPaymentMethod: dto.preferredPaymentMethod,
       role: 'CUSTOMER'
     });
+
+    if (dto.shippingAddress) {
+      await this.addressesService.createSavedAddress(user.id, dto.shippingAddress, true);
+    }
 
     return this.createAuthResponse(user);
   }
@@ -65,13 +73,13 @@ export class AuthService {
     return this.createAuthResponse(user);
   }
 
-  async getProfile(userId: string): Promise<AuthUser> {
-    const user = await this.usersService.findById(userId);
-    if (!user) {
+  async getProfile(userId: string): Promise<AccountProfile> {
+    const profile = await this.usersService.getAccountProfile(userId);
+    if (!profile) {
       throw new UnauthorizedException('User not found');
     }
 
-    return this.toAuthUser(user);
+    return profile;
   }
 
   async forgotPassword(dto: ForgotPasswordDto): Promise<{ message: string }> {
@@ -170,6 +178,12 @@ export interface AuthUser {
   role: UserRole;
   firstName: string | null;
   lastName: string | null;
+}
+
+export interface AccountProfile extends AuthUser {
+  phone: string | null;
+  preferredPaymentMethod: import('@prisma/client').PaymentMethod | null;
+  defaultShippingAddress: import('../users/addresses.service').SerializedAddress | null;
 }
 
 export interface AuthResponse {

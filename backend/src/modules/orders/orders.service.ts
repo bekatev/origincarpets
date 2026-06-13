@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GPOST_DELIVERY_METHODS } from '../shipping/georgian-post.constants';
 import { ShippingService } from '../shipping/shipping.service';
+import { AddressesService } from '../users/addresses.service';
 import { PUBLIC_SHIPPABLE_PRODUCT_WHERE } from '../products/shipping-dimensions';
 import { CreateOrderDto } from './dto/create-order.dto';
 
@@ -9,7 +10,8 @@ import { CreateOrderDto } from './dto/create-order.dto';
 export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly shippingService: ShippingService
+    private readonly shippingService: ShippingService,
+    private readonly addressesService: AddressesService
   ) {}
 
   async createOrder(userId: string, dto: CreateOrderDto) {
@@ -75,6 +77,19 @@ export class OrdersService {
         line2: dto.shippingAddress.line2
       }
     });
+
+    if (dto.saveAddress) {
+      await this.addressesService.saveProfileAddressFromCheckout(userId, {
+        deliveryCountryId: dto.deliveryCountryId,
+        deliveryCityId: dto.deliveryCityId,
+        fullName: dto.shippingAddress.fullName,
+        phone: dto.shippingAddress.phone,
+        region: dto.shippingAddress.region,
+        postalCode: dto.shippingAddress.postalCode,
+        line1: dto.shippingAddress.line1,
+        line2: dto.shippingAddress.line2
+      });
+    }
 
     const order = await this.prisma.order.create({
       data: {

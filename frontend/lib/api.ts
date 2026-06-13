@@ -102,6 +102,10 @@ export async function apiRequest<T>(path: string, token: string, init?: RequestI
   return payload as T;
 }
 
+export async function deleteJson<T>(path: string, token: string): Promise<T> {
+  return apiRequest<T>(path, token, { method: 'DELETE' });
+}
+
 export async function uploadImage(file: File, token: string): Promise<{ url: string }> {
   const formData = new FormData();
   formData.append('file', file);

@@ -1,8 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChangePasswordForm } from '@/components/auth/change-password-form';
 import { RequireAuth } from '@/components/auth/require-auth';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
@@ -41,12 +41,15 @@ export default function OrdersPage() {
     <RequireAuth>
       <main className="oc-section">
         <div className="oc-container max-w-5xl space-y-8">
-          <div>
-            <h1 className="oc-heading">{o.title}</h1>
-            <p className="mt-2 text-sm text-[var(--oc-muted)]">{o.profileSubtitle}</p>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h1 className="oc-heading">{o.title}</h1>
+              <p className="mt-2 text-sm text-[var(--oc-muted)]">{o.profileSubtitle}</p>
+            </div>
+            <Link href="/account/settings" className="oc-btn-secondary text-xs">
+              {o.settingsLink}
+            </Link>
           </div>
-
-          <ChangePasswordForm />
 
           <section className="space-y-5">
             <h2 className="oc-eyebrow">{o.ordersSection}</h2>

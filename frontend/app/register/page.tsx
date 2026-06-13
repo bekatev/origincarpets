@@ -1,9 +1,11 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { RegisterOptionalSections } from '@/components/account/register-optional-sections';
+import { emptyAddressValues, type ShippingAddressFieldValues } from '@/components/account/shipping-address-fields';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { postJson, type AuthResponse } from '@/lib/api';
@@ -17,9 +19,15 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [includeShipping, setIncludeShipping] = useState(false);
+  const [includePayment, setIncludePayment] = useState(false);
+  const [addressValues, setAddressValues] = useState<ShippingAddressFieldValues>(emptyAddressValues());
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const onAddressChange = useCallback((patch: Partial<ShippingAddressFieldValues>) => {
+    setAddressValues((current) => ({ ...current, ...patch }));
+  }, []);
 
   useEffect(() => {
     if (ready && isAuthenticated) {
@@ -30,16 +38,34 @@ export default function RegisterPage() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setSuccess(null);
     setLoading(true);
 
     try {
-      const data = await postJson<AuthResponse>('/auth/register', {
+      const payload: Record<string, unknown> = {
         firstName: firstName || undefined,
         lastName: lastName || undefined,
         email,
         password
-      });
+      };
+
+      if (includeShipping && addressValues.line1 && addressValues.deliveryCityId) {
+        payload.shippingAddress = {
+          deliveryCountryId: addressValues.deliveryCountryId,
+          deliveryCityId: addressValues.deliveryCityId,
+          fullName: addressValues.fullName || `${firstName} ${lastName}`.trim(),
+          phone: addressValues.phone || undefined,
+          region: addressValues.region || undefined,
+          postalCode: addressValues.postalCode || undefined,
+          line1: addressValues.line1,
+          line2: addressValues.line2 || undefined
+        };
+      }
+
+      if (includePayment) {
+        payload.preferredPaymentMethod = 'CARD';
+      }
+
+      const data = await postJson<AuthResponse>('/auth/register', payload);
       login(data);
       router.push('/orders');
     } catch (submitError) {
@@ -51,7 +77,7 @@ export default function RegisterPage() {
 
   return (
     <main className="oc-section">
-      <div className="oc-container max-w-md">
+      <div className="oc-container max-w-lg">
         <h1 className="oc-heading text-3xl">{a.registerTitle}</h1>
         <p className="mt-2 text-sm text-[var(--oc-muted)]">{a.registerSubtitle}</p>
 
@@ -106,8 +132,18 @@ export default function RegisterPage() {
             />
           </div>
 
+          <RegisterOptionalSections
+            dict={a}
+            checkoutDict={dict.checkout}
+            includeShipping={includeShipping}
+            includePayment={includePayment}
+            onIncludeShippingChange={setIncludeShipping}
+            onIncludePaymentChange={setIncludePayment}
+            addressValues={addressValues}
+            onAddressChange={onAddressChange}
+          />
+
           {error && <p className="text-sm text-red-700">{error}</p>}
-          {success && <p className="text-sm text-green-700">{success}</p>}
 
           <button type="submit" className="oc-btn-primary w-full" disabled={loading}>
             {loading ? a.creating : a.registerButton}
