@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PaymentMethodPicker } from '@/components/checkout/payment-method-picker';
+import { PaymentMethodPicker, type PaymentMethodKey } from '@/components/checkout/payment-method-picker';
 import {
   emptyAddressValues,
   ShippingAddressFields,
@@ -26,6 +26,8 @@ type RegisterOptionalSectionsProps = {
   onIncludePaymentChange: (value: boolean) => void;
   addressValues: ShippingAddressFieldValues;
   onAddressChange: (patch: Partial<ShippingAddressFieldValues>) => void;
+  paymentMethod: PaymentMethodKey | null;
+  onPaymentMethodChange: (method: PaymentMethodKey) => void;
 };
 
 export function RegisterOptionalSections({
@@ -36,7 +38,9 @@ export function RegisterOptionalSections({
   onIncludeShippingChange,
   onIncludePaymentChange,
   addressValues,
-  onAddressChange
+  onAddressChange,
+  paymentMethod,
+  onPaymentMethodChange
 }: RegisterOptionalSectionsProps) {
   const { locale } = useI18n();
   const [countries, setCountries] = useState<DeliveryCountry[]>([]);
@@ -95,8 +99,15 @@ export function RegisterOptionalSections({
 
   useEffect(() => {
     if (!includePayment) return;
-    void fetchPaymentConfig().then(setPaymentConfig);
-  }, [includePayment]);
+    void fetchPaymentConfig().then((config) => {
+      setPaymentConfig(config);
+      if (!paymentMethod) {
+        if (config.card) onPaymentMethodChange('CARD');
+        else if (config.bankTransfer !== false) onPaymentMethodChange('BANK_TRANSFER');
+        else if (config.paypal) onPaymentMethodChange('PAYPAL');
+      }
+    });
+  }, [includePayment, onPaymentMethodChange, paymentMethod]);
 
   return (
     <div className="space-y-4 border-t border-[var(--oc-line)] pt-4">
@@ -169,7 +180,15 @@ export function RegisterOptionalSections({
           )}
         </div>
 
-        {includePayment ? <PaymentMethodPicker dict={checkoutDict} config={paymentConfig} /> : null}
+        {includePayment ? (
+          <PaymentMethodPicker
+            dict={checkoutDict}
+            config={paymentConfig}
+            value={paymentMethod}
+            onChange={onPaymentMethodChange}
+            selectable
+          />
+        ) : null}
       </div>
     </div>
   );

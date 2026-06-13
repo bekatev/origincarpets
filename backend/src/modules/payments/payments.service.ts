@@ -20,7 +20,9 @@ export class PaymentsService {
 
   getPublicConfig() {
     return {
-      card: this.ipay.isConfigured()
+      card: this.ipay.isConfigured(),
+      bankTransfer: true,
+      paypal: this.paypal.isConfigured()
     };
   }
 

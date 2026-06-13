@@ -243,8 +243,18 @@ export const storefrontTranslations = {
       cancel: 'Cancel',
       saving: 'Saving…',
       paymentTitle: 'Payment',
-      paymentSubtitle: 'We use iPay for secure card payments at checkout.',
-      paymentSecureNote: 'Card details are never stored on our site — you enter them securely on iPay when paying.'
+      paymentSubtitle: 'Choose how you prefer to pay at checkout.',
+      paymentSecureNote: 'Card details are never stored on our site — you enter them securely on iPay when paying.',
+      addPaymentMethod: 'Add method',
+      editPaymentMethod: 'Edit',
+      removePaymentMethod: 'Remove',
+      savePaymentMethod: 'Save method',
+      updatePaymentMethod: 'Update method',
+      paymentSaved: 'Payment preference saved.',
+      paymentRemoved: 'Payment preference removed.',
+      paymentSaveFailed: 'Could not save payment preference',
+      noPaymentMethod: 'No payment method saved yet.',
+      selectPaymentMethod: 'Please select a payment method.'
     },
     orders: {
       title: 'My Profile',
@@ -512,8 +522,18 @@ export const storefrontTranslations = {
       cancel: 'გაუქმება',
       saving: 'ინახება…',
       paymentTitle: 'გადახდა',
-      paymentSubtitle: 'ბარათით გადახდა ხდება iPay-ის უსაფრთხო გვერდზე.',
-      paymentSecureNote: 'ბარათის მონაცემები ჩვენს საიტზე არ ინახება — iPay-ზე შეიყვანთ უსაფრთხოდ.'
+      paymentSubtitle: 'აირჩიეთ, როგორ გსურთ გადახდა შეკვეთისას.',
+      paymentSecureNote: 'ბარათის მონაცემები ჩვენს საიტზე არ ინახება — iPay-ზე შეიყვანთ უსაფრთხოდ.',
+      addPaymentMethod: 'მეთოდის დამატება',
+      editPaymentMethod: 'რედაქტირება',
+      removePaymentMethod: 'წაშლა',
+      savePaymentMethod: 'შენახვა',
+      updatePaymentMethod: 'განახლება',
+      paymentSaved: 'გადახდის პრეფერენცია შენახულია.',
+      paymentRemoved: 'გადახდის პრეფერენცია წაშლილია.',
+      paymentSaveFailed: 'გადახდის პრეფერენციის შენახვა ვერ მოხერხდა',
+      noPaymentMethod: 'შენახული გადახდის მეთოდი ჯერ არ გაქვთ.',
+      selectPaymentMethod: 'გთხოვთ აირჩიოთ გადახდის მეთოდი.'
     },
     orders: {
       title: 'ჩემი პროფილი',

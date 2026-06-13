@@ -1,14 +1,15 @@
-import { API_URL } from '@/lib/api';
-import { apiRequest } from '@/lib/api';
+import { API_URL, apiRequest } from '@/lib/api';
 
 export type PaymentConfig = {
   card: boolean;
+  bankTransfer?: boolean;
+  paypal?: boolean;
 };
 
 export async function fetchPaymentConfig(): Promise<PaymentConfig> {
   const response = await fetch(`${API_URL}/payments/config`, { cache: 'no-store' });
   if (!response.ok) {
-    return { card: false };
+    return { card: false, bankTransfer: true };
   }
   return response.json() as Promise<PaymentConfig>;
 }

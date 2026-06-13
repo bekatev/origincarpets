@@ -64,12 +64,12 @@ export class UsersService {
   }
 
   async updateAccountProfile(userId: string, dto: UpdateProfileDto) {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        preferredPaymentMethod: dto.preferredPaymentMethod
-      }
-    });
+    if (dto.preferredPaymentMethod !== undefined) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { preferredPaymentMethod: dto.preferredPaymentMethod }
+      });
+    }
 
     return this.getAccountProfile(userId);
   }

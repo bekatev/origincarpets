@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { RegisterOptionalSections } from '@/components/account/register-optional-sections';
+import { type PaymentMethodKey } from '@/components/checkout/payment-method-picker';
 import { emptyAddressValues, type ShippingAddressFieldValues } from '@/components/account/shipping-address-fields';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
@@ -21,6 +22,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [includeShipping, setIncludeShipping] = useState(false);
   const [includePayment, setIncludePayment] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodKey | null>(null);
   const [addressValues, setAddressValues] = useState<ShippingAddressFieldValues>(emptyAddressValues());
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -61,8 +63,8 @@ export default function RegisterPage() {
         };
       }
 
-      if (includePayment) {
-        payload.preferredPaymentMethod = 'CARD';
+      if (includePayment && paymentMethod) {
+        payload.preferredPaymentMethod = paymentMethod;
       }
 
       const data = await postJson<AuthResponse>('/auth/register', payload);
@@ -138,9 +140,19 @@ export default function RegisterPage() {
             includeShipping={includeShipping}
             includePayment={includePayment}
             onIncludeShippingChange={setIncludeShipping}
-            onIncludePaymentChange={setIncludePayment}
+            onIncludePaymentChange={(value) => {
+              setIncludePayment(value);
+              if (value && !paymentMethod) {
+                setPaymentMethod('CARD');
+              }
+              if (!value) {
+                setPaymentMethod(null);
+              }
+            }}
             addressValues={addressValues}
             onAddressChange={onAddressChange}
+            paymentMethod={paymentMethod}
+            onPaymentMethodChange={setPaymentMethod}
           />
 
           {error && <p className="text-sm text-red-700">{error}</p>}
