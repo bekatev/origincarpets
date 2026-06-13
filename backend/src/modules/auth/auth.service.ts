@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   UnauthorizedException
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -81,7 +82,14 @@ export class AuthService {
       await this.usersService.createPasswordResetToken(user.id, tokenHash, expiresAt);
 
       const resetUrl = `${this.frontendUrl()}/reset-password?token=${encodeURIComponent(token)}`;
-      await this.mailService.sendPasswordResetEmail(user.email, resetUrl);
+      try {
+        await this.mailService.sendPasswordResetEmail(user.email, resetUrl);
+      } catch (error) {
+        this.logger.error(
+          `Failed to send password reset email to ${user.email}`,
+          error instanceof Error ? error.stack : String(error)
+        );
+      }
     }
 
     return {
