@@ -33,7 +33,7 @@ export function ProductsCatalogView({
           </p>
         </div>
 
-        <div className="grid gap-12 lg:grid-cols-[minmax(240px,280px)_1fr] lg:gap-16">
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(240px,280px)_1fr] lg:gap-12">
           <ProductFilters facets={facets} current={params} />
 
           <div className="min-w-0 space-y-6">
