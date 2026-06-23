@@ -15,12 +15,12 @@ const config: Config = {
       },
       colors: {
         luxury: {
-          bg: '#faf9f7',
-          secondary: '#f3f1ed',
-          paper: '#ffffff',
-          ink: '#1a1a1a',
-          muted: '#5c5c5c',
-          line: '#e8e4de',
+          bg: '#f8f4eb',
+          secondary: '#f0eae0',
+          paper: '#faf6ef',
+          ink: '#1c1916',
+          muted: '#5c564c',
+          line: '#e4dbd0',
           terracotta: '#8b5a3c',
           olive: '#3d4a38'
         },
@@ -30,10 +30,10 @@ const config: Config = {
           700: '#3d4a38'
         },
         ink: {
-          50: '#faf9f7',
-          100: '#f3f1ed',
-          500: '#5c5c5c',
-          900: '#1a1a1a'
+          50: '#f8f4eb',
+          100: '#f0eae0',
+          500: '#5c564c',
+          900: '#1c1916'
         }
       },
       boxShadow: {

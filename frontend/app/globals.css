@@ -4,18 +4,19 @@
 
 :root {
   color-scheme: light;
-  --oc-bg: #faf9f7;
-  --oc-bg-secondary: #f3f1ed;
-  --oc-paper: #ffffff;
-  --oc-ink: #1a1a1a;
-  --oc-muted: #5c5c5c;
-  --oc-line: #e8e4de;
+  /* Warm ivory / natural wool — carpet showroom, not gallery white */
+  --oc-bg: #f8f4eb;
+  --oc-bg-secondary: #f0eae0;
+  --oc-paper: #faf6ef;
+  --oc-ink: #1c1916;
+  --oc-muted: #5c564c;
+  --oc-line: #e4dbd0;
   --oc-brand: #8b5a3c;
   --oc-accent: #3d4a38;
-  --oc-brand-soft: #6b6b6b;
+  --oc-brand-soft: #6b655c;
   --oc-brand-hover: #3d4a38;
   --oc-shadow: none;
-  --oc-shadow-lift: 0 24px 48px -32px rgba(26, 26, 26, 0.12);
+  --oc-shadow-lift: 0 24px 48px -32px rgba(28, 25, 22, 0.1);
   --oc-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
@@ -43,7 +44,7 @@ a {
 }
 
 ::selection {
-  background: rgba(139, 90, 60, 0.18);
+  background: rgba(139, 90, 60, 0.2);
   color: var(--oc-ink);
 }
 
@@ -96,7 +97,7 @@ a {
     appearance: none;
     -webkit-appearance: none;
     padding-right: 2.75rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235c5c5c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235c564c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 1rem center;
     background-size: 0.75rem;
