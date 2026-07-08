@@ -92,14 +92,6 @@ services:
         type: SECRET
       - key: IPAY_REDIRECT_URL
         value: https://api.origincarpets.com/api/payments/ipay/callback
-      - key: GPOST_API_URL
-        value: https://istore.gpost.ge/api/
-      - key: GPOST_USERNAME
-        scope: RUN_TIME
-        type: SECRET
-      - key: GPOST_PASSWORD
-        scope: RUN_TIME
-        type: SECRET
       - key: SHIPPING_LIVE
         value: "true"
       - key: ADMIN_ORDER_EMAILS

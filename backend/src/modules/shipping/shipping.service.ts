@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { PUBLIC_SHIPPABLE_PRODUCT_WHERE } from '../products/shipping-dimensions';
-import { GeorgianPostClient } from './georgian-post.client';
 import {
   internationalCityGpostId,
   UPS_DELIVERY_COUNTRIES,
@@ -59,7 +58,6 @@ export class ShippingService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly gpost: GeorgianPostClient,
     private readonly config: ConfigService,
     private readonly mail: MailService
   ) {
@@ -108,18 +106,10 @@ export class ShippingService {
     this.assertDomesticDeliveryAvailable(country.abbr);
 
     if (country.abbr === FREE_SHIPPING_COUNTRY_CODE) {
-      let cities = await this.prisma.deliveryCity.findMany({
+      const cities = await this.prisma.deliveryCity.findMany({
         where: { countryId: country.id },
         orderBy: { nameEn: 'asc' }
       });
-
-      if (!cities.length && this.gpost.isConfigured()) {
-        await this.syncCitiesForCountry(country.id, country.gpostId);
-        cities = await this.prisma.deliveryCity.findMany({
-          where: { countryId: country.id },
-          orderBy: { nameEn: 'asc' }
-        });
-      }
 
       if (cities.length) {
         return cities.map((city) => ({
@@ -354,42 +344,6 @@ export class ShippingService {
     }
 
     return { count };
-  }
-
-  async syncCitiesForCountry(deliveryCountryId: string, countryGpostId?: number) {
-    if (!this.gpost.isConfigured()) {
-      return { count: 0 };
-    }
-
-    const country =
-      countryGpostId != null
-        ? await this.prisma.deliveryCountry.findFirst({ where: { gpostId: countryGpostId } })
-        : await this.prisma.deliveryCountry.findUnique({ where: { id: deliveryCountryId } });
-
-    if (!country || country.abbr !== FREE_SHIPPING_COUNTRY_CODE) {
-      return { count: 0 };
-    }
-
-    const cities = await this.gpost.fetchCities(country.gpostId);
-
-    for (const item of cities) {
-      await this.prisma.deliveryCity.upsert({
-        where: { gpostId: item.CityId },
-        update: {
-          nameEn: item.CityNameEn,
-          nameGe: item.CityNameGe,
-          countryId: country.id
-        },
-        create: {
-          gpostId: item.CityId,
-          nameEn: item.CityNameEn,
-          nameGe: item.CityNameGe,
-          countryId: country.id
-        }
-      });
-    }
-
-    return { count: cities.length };
   }
 
   private async ensureCountriesSynced() {

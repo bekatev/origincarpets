@@ -1,4 +1,4 @@
-/** ISO countries for UPS checkout — synthetic gpostId avoids Georgian Post API dependency. */
+/** ISO countries for UPS checkout. `gpostId` is a legacy unique numeric id column (ISO code). */
 export const UPS_DELIVERY_COUNTRIES = [
   { abbr: 'GE', nameEn: 'Georgia', nameGe: 'საქართველო', gpostId: 268 },
   { abbr: 'US', nameEn: 'United States', nameGe: 'აშშ', gpostId: 840 },

@@ -1,9 +1,9 @@
-import {
-  DEFAULT_PACKAGE_HEIGHT_CM,
-  DEFAULT_PRODUCT_LENGTH_CM,
-  DEFAULT_PRODUCT_WIDTH_CM,
-  DEFAULT_PRODUCT_WEIGHT_KG
-} from './georgian-post.constants';
+/** Rolled carpet default height when product has no depth. */
+export const DEFAULT_PACKAGE_HEIGHT_CM = 20;
+
+export const DEFAULT_PRODUCT_WEIGHT_KG = 5;
+export const DEFAULT_PRODUCT_LENGTH_CM = 200;
+export const DEFAULT_PRODUCT_WIDTH_CM = 150;
 
 export type ProductDimensions = {
   lengthCm: number | null;

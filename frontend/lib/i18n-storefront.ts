@@ -94,9 +94,9 @@ export const storefrontTranslations = {
       deliverySelectionRequired: 'Please select country, city, and delivery service.',
       browseProducts: 'Browse products',
       methods: {
-        georgianPost: {
-          title: 'Georgian Post',
-          badge: 'Georgian Post'
+        ups: {
+          title: 'UPS',
+          badge: 'UPS'
         },
         recommended: 'Recommended'
       },
@@ -373,9 +373,9 @@ export const storefrontTranslations = {
       deliverySelectionRequired: 'გთხოვთ აირჩიოთ ქვეყანა, ქალაქი და მიწოდების სერვისი.',
       browseProducts: 'პროდუქტების ნახვა',
       methods: {
-        georgianPost: {
-          title: 'საქართველოს ფოსტა',
-          badge: 'საქართველოს ფოსტა'
+        ups: {
+          title: 'UPS',
+          badge: 'UPS'
         },
         recommended: 'რეკომენდებული'
       },
