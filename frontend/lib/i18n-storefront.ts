@@ -66,7 +66,7 @@ export const storefrontTranslations = {
       each: 'each',
       remove: 'Remove',
       subtotal: 'Subtotal',
-      shippingNote: 'Online ordering and delivery are coming soon.',
+      shippingNote: 'Worldwide delivery via UPS. Free within Georgia.',
       checkout: 'Proceed to checkout'
     },
     checkout: {
@@ -345,7 +345,7 @@ export const storefrontTranslations = {
       each: 'თითო',
       remove: 'წაშლა',
       subtotal: 'ქვეჯამი',
-      shippingNote: 'ონლაინ შეკვეთა და მიწოდება მალე გაიხსნება.',
+      shippingNote: 'მსოფლიო მიწოდება UPS-ით. საქართველოში უფასოა.',
       checkout: 'შეკვეთის გაფორმება'
     },
     checkout: {
