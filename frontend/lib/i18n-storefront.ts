@@ -66,7 +66,7 @@ export const storefrontTranslations = {
       each: 'each',
       remove: 'Remove',
       subtotal: 'Subtotal',
-      shippingNote: 'Online ordering and delivery are coming soon.',
+      shippingNote: 'Worldwide delivery via UPS — free within Georgia.',
       checkout: 'Proceed to checkout'
     },
     checkout: {
@@ -76,7 +76,7 @@ export const storefrontTranslations = {
       shippingType: 'UPS delivery',
       upsNote:
         'Delivery via UPS from our Tbilisi gallery. Domestic delivery within Georgia is free; international rates are calculated from package size and destination.',
-      worldwideComingSoon: 'International delivery opens when our UPS contract is active.',
+      worldwideComingSoon: 'Worldwide delivery available via UPS.',
       country: 'Country',
       city: 'City',
       selectCountry: 'Select country',
@@ -345,7 +345,7 @@ export const storefrontTranslations = {
       each: 'თითო',
       remove: 'წაშლა',
       subtotal: 'ქვეჯამი',
-      shippingNote: 'ონლაინ შეკვეთა და მიწოდება მალე გაიხსნება.',
+      shippingNote: 'მიწოდება მთელ მსოფლიოში UPS-ით — საქართველოში უფასო.',
       checkout: 'შეკვეთის გაფორმება'
     },
     checkout: {
@@ -355,7 +355,7 @@ export const storefrontTranslations = {
       shippingType: 'UPS მიწოდება',
       upsNote:
         'მიწოდება ხდება UPS-ით ჩვენი თბილისის გალერეიდან. საქართველოში მიწოდება უფასოა; საერთაშორისო ტარიფი გამოითვლება შეფუთვის ზომებისა და მიმღები ქვეყნის მიხედვით.',
-      worldwideComingSoon: 'საერთაშორისო მიწოდება გაიხსნება UPS კონტრაქტის აქტივაციის შემდეგ.',
+      worldwideComingSoon: 'მიწოდება მთელ მსოფლიოში UPS-ით.',
       country: 'ქვეყანა',
       city: 'ქალაქი',
       selectCountry: 'აირჩიეთ ქვეყანა',
