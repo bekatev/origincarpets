@@ -123,3 +123,6 @@ services:
       - key: NEXT_PUBLIC_API_URL
         scope: BUILD_AND_RUN_TIME
         value: https://api.origincarpets.com/api
+      - key: NEXT_PUBLIC_PURCHASE_ENABLED
+        scope: BUILD_AND_RUN_TIME
+        value: "true"

@@ -8,6 +8,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: https://origincarpets.com/api
+        NEXT_PUBLIC_PURCHASE_ENABLED: "true"
     container_name: origincarpets-app
     restart: unless-stopped
     network_mode: host

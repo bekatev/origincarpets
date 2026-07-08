@@ -14,7 +14,9 @@ COPY frontend frontend
 COPY shared shared
 
 ARG NEXT_PUBLIC_API_URL=https://origincarpets.com/api
+ARG NEXT_PUBLIC_PURCHASE_ENABLED=true
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_PURCHASE_ENABLED=$NEXT_PUBLIC_PURCHASE_ENABLED
 ENV NODE_OPTIONS=--max-old-space-size=2048
 
 RUN cd backend && npx prisma generate
