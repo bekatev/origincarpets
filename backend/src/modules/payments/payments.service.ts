@@ -70,12 +70,12 @@ export class PaymentsService {
     });
 
     try {
-      const parcel = await this.shippingService.registerOrderParcel(orderId);
-      if (!parcel.success && 'error' in parcel) {
-        this.logger.warn(`Georgian Post parcel registration failed for order ${orderId}: ${parcel.error}`);
+      const result = await this.shippingService.notifyAdminsForPaidOrder(orderId);
+      if (!result.success && 'error' in result) {
+        this.logger.warn(`UPS admin notification failed for order ${orderId}: ${result.error}`);
       }
     } catch (error) {
-      this.logger.error(`Georgian Post parcel registration error for order ${orderId}`, error);
+      this.logger.error(`UPS admin notification error for order ${orderId}`, error);
     }
   }
 

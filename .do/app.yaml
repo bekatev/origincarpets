@@ -100,6 +100,10 @@ services:
       - key: GPOST_PASSWORD
         scope: RUN_TIME
         type: SECRET
+      - key: SHIPPING_LIVE
+        value: "true"
+      - key: ADMIN_ORDER_EMAILS
+        value: bekatevd@gmail.com,gallerycarpets19@gmail.com
 
   - name: web
     github:

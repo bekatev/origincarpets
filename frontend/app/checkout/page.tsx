@@ -19,6 +19,7 @@ import {
   fetchDeliveryCountries,
   fetchDeliveryMethods,
   fetchShippingQuote,
+  isInternationalCityList,
   type DeliveryCity,
   type DeliveryCountry,
   type DeliveryMethod,
@@ -39,6 +40,7 @@ export default function CheckoutPage() {
   const [methods, setMethods] = useState<DeliveryMethod[]>([]);
   const [deliveryCountryId, setDeliveryCountryId] = useState('');
   const [deliveryCityId, setDeliveryCityId] = useState('');
+  const [cityName, setCityName] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethodKey | ''>('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -224,6 +226,7 @@ export default function CheckoutPage() {
   }, []);
 
   const selectedCountry = countries.find((country) => country.id === deliveryCountryId);
+  const internationalAddress = isInternationalCityList(cities);
   const countryLabel = (country: DeliveryCountry) =>
     locale === 'ka' && country.nameGe ? country.nameGe : country.nameEn;
   const cityLabel = (city: DeliveryCity) =>
@@ -250,6 +253,11 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (internationalAddress && !cityName.trim()) {
+      setError(t.deliverySelectionRequired);
+      return;
+    }
+
     if (!paymentConfig.card) {
       setError(t.paymentMethods.card.unavailable);
       return;
@@ -269,6 +277,7 @@ export default function CheckoutPage() {
           shippingAddress: {
             fullName,
             phone: phone || undefined,
+            city: internationalAddress ? cityName.trim() : undefined,
             region: region || undefined,
             postalCode: postalCode || undefined,
             line1,
@@ -322,43 +331,80 @@ export default function CheckoutPage() {
           className="oc-surface space-y-4 p-5"
         >
           <h1 className="font-display text-3xl uppercase tracking-[0.1em]">{t.title}</h1>
-          <p className="text-sm text-[var(--oc-muted)]">{t.georgianPostNote}</p>
+          <p className="text-sm text-[var(--oc-muted)]">{t.upsNote}</p>
           <p className="text-xs uppercase tracking-[0.14em] text-[var(--oc-brand)]">{t.worldwideComingSoon}</p>
 
           <form onSubmit={onCreateOrder} className="mt-2 space-y-4">
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="block space-y-1">
-                <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--oc-muted)]">
-                  {t.country}
-                </span>
-                <p className="oc-input bg-[var(--oc-bg-secondary)] text-[var(--oc-ink)]">
-                  {loadingCountries
-                    ? t.loading
-                    : selectedCountry
-                      ? countryLabel(selectedCountry)
-                      : 'Georgia'}
-                </p>
-              </div>
+              {countries.length > 1 ? (
+                <label className="block space-y-1">
+                  <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--oc-muted)]">
+                    {t.country}
+                  </span>
+                  <select
+                    className="oc-input"
+                    value={deliveryCountryId}
+                    onChange={(e) => setDeliveryCountryId(e.target.value)}
+                    disabled={loadingCountries}
+                    required
+                  >
+                    <option value="">{loadingCountries ? t.loading : t.selectCountry}</option>
+                    {countries.map((country) => (
+                      <option key={country.id} value={country.id}>
+                        {countryLabel(country)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                <div className="block space-y-1">
+                  <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--oc-muted)]">
+                    {t.country}
+                  </span>
+                  <p className="oc-input bg-[var(--oc-bg-secondary)] text-[var(--oc-ink)]">
+                    {loadingCountries
+                      ? t.loading
+                      : selectedCountry
+                        ? countryLabel(selectedCountry)
+                        : 'Georgia'}
+                  </p>
+                </div>
+              )}
 
-              <label className="block space-y-1">
-                <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--oc-muted)]">
-                  {t.city}
-                </span>
-                <select
-                  className="oc-input"
-                  value={deliveryCityId}
-                  onChange={(e) => setDeliveryCityId(e.target.value)}
-                  disabled={loadingCities || !deliveryCountryId}
-                  required
-                >
-                  <option value="">{loadingCities ? t.loading : t.selectCity}</option>
-                  {cities.map((city) => (
-                    <option key={city.id} value={city.id}>
-                      {cityLabel(city)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {internationalAddress ? (
+                <label className="block space-y-1">
+                  <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--oc-muted)]">
+                    {t.city}
+                  </span>
+                  <input
+                    className="oc-input"
+                    placeholder={t.city}
+                    value={cityName}
+                    onChange={(e) => setCityName(e.target.value)}
+                    required
+                  />
+                </label>
+              ) : (
+                <label className="block space-y-1">
+                  <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--oc-muted)]">
+                    {t.city}
+                  </span>
+                  <select
+                    className="oc-input"
+                    value={deliveryCityId}
+                    onChange={(e) => setDeliveryCityId(e.target.value)}
+                    disabled={loadingCities || !deliveryCountryId}
+                    required
+                  >
+                    <option value="">{loadingCities ? t.loading : t.selectCity}</option>
+                    {cities.map((city) => (
+                      <option key={city.id} value={city.id}>
+                        {cityLabel(city)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
             </div>
 
             <ShippingMethodPicker

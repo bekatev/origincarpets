@@ -54,6 +54,106 @@ export class MailService {
     }
   }
 
+  private adminOrderEmails(): string[] {
+    const raw = this.config.get<string>(
+      'ADMIN_ORDER_EMAILS',
+      'bekatevd@gmail.com,gallerycarpets19@gmail.com'
+    );
+    return raw
+      .split(',')
+      .map((email) => email.trim())
+      .filter(Boolean);
+  }
+
+  async sendAdminShipmentRequestEmail(input: {
+    order: {
+      orderNumber: string;
+      deliveryMethod: string | null;
+      subtotal: { toNumber(): number };
+      shippingCost: { toNumber(): number };
+      total: { toNumber(): number };
+      currency: string;
+      user: { email: string; firstName: string | null; lastName: string | null };
+      shippingAddress: {
+        fullName: string;
+        phone: string | null;
+        countryCode: string;
+        city: string;
+        region: string | null;
+        postalCode: string | null;
+        line1: string;
+        line2: string | null;
+        deliveryCity?: { country: { nameEn: string } } | null;
+      };
+      items: Array<{
+        titleSnapshot: string;
+        quantity: number;
+        unitPrice: { toNumber(): number };
+        product: {
+          sku: string;
+          weightKg: { toNumber(): number } | null;
+          lengthCm: number | null;
+          widthCm: number | null;
+          heightCm: number | null;
+        };
+      }>;
+    };
+    packageDimensions: {
+      weightKg: number;
+      lengthCm: number;
+      widthCm: number;
+      heightCm: number;
+    };
+    billableWeightKg: number;
+    estimatedMerchantCostUsd: number;
+  }): Promise<void> {
+    const { order, packageDimensions, billableWeightKg, estimatedMerchantCostUsd } = input;
+    const address = order.shippingAddress;
+    const countryName = address.deliveryCity?.country.nameEn ?? address.countryCode;
+    const customerName =
+      [order.user.firstName, order.user.lastName].filter(Boolean).join(' ') || order.user.email;
+
+    const lines = [
+      `New paid order — create UPS shipment manually`,
+      ``,
+      `Order: ${order.orderNumber}`,
+      `Customer: ${customerName} <${order.user.email}>`,
+      `Service: ${order.deliveryMethod ?? 'UPS_STANDARD'}`,
+      ``,
+      `Ship to:`,
+      `${address.fullName}`,
+      `${address.line1}${address.line2 ? `, ${address.line2}` : ''}`,
+      `${address.city}${address.region ? `, ${address.region}` : ''}`,
+      `${address.postalCode ?? '(no postal code)'}`,
+      `${countryName}`,
+      `Phone: ${address.phone ?? '—'}`,
+      ``,
+      `Package (estimate before final packing):`,
+      `  Weight: ${packageDimensions.weightKg} kg (billable: ${billableWeightKg} kg)`,
+      `  Dimensions: ${packageDimensions.lengthCm} × ${packageDimensions.widthCm} × ${packageDimensions.heightCm} cm`,
+      `  Estimated UPS cost: $${estimatedMerchantCostUsd.toFixed(2)}`,
+      ``,
+      `Order total: $${Number(order.total).toFixed(2)} (shipping charged: $${Number(order.shippingCost).toFixed(2)})`,
+      ``,
+      `Items:`,
+      ...order.items.map(
+        (item) =>
+          `  - ${item.titleSnapshot} ×${item.quantity} ($${Number(item.unitPrice).toFixed(2)} each)`
+      ),
+      ``,
+      `After booking in UPS, add the tracking number in the admin dashboard.`
+    ];
+
+    const subject = `[Origin Carpets] UPS shipment needed — ${order.orderNumber}`;
+    const text = lines.join('\n');
+    const html = lines.map((line) => `<p>${line || '&nbsp;'}</p>`).join('');
+
+    for (const to of this.adminOrderEmails()) {
+      await this.sendMail({ to, subject, text, html });
+      this.logger.log(`Shipment request email sent to ${to} for ${order.orderNumber}`);
+    }
+  }
+
   async sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
     const subject = 'Reset your Origin Carpets password';
     const text = [

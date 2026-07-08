@@ -1,24 +1,33 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
-import {
-  GPOST_DELIVERY_METHODS,
-  type GpostDeliveryMethodKey
-} from './georgian-post.constants';
-import { GeorgianPostClient } from './georgian-post.client';
+import { MailService } from '../mail/mail.service';
 import { PUBLIC_SHIPPABLE_PRODUCT_WHERE } from '../products/shipping-dimensions';
+import { GeorgianPostClient } from './georgian-post.client';
 import {
-  DOMESTIC_DELIVERY_ONLY,
-  FALLBACK_SHIPPING_USD,
+  internationalCityGpostId,
+  UPS_DELIVERY_COUNTRIES,
+  UPS_INTERNATIONAL_CITY
+} from './delivery-countries.seed';
+import {
   FREE_SHIPPING_COUNTRY_CODE,
+  isDomesticDeliveryOnly,
+  isShippingLive,
   SHIPPING_PROVIDER,
   SHIPPING_PROVIDER_KEY
 } from './shipping.constants';
+import { combineOrderPackage } from './package-dimensions.util';
+import {
+  UPS_DELIVERY_METHODS,
+  UPS_DOMESTIC_METHOD,
+  type UpsDeliveryMethodKey
+} from './ups.constants';
+import { quoteUpsRate } from './ups-rate-calculator';
 
 export type ShippingQuote = {
   providerKey: typeof SHIPPING_PROVIDER_KEY;
   provider: string;
-  deliveryMethod: GpostDeliveryMethodKey;
+  deliveryMethod: UpsDeliveryMethodKey;
   shippingZone: {
     id: string;
     code: string;
@@ -29,34 +38,52 @@ export type ShippingQuote = {
     maxDeliveryDays: number | null;
   };
   shippingCost: number;
-  shippingCostGel?: number;
+  merchantShippingCostUsd?: number;
   freeShipping: boolean;
   isEstimate: boolean;
   deliveryDays: { min: number | null; max: number | null };
+  package: {
+    weightKg: number;
+    lengthCm: number;
+    widthCm: number;
+    heightCm: number;
+    billableWeightKg: number;
+  };
 };
 
 @Injectable()
 export class ShippingService {
+  private readonly logger = new Logger(ShippingService.name);
+  private readonly domesticOnly: boolean;
+  private readonly shippingLive: boolean;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly gpost: GeorgianPostClient,
-    private readonly config: ConfigService
-  ) {}
+    private readonly config: ConfigService,
+    private readonly mail: MailService
+  ) {
+    this.shippingLive = isShippingLive();
+    this.domesticOnly = isDomesticDeliveryOnly();
+  }
 
   listProvider() {
     return {
       providerKey: SHIPPING_PROVIDER_KEY,
       provider: SHIPPING_PROVIDER,
-      description: DOMESTIC_DELIVERY_ONLY
-        ? 'Domestic delivery within Georgia via Georgian Post from our Tbilisi gallery. Worldwide shipping coming soon.'
-        : 'Delivery worldwide through Georgian Post — domestic and international postal services from our Tbilisi gallery.'
+      live: this.shippingLive,
+      domesticOnly: this.domesticOnly,
+      manualFulfillment: true,
+      description: this.domesticOnly
+        ? 'Domestic delivery within Georgia via UPS from our Tbilisi gallery. Worldwide shipping coming soon.'
+        : 'Delivery worldwide through UPS — domestic and international from our Tbilisi gallery.'
     };
   }
 
   async listCountries() {
     await this.ensureCountriesSynced();
     const countries = await this.prisma.deliveryCountry.findMany({
-      where: DOMESTIC_DELIVERY_ONLY ? { abbr: FREE_SHIPPING_COUNTRY_CODE } : undefined,
+      where: this.domesticOnly ? { abbr: FREE_SHIPPING_COUNTRY_CODE } : undefined,
       orderBy: { nameEn: 'asc' }
     });
 
@@ -80,25 +107,42 @@ export class ShippingService {
 
     this.assertDomesticDeliveryAvailable(country.abbr);
 
-    let cities = await this.prisma.deliveryCity.findMany({
-      where: { countryId: country.id },
-      orderBy: { nameEn: 'asc' }
-    });
-
-    if (!cities.length) {
-      await this.syncCitiesForCountry(country.id, country.gpostId);
-      cities = await this.prisma.deliveryCity.findMany({
+    if (country.abbr === FREE_SHIPPING_COUNTRY_CODE) {
+      let cities = await this.prisma.deliveryCity.findMany({
         where: { countryId: country.id },
         orderBy: { nameEn: 'asc' }
       });
+
+      if (!cities.length && this.gpost.isConfigured()) {
+        await this.syncCitiesForCountry(country.id, country.gpostId);
+        cities = await this.prisma.deliveryCity.findMany({
+          where: { countryId: country.id },
+          orderBy: { nameEn: 'asc' }
+        });
+      }
+
+      if (cities.length) {
+        return cities.map((city) => ({
+          id: city.id,
+          gpostId: city.gpostId,
+          nameEn: city.nameEn,
+          nameGe: city.nameGe
+        }));
+      }
     }
 
-    return cities.map((city) => ({
-      id: city.id,
-      gpostId: city.gpostId,
-      nameEn: city.nameEn,
-      nameGe: city.nameGe
-    }));
+    const placeholder = await this.ensureInternationalCity({
+      id: country.id,
+      gpostId: country.gpostId
+    });
+    return [
+      {
+        id: placeholder.id,
+        gpostId: placeholder.gpostId,
+        nameEn: placeholder.nameEn,
+        nameGe: placeholder.nameGe
+      }
+    ];
   }
 
   async listMethods(deliveryCountryId: string) {
@@ -112,34 +156,21 @@ export class ShippingService {
 
     this.assertDomesticDeliveryAvailable(country.abbr);
 
-    if (DOMESTIC_DELIVERY_ONLY) {
+    if (country.abbr === FREE_SHIPPING_COUNTRY_CODE) {
       return [this.serializeDomesticMethod()];
     }
 
-    if (this.gpost.isConfigured()) {
-      const services = await this.gpost.fetchParcelTypesByCountry(country.gpostId);
-      const methods = services
-        .map((service) => this.gpost.resolveMethodByParcelTypeId(service.parcelTypeId))
-        .filter((method): method is NonNullable<typeof method> => Boolean(method));
-
-      if (methods.length) {
-        return methods.map((method) => this.serializeMethod(method, country.abbr === 'GE'));
-      }
-    }
-
-    const isDomestic = country.abbr === 'GE';
-    const defaults = isDomestic
-      ? [GPOST_DELIVERY_METHODS['CD-Parcel']]
-      : Object.values(GPOST_DELIVERY_METHODS);
-
-    return defaults.map((method) => this.serializeMethod(method, isDomestic));
+    return Object.values(UPS_DELIVERY_METHODS).map((method) => ({
+      ...this.serializeMethod(method),
+      recommended: method.value === 'UPS_STANDARD'
+    }));
   }
 
   async quote(input: {
     items: Array<{ productId: string; quantity: number }>;
     deliveryCountryId: string;
     deliveryCityId: string;
-    deliveryMethod: GpostDeliveryMethodKey;
+    deliveryMethod: UpsDeliveryMethodKey;
   }): Promise<ShippingQuote> {
     const country = await this.prisma.deliveryCountry.findUnique({
       where: { id: input.deliveryCountryId }
@@ -154,11 +185,7 @@ export class ShippingService {
 
     this.assertDomesticDeliveryAvailable(country.abbr);
 
-    if (DOMESTIC_DELIVERY_ONLY && input.deliveryMethod !== 'CD-Parcel') {
-      throw new BadRequestException('Only domestic delivery is available at this time');
-    }
-
-    const method = this.gpost.resolveMethod(input.deliveryMethod);
+    const method = UPS_DELIVERY_METHODS[input.deliveryMethod];
     if (!method) {
       throw new BadRequestException('Invalid delivery method');
     }
@@ -173,54 +200,34 @@ export class ShippingService {
     }
 
     const productMap = new Map(products.map((product) => [product.id, product]));
-    let totalWeightKg = 0;
-    let maxLengthCm = 0;
-    let maxWidthCm = 0;
-    let maxHeightCm = 0;
+    const lineItems = input.items
+      .map((item) => {
+        const product = productMap.get(item.productId);
+        return product ? { product, quantity: item.quantity } : null;
+      })
+      .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
-    for (const item of input.items) {
-      const product = productMap.get(item.productId);
-      if (!product) continue;
-      const dims = this.gpost.packageDimensions(product);
-      totalWeightKg += dims.weightKg * item.quantity;
-      maxLengthCm = Math.max(maxLengthCm, dims.lengthCm);
-      maxWidthCm = Math.max(maxWidthCm, dims.widthCm);
-      maxHeightCm = Math.max(maxHeightCm, dims.heightCm);
-    }
+    const packageDimensions = combineOrderPackage(lineItems);
+    const rate = quoteUpsRate({
+      countryCode: country.abbr,
+      method: input.deliveryMethod,
+      packageDimensions
+    });
 
     const isDomesticGeorgia = country.abbr === FREE_SHIPPING_COUNTRY_CODE;
-    const supportsLocal = isDomesticGeorgia && Boolean(method.supportsLocal);
-    let shippingCostGel: number | undefined;
-    let isEstimate = false;
-    let shippingCostUsd = 0;
-
-    if (this.gpost.isConfigured()) {
-      const priceResult = await this.gpost.fetchPrice({
-        parcelTypeId: method.gpostId,
-        receiverCityGpostId: city.gpostId,
-        weightKg: totalWeightKg,
-        lengthCm: maxLengthCm,
-        widthCm: maxWidthCm,
-        heightCm: maxHeightCm,
-        supportsLocal
-      });
-
-      if (priceResult.priceGel != null) {
-        shippingCostGel = priceResult.priceGel;
-        shippingCostUsd = this.gelToUsd(priceResult.priceGel);
-      } else {
-        isEstimate = true;
-        shippingCostUsd = this.fallbackUsd(country.abbr);
-      }
-    } else {
-      isEstimate = true;
-      shippingCostUsd = this.fallbackUsd(country.abbr);
-    }
-
     const freeShipping = isDomesticGeorgia;
-    const customerShippingUsd = freeShipping ? 0 : shippingCostUsd;
+    const merchantShippingCostUsd = rate.priceUsd;
+    const customerShippingUsd = freeShipping ? 0 : rate.priceUsd;
 
-    const zone = await this.ensureZone(country.abbr, country.nameEn, customerShippingUsd, method);
+    const deliveryMeta = isDomesticGeorgia ? UPS_DOMESTIC_METHOD : method;
+    const zone = await this.ensureZone(
+      country.abbr,
+      country.nameEn,
+      customerShippingUsd,
+      input.deliveryMethod,
+      deliveryMeta.minDeliveryDays,
+      deliveryMeta.maxDeliveryDays
+    );
 
     return {
       providerKey: SHIPPING_PROVIDER_KEY,
@@ -228,17 +235,25 @@ export class ShippingService {
       deliveryMethod: input.deliveryMethod,
       shippingZone: zone,
       shippingCost: customerShippingUsd,
-      shippingCostGel,
+      merchantShippingCostUsd,
       freeShipping,
-      isEstimate: freeShipping ? false : isEstimate,
+      isEstimate: freeShipping ? false : rate.isEstimate,
       deliveryDays: {
-        min: method.minDeliveryDays,
-        max: method.maxDeliveryDays
+        min: deliveryMeta.minDeliveryDays,
+        max: deliveryMeta.maxDeliveryDays
+      },
+      package: {
+        weightKg: packageDimensions.weightKg,
+        lengthCm: packageDimensions.lengthCm,
+        widthCm: packageDimensions.widthCm,
+        heightCm: packageDimensions.heightCm,
+        billableWeightKg: rate.chargeableWeightKg
       }
     };
   }
 
-  async registerOrderParcel(orderId: string) {
+  /** Notify gallery staff to create the UPS shipment manually (no carrier API). */
+  async notifyAdminsForPaidOrder(orderId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -252,120 +267,93 @@ export class ShippingService {
       throw new NotFoundException('Order not found');
     }
 
-    if (order.parcelInternalCode) {
-      return {
-        success: true as const,
-        parcelInternalCode: order.parcelInternalCode,
-        parcelTrackingNumber: order.parcelTrackingNumber ?? undefined
-      };
+    if (order.shipmentNotifiedAt) {
+      return { success: true as const, alreadyNotified: true };
     }
 
-    if (!order.deliveryMethod || !order.gpostParcelTypeId) {
-      throw new BadRequestException('Order is missing Georgian Post delivery method');
-    }
+    const packageDimensions = combineOrderPackage(
+      order.items.map((item) => ({ product: item.product, quantity: item.quantity }))
+    );
+    const method = (order.deliveryMethod as UpsDeliveryMethodKey) ?? 'UPS_STANDARD';
+    const countryAbbr = order.shippingAddress.countryCode;
+    const rate = quoteUpsRate({ countryCode: countryAbbr, method, packageDimensions });
 
-    const city = order.shippingAddress.deliveryCity;
-    if (!city) {
-      throw new BadRequestException('Order shipping address is missing Georgian Post city');
-    }
-
-    const method = this.gpost.resolveMethod(order.deliveryMethod as GpostDeliveryMethodKey);
-    const supportsLocal = city.country.abbr === 'GE' && Boolean(method?.supportsLocal);
-
-    let totalWeightKg = 0;
-    let maxLengthCm = 0;
-    let maxWidthCm = 0;
-    let maxHeightCm = 0;
-    let itemValueUsd = 0;
-
-    for (const item of order.items) {
-      const dims = this.gpost.packageDimensions(item.product);
-      totalWeightKg += dims.weightKg * item.quantity;
-      maxLengthCm = Math.max(maxLengthCm, dims.lengthCm);
-      maxWidthCm = Math.max(maxWidthCm, dims.widthCm);
-      maxHeightCm = Math.max(maxHeightCm, dims.heightCm);
-      itemValueUsd += Number(item.unitPrice) * item.quantity;
-    }
-
-    const address = order.shippingAddress;
-    const nameParts = address.fullName.trim().split(/\s+/);
-    const firstName = nameParts[0] ?? '';
-    const lastName = nameParts.slice(1).join(' ') || firstName;
-    const fullAddress = [
-      city.country.nameEn,
-      address.city,
-      address.line1,
-      address.line2,
-      address.postalCode
-    ]
-      .filter(Boolean)
-      .join(', ');
-
-    const result = await this.gpost.registerParcel({
-      parcelTypeId: order.gpostParcelTypeId,
-      receiverCityGpostId: city.gpostId,
-      receiverAddressNote: fullAddress,
-      zipCode: address.postalCode ?? '',
-      weightKg: totalWeightKg,
-      lengthCm: maxLengthCm,
-      widthCm: maxWidthCm,
-      heightCm: maxHeightCm,
-      supportsLocal: Boolean(supportsLocal),
-      firstName,
-      lastName,
-      phone: address.phone ?? '',
-      email: order.user.email,
-      itemCount: order.items.length,
-      itemValueUsd
+    await this.prisma.order.update({
+      where: { id: order.id },
+      data: {
+        shippingProvider: SHIPPING_PROVIDER_KEY,
+        billableWeightKg: rate.chargeableWeightKg,
+        packageLengthCm: packageDimensions.lengthCm,
+        packageWidthCm: packageDimensions.widthCm,
+        packageHeightCm: packageDimensions.heightCm
+      }
     });
 
-    if (result.success) {
+    try {
+      await this.mail.sendAdminShipmentRequestEmail({
+        order,
+        packageDimensions,
+        billableWeightKg: rate.chargeableWeightKg,
+        estimatedMerchantCostUsd: rate.priceUsd
+      });
+
       await this.prisma.order.update({
         where: { id: order.id },
-        data: {
-          parcelInternalCode: result.parcelInternalCode,
-          parcelTrackingNumber: result.parcelTrackingNumber,
-          parcelRegisteredAt: new Date(),
-          parcelRegistrationError: null,
-          status: order.status === 'PAID' ? 'FULFILLED' : order.status
-        }
+        data: { shipmentNotifiedAt: new Date() }
       });
-    } else {
-      await this.prisma.order.update({
-        where: { id: order.id },
-        data: {
-          parcelRegistrationError: result.error ?? 'Unknown Georgian Post error'
-        }
-      });
+
+      return { success: true as const, alreadyNotified: false };
+    } catch (error) {
+      this.logger.error(`Failed to notify admins for order ${orderId}`, error);
+      return {
+        success: false as const,
+        error: error instanceof Error ? error.message : 'Failed to send admin notification'
+      };
+    }
+  }
+
+  async updateTrackingNumber(orderId: string, trackingNumber: string) {
+    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) {
+      throw new NotFoundException('Order not found');
     }
 
-    return result;
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        parcelTrackingNumber: trackingNumber.trim(),
+        status: order.status === 'PAID' ? 'SHIPPED' : order.status
+      },
+      select: {
+        id: true,
+        orderNumber: true,
+        parcelTrackingNumber: true,
+        status: true
+      }
+    });
   }
 
   async syncAllCountries() {
-    if (!this.gpost.isConfigured()) {
-      throw new BadRequestException('Georgian Post API is not configured');
-    }
-
-    const countries = await this.gpost.fetchCountries();
-    for (const item of countries) {
+    let count = 0;
+    for (const item of UPS_DELIVERY_COUNTRIES) {
       await this.prisma.deliveryCountry.upsert({
-        where: { gpostId: item.CountryId },
+        where: { gpostId: item.gpostId },
         update: {
-          nameEn: item.CountryNameEn,
-          nameGe: item.CountryNameGe,
-          abbr: item.CountryAB
+          nameEn: item.nameEn,
+          nameGe: item.nameGe,
+          abbr: item.abbr
         },
         create: {
-          gpostId: item.CountryId,
-          nameEn: item.CountryNameEn,
-          nameGe: item.CountryNameGe,
-          abbr: item.CountryAB
+          gpostId: item.gpostId,
+          nameEn: item.nameEn,
+          nameGe: item.nameGe,
+          abbr: item.abbr
         }
       });
+      count += 1;
     }
 
-    return { count: countries.length };
+    return { count };
   }
 
   async syncCitiesForCountry(deliveryCountryId: string, countryGpostId?: number) {
@@ -378,8 +366,8 @@ export class ShippingService {
         ? await this.prisma.deliveryCountry.findFirst({ where: { gpostId: countryGpostId } })
         : await this.prisma.deliveryCountry.findUnique({ where: { id: deliveryCountryId } });
 
-    if (!country) {
-      throw new NotFoundException('Delivery country not found');
+    if (!country || country.abbr !== FREE_SHIPPING_COUNTRY_CODE) {
+      return { count: 0 };
     }
 
     const cities = await this.gpost.fetchCities(country.gpostId);
@@ -406,85 +394,94 @@ export class ShippingService {
 
   private async ensureCountriesSynced() {
     const count = await this.prisma.deliveryCountry.count();
-    if (count > 0 || !this.gpost.isConfigured()) {
+    if (count > 0) {
       return;
     }
 
     await this.syncAllCountries();
   }
 
+  private async ensureInternationalCity(country: { id: string; gpostId: number }) {
+    const gpostId = internationalCityGpostId(country.gpostId);
+    const existing = await this.prisma.deliveryCity.findFirst({
+      where: { countryId: country.id, gpostId }
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    return this.prisma.deliveryCity.create({
+      data: {
+        gpostId,
+        nameEn: UPS_INTERNATIONAL_CITY.nameEn,
+        nameGe: UPS_INTERNATIONAL_CITY.nameGe,
+        countryId: country.id
+      }
+    });
+  }
+
   private assertDomesticDeliveryAvailable(countryAbbr: string) {
-    if (DOMESTIC_DELIVERY_ONLY && countryAbbr !== FREE_SHIPPING_COUNTRY_CODE) {
-      throw new BadRequestException('International delivery is not available yet. Worldwide shipping coming soon.');
+    if (this.domesticOnly && countryAbbr !== FREE_SHIPPING_COUNTRY_CODE) {
+      throw new BadRequestException(
+        'International delivery is not available yet. Worldwide shipping coming soon.'
+      );
     }
   }
 
   private serializeDomesticMethod() {
-    const method = GPOST_DELIVERY_METHODS['CD-Parcel'];
     return {
-      ...this.serializeMethod(method, true),
-      label: { en: 'Domestic delivery', ge: 'შიდა მიწოდება' },
-      descTop: {
-        en: 'Georgian Post domestic parcel within Georgia',
-        ge: 'საქართველოს ფოსტის შიდა გზავნილი საქართველოს ფარგლებში'
-      },
+      value: UPS_DOMESTIC_METHOD.value,
+      label: UPS_DOMESTIC_METHOD.label,
+      descTop: UPS_DOMESTIC_METHOD.descTop,
       descBottom: {
-        en: 'Free delivery · 7–21 working days',
-        ge: 'უფასო მიწოდება · 7–21 სამუშაო დღე'
+        en: 'Free delivery · 2–4 business days',
+        ge: 'უფასო მიწოდება · 2–4 სამუშაო დღე'
       },
+      minDeliveryDays: UPS_DOMESTIC_METHOD.minDeliveryDays,
+      maxDeliveryDays: UPS_DOMESTIC_METHOD.maxDeliveryDays,
       recommended: true
     };
   }
 
-  private serializeMethod(
-    method: (typeof GPOST_DELIVERY_METHODS)[GpostDeliveryMethodKey],
-    isDomestic: boolean
-  ) {
+  private serializeMethod(method: (typeof UPS_DELIVERY_METHODS)[UpsDeliveryMethodKey]) {
     return {
       value: method.value,
-      gpostId: method.gpostId,
       label: method.label,
       descTop: method.descTop,
       descBottom: method.descBottom,
       minDeliveryDays: method.minDeliveryDays,
-      maxDeliveryDays: method.maxDeliveryDays,
-      recommended: isDomestic ? method.value === 'CD-Parcel' : method.value === 'EMS'
+      maxDeliveryDays: method.maxDeliveryDays
     };
-  }
-
-  private gelToUsd(gel: number) {
-    const rate = Number(this.config.get<string>('GEL_PER_USD', '2.69'));
-    return Math.round((gel / rate) * 100) / 100;
-  }
-
-  private fallbackUsd(countryAbbr: string) {
-    return countryAbbr === 'GE' ? FALLBACK_SHIPPING_USD.domestic : FALLBACK_SHIPPING_USD.international;
   }
 
   private ensureZone(
     countryAbbr: string,
     countryName: string,
     basePriceUsd: number,
-    method: (typeof GPOST_DELIVERY_METHODS)[GpostDeliveryMethodKey]
+    method: UpsDeliveryMethodKey,
+    minDeliveryDays: number,
+    maxDeliveryDays: number
   ) {
-    const code = `GP-${countryAbbr}-${method.value}`;
+    const methodLabel = UPS_DELIVERY_METHODS[method]?.label.en ?? method;
+    const code = `UPS-${countryAbbr}-${method}`;
     return this.prisma.shippingZone.upsert({
       where: { code },
       update: {
-        name: `${countryName} — ${method.label.en}`,
+        name: `${countryName} — ${methodLabel}`,
         countryCode: countryAbbr,
         basePrice: basePriceUsd,
-        minDeliveryDays: method.minDeliveryDays,
-        maxDeliveryDays: method.maxDeliveryDays,
+        minDeliveryDays,
+        maxDeliveryDays,
         isActive: true
       },
       create: {
         code,
-        name: `${countryName} — ${method.label.en}`,
+        name: `${countryName} — ${methodLabel}`,
         countryCode: countryAbbr,
         basePrice: basePriceUsd,
-        minDeliveryDays: method.minDeliveryDays,
-        maxDeliveryDays: method.maxDeliveryDays,
+        minDeliveryDays,
+        maxDeliveryDays,
         isActive: true
       }
     });

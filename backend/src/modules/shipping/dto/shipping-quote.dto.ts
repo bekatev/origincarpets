@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsIn, IsInt, IsOptional, IsString, Max, Min, ValidateNested } from 'class-validator';
-import type { GpostDeliveryMethodKey } from '../georgian-post.constants';
+import { UPS_DELIVERY_METHOD_KEYS, type UpsDeliveryMethodKey } from '../ups.constants';
 
 class QuoteItemDto {
   @IsString()
@@ -25,8 +25,8 @@ export class ShippingQuoteDto {
   @IsString()
   deliveryCityId!: string;
 
-  @IsIn(['AVIA', 'EMS', 'CD-Parcel'])
-  deliveryMethod!: GpostDeliveryMethodKey;
+  @IsIn(UPS_DELIVERY_METHOD_KEYS)
+  deliveryMethod!: UpsDeliveryMethodKey;
 }
 
 export class SyncCitiesQueryDto {

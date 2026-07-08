@@ -15,11 +15,10 @@ export type DeliveryCity = {
   nameGe: string | null;
 };
 
-export type DeliveryMethodKey = 'AVIA' | 'EMS' | 'CD-Parcel';
+export type DeliveryMethodKey = 'UPS_STANDARD' | 'UPS_EXPRESS';
 
 export type DeliveryMethod = {
   value: DeliveryMethodKey;
-  gpostId: number;
   label: { en: string; ge: string };
   descTop: { en: string; ge: string };
   descBottom: { en: string; ge: string };
@@ -28,17 +27,41 @@ export type DeliveryMethod = {
   recommended?: boolean;
 };
 
+export type ShippingProviderInfo = {
+  providerKey: string;
+  provider: string;
+  live: boolean;
+  domesticOnly: boolean;
+  manualFulfillment: boolean;
+  description: string;
+};
+
 export type ShippingQuote = {
   providerKey: string;
   provider: string;
   deliveryMethod: DeliveryMethodKey;
   shippingZone: { id: string; code: string; name: string };
   shippingCost: number;
-  shippingCostGel?: number;
+  merchantShippingCostUsd?: number;
   freeShipping?: boolean;
   isEstimate: boolean;
   deliveryDays: { min: number | null; max: number | null };
+  package?: {
+    weightKg: number;
+    lengthCm: number;
+    widthCm: number;
+    heightCm: number;
+    billableWeightKg: number;
+  };
 };
+
+export async function fetchShippingProvider(): Promise<ShippingProviderInfo> {
+  const response = await fetch(`${API_URL}/shipping/provider`, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error('Failed to load shipping provider');
+  }
+  return response.json() as Promise<ShippingProviderInfo>;
+}
 
 export async function fetchDeliveryCountries(): Promise<DeliveryCountry[]> {
   const response = await fetch(`${API_URL}/shipping/countries`, { cache: 'no-store' });
@@ -86,4 +109,9 @@ export async function fetchShippingQuote(input: {
   }
 
   return payload;
+}
+
+/** Backend uses a reserved gpostId band (>= 9_000_000) for the "enter city" placeholder. */
+export function isInternationalCityList(cities: DeliveryCity[]) {
+  return cities.length === 1 && (cities[0]?.gpostId ?? 0) >= 9_000_000;
 }

@@ -64,7 +64,7 @@ export function ShippingMethodPicker({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--oc-muted)]">
-                    {dict.methods.georgianPost.badge}
+                    {dict.shippingProvider}
                   </span>
                   <p className="mt-1 font-display text-lg uppercase tracking-[0.06em] text-[var(--oc-ink)]">
                     {label}

@@ -3,6 +3,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto';
 import { AdminService } from './admin.service';
 
 @Controller('admin')
@@ -29,6 +30,11 @@ export class AdminController {
   @Patch('orders/:orderId/status')
   updateOrderStatus(@Param('orderId') orderId: string, @Body() dto: UpdateOrderStatusDto) {
     return this.adminService.updateOrderStatus(orderId, dto.status);
+  }
+
+  @Patch('orders/:orderId/tracking')
+  updateOrderTracking(@Param('orderId') orderId: string, @Body() dto: UpdateOrderTrackingDto) {
+    return this.adminService.updateOrderTracking(orderId, dto.trackingNumber);
   }
 
   @Get('customers')

@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { GPOST_DELIVERY_METHODS } from '../shipping/georgian-post.constants';
 import { ShippingService } from '../shipping/shipping.service';
 import { AddressesService } from '../users/addresses.service';
 import { PUBLIC_SHIPPABLE_PRODUCT_WHERE } from '../products/shipping-dimensions';
+import { SHIPPING_PROVIDER_KEY } from '../shipping/shipping.constants';
 import { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
@@ -42,7 +42,6 @@ export class OrdersService {
       throw new BadRequestException('Invalid delivery city for selected country');
     }
 
-    const method = GPOST_DELIVERY_METHODS[dto.deliveryMethod];
     const shipping = await this.shippingService.quote({
       items: dto.items,
       deliveryCountryId: dto.deliveryCountryId,
@@ -57,9 +56,12 @@ export class OrdersService {
     }, 0);
 
     const shippingCost = Number(shipping.shippingCost);
-    const merchantShippingCostGel =
-      shipping.shippingCostGel != null ? Number(shipping.shippingCostGel) : null;
+    const merchantShippingCostGel = shipping.merchantShippingCostUsd
+      ? Math.round(shipping.merchantShippingCostUsd * 2.69 * 100) / 100
+      : null;
     const total = subtotal + shippingCost;
+
+    const cityName = dto.shippingAddress.city?.trim() || deliveryCity.nameEn;
 
     const shippingAddress = await this.prisma.shippingAddress.create({
       data: {
@@ -70,7 +72,7 @@ export class OrdersService {
         fullName: dto.shippingAddress.fullName,
         phone: dto.shippingAddress.phone,
         countryCode: deliveryCity.country.abbr,
-        city: deliveryCity.nameEn,
+        city: cityName,
         region: dto.shippingAddress.region,
         postalCode: dto.shippingAddress.postalCode,
         line1: dto.shippingAddress.line1,
@@ -104,7 +106,11 @@ export class OrdersService {
         shippingZoneId: shippingZone.id,
         shippingAddressId: shippingAddress.id,
         deliveryMethod: dto.deliveryMethod,
-        gpostParcelTypeId: method.gpostId,
+        shippingProvider: SHIPPING_PROVIDER_KEY,
+        billableWeightKg: shipping.package.billableWeightKg,
+        packageLengthCm: shipping.package.lengthCm,
+        packageWidthCm: shipping.package.widthCm,
+        packageHeightCm: shipping.package.heightCm,
         items: {
           create: products.map((product) => {
             const quantity = grouped.get(product.id) ?? 0;

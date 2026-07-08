@@ -73,10 +73,10 @@ export const storefrontTranslations = {
       title: 'Checkout',
       empty: 'Your cart is empty.',
       browse: 'Browse products',
-      shippingType: 'Georgian Post service',
-      georgianPostNote:
-        'We currently deliver within Georgia only, via Georgian Post from our Tbilisi gallery. Delivery is free.',
-      worldwideComingSoon: 'Worldwide shipping is coming soon.',
+      shippingType: 'UPS delivery',
+      upsNote:
+        'Delivery via UPS from our Tbilisi gallery. Domestic delivery within Georgia is free; international rates are calculated from package size and destination.',
+      worldwideComingSoon: 'International delivery opens when our UPS contract is active.',
       country: 'Country',
       city: 'City',
       selectCountry: 'Select country',
@@ -352,10 +352,10 @@ export const storefrontTranslations = {
       title: 'შეკვეთის გაფორმება',
       empty: 'თქვენი კალათა ცარიელია.',
       browse: 'პროდუქტების ნახვა',
-      shippingType: 'საქართველოს ფოსტის სერვისი',
-      georgianPostNote:
-        'ამ ეტაპზე მიწოდება ხორციელდება მხოლოდ საქართველოს ფარგლებში, საქართველოს ფოსტით ჩვენი თბილისის გალერეიდან. მიწოდება უფასოა.',
-      worldwideComingSoon: 'საერთაშორისო მიწოდება მალე დაემატება.',
+      shippingType: 'UPS მიწოდება',
+      upsNote:
+        'მიწოდება ხდება UPS-ით ჩვენი თბილისის გალერეიდან. საქართველოში მიწოდება უფასოა; საერთაშორისო ტარიფი გამოითვლება შეფუთვის ზომებისა და მიმღები ქვეყნის მიხედვით.',
+      worldwideComingSoon: 'საერთაშორისო მიწოდება გაიხსნება UPS კონტრაქტის აქტივაციის შემდეგ.',
       country: 'ქვეყანა',
       city: 'ქალაქი',
       selectCountry: 'აირჩიეთ ქვეყანა',

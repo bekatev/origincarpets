@@ -281,6 +281,12 @@ model Order {
   billingAddressId         String?
   deliveryMethod           String?
   gpostParcelTypeId        Int?
+  shippingProvider         String?          @default("ups")
+  billableWeightKg         Decimal?         @db.Decimal(10, 2)
+  packageLengthCm          Int?
+  packageWidthCm           Int?
+  packageHeightCm          Int?
+  shipmentNotifiedAt       DateTime?
   parcelInternalCode       String?
   parcelTrackingNumber     String?
   parcelRegisteredAt       DateTime?

@@ -53,8 +53,14 @@ type AdminOrder = {
   shippingCost: number;
   merchantShippingCostGel: number | null;
   total: number;
+  deliveryMethod: string | null;
+  shippingProvider: string | null;
+  billableWeightKg: number | null;
+  packageLengthCm: number | null;
+  packageWidthCm: number | null;
+  packageHeightCm: number | null;
   parcelTrackingNumber: string | null;
-  parcelRegistrationError: string | null;
+  shipmentNotifiedAt: string | null;
   createdAt: string;
   customer: { id: string; email: string; name: string | null };
   itemsCount: number;
@@ -405,6 +411,24 @@ export function AdminDashboardView() {
     }
   }
 
+  async function onSaveOrderTracking(orderId: string, trackingNumber: string) {
+    if (!token) return;
+    setBusy(true);
+    try {
+      await apiRequest(`/admin/orders/${orderId}/tracking`, token, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trackingNumber })
+      });
+      await loadAll(token);
+      flash(a.orders.trackingSaved);
+    } catch (actionError) {
+      flashError(actionError instanceof Error ? actionError.message : a.orders.trackingFailed);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function onSyncOrigincarpets(mode: 'sync' | 'full') {
     if (!token) return;
     setBusy(true);
@@ -518,7 +542,13 @@ export function AdminDashboardView() {
               />
             )}
             {tab === 'orders' && (
-              <OrdersTab a={a} orders={orders} busy={busy} onStatusChange={onChangeOrderStatus} />
+              <OrdersTab
+                a={a}
+                orders={orders}
+                busy={busy}
+                onStatusChange={onChangeOrderStatus}
+                onSaveTracking={onSaveOrderTracking}
+              />
             )}
             {tab === 'customers' && <CustomersTab a={a} customers={customers} />}
             {tab === 'categories' && (
@@ -601,13 +631,17 @@ function OrdersTab({
   a,
   orders,
   busy,
-  onStatusChange
+  onStatusChange,
+  onSaveTracking
 }: {
   a: AdminDict;
   orders: AdminOrder[];
   busy: boolean;
   onStatusChange: (id: string, status: (typeof ORDER_STATUS_OPTIONS)[number]) => void;
+  onSaveTracking: (id: string, trackingNumber: string) => void;
 }) {
+  const [trackingDrafts, setTrackingDrafts] = useState<Record<string, string>>({});
+
   if (!orders.length) {
     return <EmptyState text={a.orders.empty} />;
   }
@@ -626,6 +660,7 @@ function OrdersTab({
               <p className="text-xs text-[var(--oc-muted)]">
                 {new Date(order.createdAt).toLocaleString()} ·{' '}
                 {a.orders.items.replace('{count}', String(order.itemsCount))}
+                {order.deliveryMethod ? ` · ${order.deliveryMethod}` : ''}
               </p>
               <dl className="mt-3 grid gap-1 text-xs text-[var(--oc-muted)] sm:grid-cols-2">
                 <div>
@@ -635,26 +670,58 @@ function OrdersTab({
                   </dd>
                 </div>
                 <div>
-                  <dt className="uppercase tracking-[0.12em]">{a.orders.merchantGpCost}</dt>
+                  <dt className="uppercase tracking-[0.12em]">{a.orders.merchantShippingCost}</dt>
                   <dd className="mt-0.5 font-medium text-[var(--oc-ink)]">
                     {order.merchantShippingCostGel != null
                       ? `₾${order.merchantShippingCostGel.toFixed(2)}`
-                      : a.orders.merchantGpCostUnavailable}
+                      : a.orders.merchantShippingCostUnavailable}
                   </dd>
                 </div>
+                {order.billableWeightKg != null && order.packageLengthCm != null && (
+                  <div className="sm:col-span-2">
+                    <dt className="uppercase tracking-[0.12em]">{a.orders.packageDetails}</dt>
+                    <dd className="mt-0.5 text-[var(--oc-ink)]">
+                      {a.orders.packageWeight.replace('{weight}', String(order.billableWeightKg))}
+                      {order.packageWidthCm != null && order.packageHeightCm != null
+                        ? ` · ${a.orders.packageDimensions
+                            .replace('{length}', String(order.packageLengthCm))
+                            .replace('{width}', String(order.packageWidthCm))
+                            .replace('{height}', String(order.packageHeightCm))}`
+                        : ''}
+                    </dd>
+                  </div>
+                )}
                 {order.parcelTrackingNumber && (
                   <div className="sm:col-span-2">
                     <dt className="uppercase tracking-[0.12em]">{a.orders.tracking}</dt>
                     <dd className="mt-0.5 font-mono text-[var(--oc-ink)]">{order.parcelTrackingNumber}</dd>
                   </div>
                 )}
-                {order.parcelRegistrationError && (
-                  <div className="sm:col-span-2">
-                    <dt className="uppercase tracking-[0.12em] text-amber-700">{a.orders.parcelError}</dt>
-                    <dd className="mt-0.5 text-amber-800">{order.parcelRegistrationError}</dd>
-                  </div>
+                {order.status === 'PAID' && !order.shipmentNotifiedAt && (
+                  <div className="sm:col-span-2 text-amber-700">{a.orders.shipmentPending}</div>
                 )}
               </dl>
+              <form
+                className="mt-3 flex flex-col gap-2 sm:flex-row"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const draft = trackingDrafts[order.id]?.trim();
+                  if (draft) onSaveTracking(order.id, draft);
+                }}
+              >
+                <input
+                  className="oc-input flex-1 py-2 text-sm"
+                  placeholder={a.orders.trackingPlaceholder}
+                  value={trackingDrafts[order.id] ?? order.parcelTrackingNumber ?? ''}
+                  onChange={(event) =>
+                    setTrackingDrafts((prev) => ({ ...prev, [order.id]: event.target.value }))
+                  }
+                  disabled={busy}
+                />
+                <button type="submit" className="oc-btn-primary py-2 text-xs" disabled={busy}>
+                  {a.orders.trackingSave}
+                </button>
+              </form>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-sm font-semibold uppercase tracking-[0.08em]">

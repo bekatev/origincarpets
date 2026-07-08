@@ -53,8 +53,14 @@ export class AdminService {
       merchantShippingCostGel:
         order.merchantShippingCostGel != null ? Number(order.merchantShippingCostGel) : null,
       total: Number(order.total),
+      deliveryMethod: order.deliveryMethod,
+      shippingProvider: order.shippingProvider,
+      billableWeightKg: order.billableWeightKg != null ? Number(order.billableWeightKg) : null,
+      packageLengthCm: order.packageLengthCm,
+      packageWidthCm: order.packageWidthCm,
+      packageHeightCm: order.packageHeightCm,
       parcelTrackingNumber: order.parcelTrackingNumber,
-      parcelRegistrationError: order.parcelRegistrationError,
+      shipmentNotifiedAt: order.shipmentNotifiedAt,
       createdAt: order.createdAt,
       customer: {
         id: order.user.id,
@@ -68,7 +74,7 @@ export class AdminService {
   async updateOrderStatus(orderId: string, status: ManageableOrderStatus) {
     const existing = await this.prisma.order.findUnique({
       where: { id: orderId },
-      select: { id: true, status: true, parcelInternalCode: true }
+      select: { id: true, status: true, shipmentNotifiedAt: true }
     });
     if (!existing) {
       throw new NotFoundException('Order not found');
@@ -90,14 +96,14 @@ export class AdminService {
       return updated;
     });
 
-    if (status === 'PAID' && !existing.parcelInternalCode) {
+    if (status === 'PAID' && !existing.shipmentNotifiedAt) {
       try {
-        const parcel = await this.shippingService.registerOrderParcel(orderId);
-        if (!parcel.success && 'error' in parcel) {
-          this.logger.warn(`Georgian Post parcel registration failed for order ${orderId}: ${parcel.error}`);
+        const result = await this.shippingService.notifyAdminsForPaidOrder(orderId);
+        if (!result.success && 'error' in result) {
+          this.logger.warn(`UPS admin notification failed for order ${orderId}: ${result.error}`);
         }
       } catch (error) {
-        this.logger.error(`Georgian Post parcel registration error for order ${orderId}`, error);
+        this.logger.error(`UPS admin notification error for order ${orderId}`, error);
       }
     }
 
@@ -106,6 +112,10 @@ export class AdminService {
       orderNumber: order.orderNumber,
       status: order.status
     };
+  }
+
+  async updateOrderTracking(orderId: string, trackingNumber: string) {
+    return this.shippingService.updateTrackingNumber(orderId, trackingNumber);
   }
 
   async listCustomers() {
