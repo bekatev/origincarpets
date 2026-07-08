@@ -18,11 +18,12 @@ fi
 set -a && source backend/.env && set +a
 
 echo "==> Prisma migrate"
-# Full install (not --omit=dev): the prisma CLI is a devDependency and its config
-# loader (c12 → rc9 → destr) is required to run `prisma migrate deploy`.
+# Run the pinned Prisma CLI standalone — `migrate deploy` only needs the schema,
+# the migrations folder and DATABASE_URL, so we avoid installing the whole
+# workspace (which caused corrupted node_modules) and avoid npx grabbing Prisma 7.
 docker run --rm --network host \
   -v "$APP_DIR:/app" -w /app/backend \
   -e DATABASE_URL="$DATABASE_URL" \
-  node:20-bookworm bash -lc "cd /app && npm ci && cd backend && npx prisma migrate deploy"
+  node:20-bookworm bash -lc "npx --yes prisma@6.19.3 migrate deploy"
 
 echo "==> Migrate done"
