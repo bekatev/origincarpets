@@ -1,47 +1,39 @@
-import type { UpsDeliveryMethodKey } from './ups.constants';
-import { billableWeightKg, type PackageDimensions } from './package-dimensions.util';
-import { UPS_ZONE_RATES } from './ups-rates.config';
+import { type PackageDimensions } from './package-dimensions.util';
+import { DEFAULT_USD_PER_EUR, UPS_RATE_PER_KG } from './ups-rates.config';
 import { resolveUpsRateZone, type UpsRateZone } from './ups-zones';
 
 export type UpsRateQuote = {
   zone: UpsRateZone;
-  method: UpsDeliveryMethodKey;
   packageDimensions: PackageDimensions;
-  actualWeightKg: number;
-  /** Volumetric weight (for packing reference only — not used for pricing). */
-  billableWeightKg: number;
-  /** Weight the price is calculated on (per-kg plan uses actual package weight). */
   chargeableWeightKg: number;
   perKgUsd: number;
   priceUsd: number;
   freeShipping: boolean;
-  isEstimate: boolean;
 };
+
+/** Chargeable weight is the combined actual package weight (min 0.5 kg). */
+function chargeableWeight(packageDimensions: PackageDimensions) {
+  return Math.max(Math.round(packageDimensions.weightKg * 100) / 100, 0.5);
+}
 
 export function quoteUpsRate(input: {
   countryCode: string;
-  method: UpsDeliveryMethodKey;
   packageDimensions: PackageDimensions;
+  usdPerEur?: number;
 }): UpsRateQuote {
   const zone = resolveUpsRateZone(input.countryCode);
-  const volumetric = billableWeightKg(input.packageDimensions);
-  const actual = Math.max(input.packageDimensions.weightKg, 0.5);
-  const chargeable = Math.round(actual * 100) / 100;
-  const zoneRate = UPS_ZONE_RATES[zone];
-
-  const freeShipping = Boolean(zoneRate.freeShipping);
-  const priceUsd = freeShipping ? 0 : Math.round(zoneRate.perKgUsd * chargeable * 100) / 100;
+  const rate = UPS_RATE_PER_KG[zone];
+  const usdPerEur = input.usdPerEur ?? DEFAULT_USD_PER_EUR;
+  const perKgUsd = rate.currency === 'EUR' ? rate.amount * usdPerEur : rate.amount;
+  const weightKg = chargeableWeight(input.packageDimensions);
+  const priceUsd = Math.round(perKgUsd * weightKg * 100) / 100;
 
   return {
     zone,
-    method: input.method,
     packageDimensions: input.packageDimensions,
-    actualWeightKg: input.packageDimensions.weightKg,
-    billableWeightKg: volumetric,
-    chargeableWeightKg: chargeable,
-    perKgUsd: zoneRate.perKgUsd,
+    chargeableWeightKg: weightKg,
+    perKgUsd: Math.round(perKgUsd * 100) / 100,
     priceUsd,
-    freeShipping,
-    isEstimate: Boolean(zoneRate.isEstimate)
+    freeShipping: zone === 'GE_DOMESTIC'
   };
 }

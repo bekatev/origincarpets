@@ -1,6 +1,5 @@
-/** Rolled carpet default height when product has no depth. */
+/** Rolled carpet default height when a product has no depth. */
 export const DEFAULT_PACKAGE_HEIGHT_CM = 20;
-
 export const DEFAULT_PRODUCT_WEIGHT_KG = 5;
 export const DEFAULT_PRODUCT_LENGTH_CM = 200;
 export const DEFAULT_PRODUCT_WIDTH_CM = 150;
@@ -58,24 +57,4 @@ export function combineOrderPackage(
     widthCm: maxWidthCm,
     heightCm: Math.max(stackedHeightCm, DEFAULT_PACKAGE_HEIGHT_CM)
   };
-}
-
-/** UPS dimensional weight (cm + kg, divisor 5000). */
-export function dimensionalWeightKg(
-  lengthCm: number,
-  widthCm: number,
-  heightCm: number,
-  divisor = 5000
-) {
-  return Math.round(((lengthCm * widthCm * heightCm) / divisor) * 100) / 100;
-}
-
-export function billableWeightKg(packageDims: PackageDimensions, divisor = 5000) {
-  const volumetric = dimensionalWeightKg(
-    packageDims.lengthCm,
-    packageDims.widthCm,
-    packageDims.heightCm,
-    divisor
-  );
-  return Math.max(packageDims.weightKg, volumetric, 0.5);
 }

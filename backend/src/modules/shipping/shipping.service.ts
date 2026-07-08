@@ -4,24 +4,24 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { PUBLIC_SHIPPABLE_PRODUCT_WHERE } from '../products/shipping-dimensions';
 import {
-  internationalCityGpostId,
   UPS_DELIVERY_COUNTRIES,
-  UPS_INTERNATIONAL_CITY
+  UPS_INTERNATIONAL_CITY,
+  placeholderCityGpostId
 } from './delivery-countries.seed';
 import {
   FREE_SHIPPING_COUNTRY_CODE,
-  isDomesticDeliveryOnly,
-  isShippingLive,
   SHIPPING_PROVIDER,
   SHIPPING_PROVIDER_KEY
 } from './shipping.constants';
 import { combineOrderPackage } from './package-dimensions.util';
 import {
-  UPS_DELIVERY_METHODS,
   UPS_DOMESTIC_METHOD,
+  UPS_WORLDWIDE_METHOD,
+  type UpsDeliveryMethod,
   type UpsDeliveryMethodKey
 } from './ups.constants';
 import { quoteUpsRate } from './ups-rate-calculator';
+import { DEFAULT_USD_PER_EUR } from './ups-rates.config';
 
 export type ShippingQuote = {
   providerKey: typeof SHIPPING_PROVIDER_KEY;
@@ -46,42 +46,43 @@ export type ShippingQuote = {
     lengthCm: number;
     widthCm: number;
     heightCm: number;
-    billableWeightKg: number;
+    chargeableWeightKg: number;
+    perKgUsd: number;
   };
 };
 
 @Injectable()
 export class ShippingService {
   private readonly logger = new Logger(ShippingService.name);
-  private readonly domesticOnly: boolean;
-  private readonly shippingLive: boolean;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
     private readonly mail: MailService
-  ) {
-    this.shippingLive = isShippingLive();
-    this.domesticOnly = isDomesticDeliveryOnly();
+  ) {}
+
+  private usdPerEur() {
+    return Number(this.config.get<string>('USD_PER_EUR', String(DEFAULT_USD_PER_EUR)));
+  }
+
+  private gelPerUsd() {
+    return Number(this.config.get<string>('GEL_PER_USD', '2.69'));
   }
 
   listProvider() {
     return {
       providerKey: SHIPPING_PROVIDER_KEY,
       provider: SHIPPING_PROVIDER,
-      live: this.shippingLive,
-      domesticOnly: this.domesticOnly,
+      live: true,
+      domesticOnly: false,
       manualFulfillment: true,
-      description: this.domesticOnly
-        ? 'Domestic delivery within Georgia via UPS from our Tbilisi gallery. Worldwide shipping coming soon.'
-        : 'Delivery worldwide through UPS — domestic and international from our Tbilisi gallery.'
+      description: 'Worldwide delivery through UPS — domestic and international from our Tbilisi gallery.'
     };
   }
 
   async listCountries() {
     await this.ensureCountriesSynced();
     const countries = await this.prisma.deliveryCountry.findMany({
-      where: this.domesticOnly ? { abbr: FREE_SHIPPING_COUNTRY_CODE } : undefined,
       orderBy: { nameEn: 'asc' }
     });
 
@@ -94,6 +95,7 @@ export class ShippingService {
     }));
   }
 
+  /** Customers type their own city, so every country returns a single placeholder. */
   async listCities(deliveryCountryId: string) {
     const country = await this.prisma.deliveryCountry.findUnique({
       where: { id: deliveryCountryId }
@@ -103,28 +105,7 @@ export class ShippingService {
       throw new NotFoundException('Delivery country not found');
     }
 
-    this.assertDomesticDeliveryAvailable(country.abbr);
-
-    if (country.abbr === FREE_SHIPPING_COUNTRY_CODE) {
-      const cities = await this.prisma.deliveryCity.findMany({
-        where: { countryId: country.id },
-        orderBy: { nameEn: 'asc' }
-      });
-
-      if (cities.length) {
-        return cities.map((city) => ({
-          id: city.id,
-          gpostId: city.gpostId,
-          nameEn: city.nameEn,
-          nameGe: city.nameGe
-        }));
-      }
-    }
-
-    const placeholder = await this.ensureInternationalCity({
-      id: country.id,
-      gpostId: country.gpostId
-    });
+    const placeholder = await this.ensureInternationalCity(country);
     return [
       {
         id: placeholder.id,
@@ -144,16 +125,8 @@ export class ShippingService {
       throw new NotFoundException('Delivery country not found');
     }
 
-    this.assertDomesticDeliveryAvailable(country.abbr);
-
-    if (country.abbr === FREE_SHIPPING_COUNTRY_CODE) {
-      return [this.serializeDomesticMethod()];
-    }
-
-    return Object.values(UPS_DELIVERY_METHODS).map((method) => ({
-      ...this.serializeMethod(method),
-      recommended: method.value === 'UPS_STANDARD'
-    }));
+    const method = country.abbr === FREE_SHIPPING_COUNTRY_CODE ? UPS_DOMESTIC_METHOD : UPS_WORLDWIDE_METHOD;
+    return [{ ...this.serializeMethod(method), recommended: true }];
   }
 
   async quote(input: {
@@ -171,13 +144,6 @@ export class ShippingService {
 
     if (!country || !city || city.countryId !== country.id) {
       throw new BadRequestException('Invalid delivery country or city');
-    }
-
-    this.assertDomesticDeliveryAvailable(country.abbr);
-
-    const method = UPS_DELIVERY_METHODS[input.deliveryMethod];
-    if (!method) {
-      throw new BadRequestException('Invalid delivery method');
     }
 
     const productIds = input.items.map((item) => item.productId);
@@ -200,21 +166,16 @@ export class ShippingService {
     const packageDimensions = combineOrderPackage(lineItems);
     const rate = quoteUpsRate({
       countryCode: country.abbr,
-      method: input.deliveryMethod,
-      packageDimensions
+      packageDimensions,
+      usdPerEur: this.usdPerEur()
     });
 
-    const isDomesticGeorgia = country.abbr === FREE_SHIPPING_COUNTRY_CODE;
-    const freeShipping = isDomesticGeorgia;
-    const merchantShippingCostUsd = rate.priceUsd;
-    const customerShippingUsd = freeShipping ? 0 : rate.priceUsd;
-
-    const deliveryMeta = isDomesticGeorgia ? UPS_DOMESTIC_METHOD : method;
+    const customerShippingUsd = rate.priceUsd;
+    const deliveryMeta = rate.freeShipping ? UPS_DOMESTIC_METHOD : UPS_WORLDWIDE_METHOD;
     const zone = await this.ensureZone(
       country.abbr,
       country.nameEn,
       customerShippingUsd,
-      input.deliveryMethod,
       deliveryMeta.minDeliveryDays,
       deliveryMeta.maxDeliveryDays
     );
@@ -222,12 +183,12 @@ export class ShippingService {
     return {
       providerKey: SHIPPING_PROVIDER_KEY,
       provider: SHIPPING_PROVIDER,
-      deliveryMethod: input.deliveryMethod,
+      deliveryMethod: 'UPS_WORLDWIDE',
       shippingZone: zone,
       shippingCost: customerShippingUsd,
-      merchantShippingCostUsd,
-      freeShipping,
-      isEstimate: freeShipping ? false : rate.isEstimate,
+      merchantShippingCostUsd: customerShippingUsd,
+      freeShipping: rate.freeShipping,
+      isEstimate: false,
       deliveryDays: {
         min: deliveryMeta.minDeliveryDays,
         max: deliveryMeta.maxDeliveryDays
@@ -237,7 +198,8 @@ export class ShippingService {
         lengthCm: packageDimensions.lengthCm,
         widthCm: packageDimensions.widthCm,
         heightCm: packageDimensions.heightCm,
-        billableWeightKg: rate.chargeableWeightKg
+        chargeableWeightKg: rate.chargeableWeightKg,
+        perKgUsd: rate.perKgUsd
       }
     };
   }
@@ -264,9 +226,11 @@ export class ShippingService {
     const packageDimensions = combineOrderPackage(
       order.items.map((item) => ({ product: item.product, quantity: item.quantity }))
     );
-    const method = (order.deliveryMethod as UpsDeliveryMethodKey) ?? 'UPS_STANDARD';
-    const countryAbbr = order.shippingAddress.countryCode;
-    const rate = quoteUpsRate({ countryCode: countryAbbr, method, packageDimensions });
+    const rate = quoteUpsRate({
+      countryCode: order.shippingAddress.countryCode,
+      packageDimensions,
+      usdPerEur: this.usdPerEur()
+    });
 
     await this.prisma.order.update({
       where: { id: order.id },
@@ -356,10 +320,8 @@ export class ShippingService {
   }
 
   private async ensureInternationalCity(country: { id: string; gpostId: number }) {
-    const gpostId = internationalCityGpostId(country.gpostId);
-    const existing = await this.prisma.deliveryCity.findFirst({
-      where: { countryId: country.id, gpostId }
-    });
+    const gpostId = placeholderCityGpostId(country.gpostId);
+    const existing = await this.prisma.deliveryCity.findUnique({ where: { gpostId } });
 
     if (existing) {
       return existing;
@@ -375,30 +337,7 @@ export class ShippingService {
     });
   }
 
-  private assertDomesticDeliveryAvailable(countryAbbr: string) {
-    if (this.domesticOnly && countryAbbr !== FREE_SHIPPING_COUNTRY_CODE) {
-      throw new BadRequestException(
-        'International delivery is not available yet. Worldwide shipping coming soon.'
-      );
-    }
-  }
-
-  private serializeDomesticMethod() {
-    return {
-      value: UPS_DOMESTIC_METHOD.value,
-      label: UPS_DOMESTIC_METHOD.label,
-      descTop: UPS_DOMESTIC_METHOD.descTop,
-      descBottom: {
-        en: 'Free delivery · 2–4 business days',
-        ge: 'უფასო მიწოდება · 2–4 სამუშაო დღე'
-      },
-      minDeliveryDays: UPS_DOMESTIC_METHOD.minDeliveryDays,
-      maxDeliveryDays: UPS_DOMESTIC_METHOD.maxDeliveryDays,
-      recommended: true
-    };
-  }
-
-  private serializeMethod(method: (typeof UPS_DELIVERY_METHODS)[UpsDeliveryMethodKey]) {
+  private serializeMethod(method: UpsDeliveryMethod) {
     return {
       value: method.value,
       label: method.label,
@@ -413,16 +352,14 @@ export class ShippingService {
     countryAbbr: string,
     countryName: string,
     basePriceUsd: number,
-    method: UpsDeliveryMethodKey,
     minDeliveryDays: number,
     maxDeliveryDays: number
   ) {
-    const methodLabel = UPS_DELIVERY_METHODS[method]?.label.en ?? method;
-    const code = `UPS-${countryAbbr}-${method}`;
+    const code = `UPS-${countryAbbr}`;
     return this.prisma.shippingZone.upsert({
       where: { code },
       update: {
-        name: `${countryName} — ${methodLabel}`,
+        name: `${countryName} — UPS`,
         countryCode: countryAbbr,
         basePrice: basePriceUsd,
         minDeliveryDays,
@@ -431,7 +368,7 @@ export class ShippingService {
       },
       create: {
         code,
-        name: `${countryName} — ${methodLabel}`,
+        name: `${countryName} — UPS`,
         countryCode: countryAbbr,
         basePrice: basePriceUsd,
         minDeliveryDays,

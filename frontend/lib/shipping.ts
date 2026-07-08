@@ -15,7 +15,7 @@ export type DeliveryCity = {
   nameGe: string | null;
 };
 
-export type DeliveryMethodKey = 'UPS_STANDARD';
+export type DeliveryMethodKey = 'UPS_WORLDWIDE';
 
 export type DeliveryMethod = {
   value: DeliveryMethodKey;
@@ -51,7 +51,8 @@ export type ShippingQuote = {
     lengthCm: number;
     widthCm: number;
     heightCm: number;
-    billableWeightKg: number;
+    chargeableWeightKg: number;
+    perKgUsd: number;
   };
 };
 
@@ -111,7 +112,9 @@ export async function fetchShippingQuote(input: {
   return payload;
 }
 
-/** Backend uses a reserved gpostId band (>= 9_000_000) for the "enter city" placeholder. */
+/** Placeholder cities (customer types their own city) use a high synthetic id. */
+const PLACEHOLDER_CITY_BASE = 900_000_000;
+
 export function isInternationalCityList(cities: DeliveryCity[]) {
-  return cities.length === 1 && (cities[0]?.gpostId ?? 0) >= 9_000_000;
+  return cities.length === 1 && (cities[0]?.gpostId ?? 0) >= PLACEHOLDER_CITY_BASE;
 }

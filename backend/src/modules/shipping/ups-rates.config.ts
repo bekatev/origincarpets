@@ -1,32 +1,24 @@
 import type { UpsRateZone } from './ups-zones';
 
 /**
- * UPS pricing plan (per billable kg).
+ * Per-kg shipping rates by zone.
  *
- * Agreed rates:
- *  - Domestic (Georgia): free
- *  - America (US / Canada): $20 per kg
- *  - Europe (EU + UK): €10 per kg
- *
- * Other destinations fall back to the America rate and are flagged as an estimate
- * until a specific rate is agreed with UPS.
+ * - Georgia (domestic): free
+ * - America (US/CA): $20 per kg
+ * - Europe (EU/UK/EFTA): €10 per kg (converted to USD via USD_PER_EUR)
+ * - Rest of world: defaults to $20 per kg
  */
-
-/** EUR → USD conversion for the storefront (charged in USD). Adjust if the rate drifts. */
-export const EUR_TO_USD = 1.1;
-
-export type UpsZoneRate = {
-  perKgUsd: number;
-  freeShipping?: boolean;
-  isEstimate?: boolean;
+export type UpsPerKgRate = {
+  amount: number;
+  currency: 'USD' | 'EUR';
 };
 
-export const UPS_ZONE_RATES: Record<UpsRateZone, UpsZoneRate> = {
-  GE_DOMESTIC: { perKgUsd: 0, freeShipping: true },
-  US_CA: { perKgUsd: 20 },
-  EU: { perKgUsd: 10 * EUR_TO_USD },
-  UK: { perKgUsd: 10 * EUR_TO_USD },
-  MIDDLE_EAST: { perKgUsd: 20, isEstimate: true },
-  ASIA_PACIFIC: { perKgUsd: 20, isEstimate: true },
-  REST_OF_WORLD: { perKgUsd: 20, isEstimate: true }
+export const UPS_RATE_PER_KG: Record<UpsRateZone, UpsPerKgRate> = {
+  GE_DOMESTIC: { amount: 0, currency: 'USD' },
+  AMERICA: { amount: 20, currency: 'USD' },
+  EUROPE: { amount: 10, currency: 'EUR' },
+  REST_OF_WORLD: { amount: 20, currency: 'USD' }
 };
+
+/** USD value of 1 EUR (overridable via USD_PER_EUR env). */
+export const DEFAULT_USD_PER_EUR = 1.08;

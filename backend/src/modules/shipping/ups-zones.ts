@@ -1,14 +1,12 @@
-/** UPS export zones from Georgia — replace with contract tariff zones when available. */
-export type UpsRateZone =
-  | 'GE_DOMESTIC'
-  | 'EU'
-  | 'US_CA'
-  | 'UK'
-  | 'MIDDLE_EAST'
-  | 'ASIA_PACIFIC'
-  | 'REST_OF_WORLD';
+/** UPS shipping zones from our Tbilisi gallery. */
+export type UpsRateZone = 'GE_DOMESTIC' | 'AMERICA' | 'EUROPE' | 'REST_OF_WORLD';
 
-const EU_COUNTRY_CODES = new Set([
+/** North America — flat per-kg rate. */
+const AMERICA_CODES = new Set(['US', 'CA']);
+
+/** Europe — EU + UK + EFTA, priced in EUR per kg. */
+const EUROPE_CODES = new Set([
+  // EU
   'AT',
   'BE',
   'BG',
@@ -35,22 +33,13 @@ const EU_COUNTRY_CODES = new Set([
   'SK',
   'SI',
   'ES',
-  'SE'
-]);
-
-const MIDDLE_EAST_CODES = new Set(['AE', 'SA', 'QA', 'KW', 'BH', 'OM', 'IL', 'TR']);
-
-const ASIA_PACIFIC_CODES = new Set([
-  'AU',
-  'NZ',
-  'JP',
-  'KR',
-  'CN',
-  'HK',
-  'SG',
-  'TH',
-  'MY',
-  'IN'
+  'SE',
+  // UK + EFTA + rest of geographic Europe
+  'GB',
+  'CH',
+  'NO',
+  'IS',
+  'LI'
 ]);
 
 export function resolveUpsRateZone(countryCode: string): UpsRateZone {
@@ -59,20 +48,11 @@ export function resolveUpsRateZone(countryCode: string): UpsRateZone {
   if (code === 'GE') {
     return 'GE_DOMESTIC';
   }
-  if (code === 'US' || code === 'CA') {
-    return 'US_CA';
+  if (AMERICA_CODES.has(code)) {
+    return 'AMERICA';
   }
-  if (code === 'GB') {
-    return 'UK';
-  }
-  if (EU_COUNTRY_CODES.has(code)) {
-    return 'EU';
-  }
-  if (MIDDLE_EAST_CODES.has(code)) {
-    return 'MIDDLE_EAST';
-  }
-  if (ASIA_PACIFIC_CODES.has(code)) {
-    return 'ASIA_PACIFIC';
+  if (EUROPE_CODES.has(code)) {
+    return 'EUROPE';
   }
 
   return 'REST_OF_WORLD';

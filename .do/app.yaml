@@ -92,10 +92,16 @@ services:
         type: SECRET
       - key: IPAY_REDIRECT_URL
         value: https://api.origincarpets.com/api/payments/ipay/callback
-      - key: SHIPPING_LIVE
-        value: "true"
       - key: ADMIN_ORDER_EMAILS
         value: bekatevd@gmail.com,gallerycarpets19@gmail.com
+      - key: USD_PER_EUR
+        value: "1.08"
+      - key: MAIL_RELAY_URL
+        scope: RUN_TIME
+        type: SECRET
+      - key: MAIL_RELAY_SECRET
+        scope: RUN_TIME
+        type: SECRET
 
   - name: web
     github:

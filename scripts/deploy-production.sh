@@ -24,23 +24,10 @@ if [ -n "$PREV_SHA" ] && [ "$PREV_SHA" != "$NEW_SHA" ]; then
   fi
 fi
 
-# Reclaim disk before building. The running container keeps its own image
-# referenced, so pruning stopped containers / unused images / build cache is
-# safe while the old site stays up.
-docker container prune -f >/dev/null 2>&1 || true
 docker image prune -f >/dev/null 2>&1 || true
 docker builder prune -f --filter "until=72h" >/dev/null 2>&1 || true
 
 avail_kb=$(df / | awk 'NR==2 {print $4}')
-if [ "$avail_kb" -lt 3000000 ]; then
-  echo "==> Low disk (${avail_kb}KB free) — running aggressive Docker cleanup"
-  docker builder prune -af >/dev/null 2>&1 || true
-  docker image prune -af >/dev/null 2>&1 || true
-  docker system df 2>/dev/null || true
-  avail_kb=$(df / | awk 'NR==2 {print $4}')
-  echo "==> Disk after cleanup: ${avail_kb}KB free"
-fi
-
 if [ "$avail_kb" -lt 1500000 ]; then
   echo "WARNING: Low disk (${avail_kb}KB free). Build may fail; existing site is left running."
 fi

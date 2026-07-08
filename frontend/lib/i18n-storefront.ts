@@ -2,10 +2,10 @@
 export const storefrontTranslations = {
   en: {
     storefront: {
-      purchaseComingSoon: 'Coming soon',
-      deliveryComingSoonTitle: 'Delivery & ordering coming soon',
+      purchaseComingSoon: 'Worldwide delivery',
+      deliveryComingSoonTitle: 'Worldwide delivery',
       deliveryComingSoonBody:
-        'We are preparing domestic and international delivery. Browse the collection now — online purchasing will be available shortly.',
+        'We ship worldwide via UPS from our Tbilisi gallery. Delivery within Georgia is free; international rates are calculated by weight and destination at checkout.',
       browseCollection: 'Browse collection'
     },
     theme: { light: 'Light', dark: 'Dark' },
@@ -66,7 +66,7 @@ export const storefrontTranslations = {
       each: 'each',
       remove: 'Remove',
       subtotal: 'Subtotal',
-      shippingNote: 'Worldwide delivery via UPS — free within Georgia.',
+      shippingNote: 'Online ordering and delivery are coming soon.',
       checkout: 'Proceed to checkout'
     },
     checkout: {
@@ -76,7 +76,7 @@ export const storefrontTranslations = {
       shippingType: 'UPS delivery',
       upsNote:
         'Delivery via UPS from our Tbilisi gallery. Domestic delivery within Georgia is free; international rates are calculated from package size and destination.',
-      worldwideComingSoon: 'Worldwide delivery available via UPS.',
+      worldwideComingSoon: 'We ship worldwide via UPS.',
       country: 'Country',
       city: 'City',
       selectCountry: 'Select country',
@@ -94,9 +94,9 @@ export const storefrontTranslations = {
       deliverySelectionRequired: 'Please select country, city, and delivery service.',
       browseProducts: 'Browse products',
       methods: {
-        ups: {
-          title: 'UPS',
-          badge: 'UPS'
+        georgianPost: {
+          title: 'Georgian Post',
+          badge: 'Georgian Post'
         },
         recommended: 'Recommended'
       },
@@ -281,10 +281,10 @@ export const storefrontTranslations = {
   },
   ka: {
     storefront: {
-      purchaseComingSoon: 'მალე',
-      deliveryComingSoonTitle: 'მიწოდება და შეკვეთა მალე',
+      purchaseComingSoon: 'მსოფლიო მიწოდება',
+      deliveryComingSoonTitle: 'მსოფლიო მიწოდება',
       deliveryComingSoonBody:
-        'ვამზადებთ შიდა და საერთაშორისო მიწოდებას. ახლა გაეცანით კოლექციას — ონლაინ შეკვეთა მალე გაიხსნება.',
+        'ჩვენ ვახორციელებთ მიწოდებას მთელ მსოფლიოში UPS-ით ჩვენი თბილისის გალერეიდან. საქართველოში მიწოდება უფასოა; საერთაშორისო ტარიფი გამოითვლება წონისა და მიმღები ქვეყნის მიხედვით.',
       browseCollection: 'კოლექციის ნახვა'
     },
     theme: { light: 'ღია', dark: 'მუქი' },
@@ -345,7 +345,7 @@ export const storefrontTranslations = {
       each: 'თითო',
       remove: 'წაშლა',
       subtotal: 'ქვეჯამი',
-      shippingNote: 'მიწოდება მთელ მსოფლიოში UPS-ით — საქართველოში უფასო.',
+      shippingNote: 'ონლაინ შეკვეთა და მიწოდება მალე გაიხსნება.',
       checkout: 'შეკვეთის გაფორმება'
     },
     checkout: {
@@ -355,7 +355,7 @@ export const storefrontTranslations = {
       shippingType: 'UPS მიწოდება',
       upsNote:
         'მიწოდება ხდება UPS-ით ჩვენი თბილისის გალერეიდან. საქართველოში მიწოდება უფასოა; საერთაშორისო ტარიფი გამოითვლება შეფუთვის ზომებისა და მიმღები ქვეყნის მიხედვით.',
-      worldwideComingSoon: 'მიწოდება მთელ მსოფლიოში UPS-ით.',
+      worldwideComingSoon: 'ვახორციელებთ მიწოდებას მთელ მსოფლიოში UPS-ით.',
       country: 'ქვეყანა',
       city: 'ქალაქი',
       selectCountry: 'აირჩიეთ ქვეყანა',
@@ -373,9 +373,9 @@ export const storefrontTranslations = {
       deliverySelectionRequired: 'გთხოვთ აირჩიოთ ქვეყანა, ქალაქი და მიწოდების სერვისი.',
       browseProducts: 'პროდუქტების ნახვა',
       methods: {
-        ups: {
-          title: 'UPS',
-          badge: 'UPS'
+        georgianPost: {
+          title: 'საქართველოს ფოსტა',
+          badge: 'საქართველოს ფოსტა'
         },
         recommended: 'რეკომენდებული'
       },

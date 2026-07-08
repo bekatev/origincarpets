@@ -1,4 +1,4 @@
-/** ISO countries for UPS checkout. `gpostId` is a legacy unique numeric id column (ISO code). */
+/** ISO countries for UPS checkout — synthetic gpostId avoids Georgian Post API dependency. */
 export const UPS_DELIVERY_COUNTRIES = [
   { abbr: 'GE', nameEn: 'Georgia', nameGe: 'საქართველო', gpostId: 268 },
   { abbr: 'US', nameEn: 'United States', nameGe: 'აშშ', gpostId: 840 },
@@ -42,17 +42,17 @@ export const UPS_DELIVERY_COUNTRIES = [
 ] as const;
 
 /**
- * Placeholder city for international addresses — customer types the city in the
- * address fields. `gpostId` must be globally unique, so we offset each country's
- * gpostId into a reserved band (>= UPS_INTERNATIONAL_CITY_GPOST_BASE).
+ * Placeholder city per country — customers type their own city at checkout.
+ * The DeliveryCity.gpostId column is globally unique, so we derive a unique id
+ * per country from a high base (well above any real code) to avoid collisions.
  */
-export const UPS_INTERNATIONAL_CITY_GPOST_BASE = 9_000_000;
+export const UPS_PLACEHOLDER_CITY_BASE = 900_000_000;
 
 export const UPS_INTERNATIONAL_CITY = {
   nameEn: 'Other (enter city below)',
   nameGe: 'სხვა (ქალაქი მიუთითეთ ქვემოთ)'
 } as const;
 
-export function internationalCityGpostId(countryGpostId: number) {
-  return UPS_INTERNATIONAL_CITY_GPOST_BASE + countryGpostId;
+export function placeholderCityGpostId(countryGpostId: number) {
+  return UPS_PLACEHOLDER_CITY_BASE + countryGpostId;
 }

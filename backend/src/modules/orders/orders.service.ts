@@ -107,7 +107,7 @@ export class OrdersService {
         shippingAddressId: shippingAddress.id,
         deliveryMethod: dto.deliveryMethod,
         shippingProvider: SHIPPING_PROVIDER_KEY,
-        billableWeightKg: shipping.package.billableWeightKg,
+        billableWeightKg: shipping.package.chargeableWeightKg,
         packageLengthCm: shipping.package.lengthCm,
         packageWidthCm: shipping.package.widthCm,
         packageHeightCm: shipping.package.heightCm,

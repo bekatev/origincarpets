@@ -1,4 +1,4 @@
-export type UpsDeliveryMethodKey = 'UPS_STANDARD';
+export type UpsDeliveryMethodKey = 'UPS_WORLDWIDE';
 
 export type UpsDeliveryMethod = {
   value: UpsDeliveryMethodKey;
@@ -9,36 +9,38 @@ export type UpsDeliveryMethod = {
   maxDeliveryDays: number;
 };
 
-export const UPS_DELIVERY_METHODS: Record<UpsDeliveryMethodKey, UpsDeliveryMethod> = {
-  UPS_STANDARD: {
-    value: 'UPS_STANDARD',
-    label: { en: 'UPS Standard', ge: 'UPS სტანდარტული' },
-    descTop: {
-      en: 'Economy delivery via UPS',
-      ge: 'ეკონომ გადაზიდვა UPS-ით'
-    },
-    descBottom: {
-      en: 'Typically 5–10 business days (international)',
-      ge: 'სავარაუდოდ 5–10 სამუშაო დღე (საერთაშორისო)'
-    },
-    minDeliveryDays: 3,
-    maxDeliveryDays: 10
-  }
+export const UPS_WORLDWIDE_METHOD: UpsDeliveryMethod = {
+  value: 'UPS_WORLDWIDE',
+  label: { en: 'UPS Worldwide', ge: 'UPS მსოფლიო მიწოდება' },
+  descTop: {
+    en: 'Delivery via UPS from our Tbilisi gallery',
+    ge: 'მიწოდება UPS-ით ჩვენი თბილისის გალერეიდან'
+  },
+  descBottom: {
+    en: 'Typically 3–10 business days',
+    ge: 'ჩვეულებრივ 3–10 სამუშაო დღე'
+  },
+  minDeliveryDays: 3,
+  maxDeliveryDays: 10
 };
 
 export const UPS_DOMESTIC_METHOD: UpsDeliveryMethod = {
-  value: 'UPS_STANDARD',
+  value: 'UPS_WORLDWIDE',
   label: { en: 'Domestic delivery', ge: 'შიდა მიწოდება' },
   descTop: {
     en: 'UPS delivery within Georgia',
     ge: 'UPS მიწოდება საქართველოს ფარგლებში'
   },
   descBottom: {
-    en: 'Typically 2–4 business days',
-    ge: 'სავარაუდოდ 2–4 სამუშაო დღე'
+    en: 'Free delivery · 2–4 business days',
+    ge: 'უფასო მიწოდება · 2–4 სამუშაო დღე'
   },
   minDeliveryDays: 2,
   maxDeliveryDays: 4
+};
+
+export const UPS_DELIVERY_METHODS: Record<UpsDeliveryMethodKey, UpsDeliveryMethod> = {
+  UPS_WORLDWIDE: UPS_WORLDWIDE_METHOD
 };
 
 export const UPS_DELIVERY_METHOD_KEYS = Object.keys(UPS_DELIVERY_METHODS) as UpsDeliveryMethodKey[];

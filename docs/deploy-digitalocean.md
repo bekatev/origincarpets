@@ -42,6 +42,8 @@ In the App → **Settings** → each component → **Environment variables**, se
 | `JWT_SECRET` | api | Long random string |
 | `IPAY_CLIENT_ID` | api | `3841` |
 | `IPAY_CLIENT_SECRET` | api | From old origincarpets config |
+| `GPOST_USERNAME` | api | `R.EBANOIDZE` |
+| `GPOST_PASSWORD` | api | Georgian Post password |
 
 `DATABASE_URL` is wired automatically from the managed database (`${db.DATABASE_URL}`).
 
@@ -62,6 +64,7 @@ Or on a fresh DB, after first deploy:
 cd backend
 npx prisma migrate deploy
 npm run import:origincarpets
+npm run sync:gpost
 npm run backfill:shipping
 ```
 

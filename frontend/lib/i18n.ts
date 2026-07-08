@@ -22,7 +22,7 @@ export const dictionaries = {
       menu: 'Menu'
     },
     topbar: {
-      shipping: 'Worldwide delivery'
+      shipping: 'Delivery coming soon'
     },
     nav: {
       shop: 'Shop',
@@ -35,7 +35,7 @@ export const dictionaries = {
       appointment: 'Book Virtual Appointment'
     },
     footer: {
-      description: 'Finest Caucasian and Oriental Carpets. Worldwide delivery available.',
+      description: 'Finest Caucasian and Oriental Carpets. Online ordering and delivery coming soon.',
       shop: 'Shop',
       productCatalog: 'Product Catalog',
       checkout: 'Checkout',
@@ -100,7 +100,7 @@ export const dictionaries = {
       menu: 'მენიუ'
     },
     topbar: {
-      shipping: 'მიწოდება მთელ მსოფლიოში'
+      shipping: 'მიწოდება მალე'
     },
     nav: {
       shop: 'მაღაზია',
@@ -113,7 +113,7 @@ export const dictionaries = {
       appointment: 'ვირტუალური შეხვედრის დაჯავშნა'
     },
     footer: {
-      description: 'კავკასიური და აღმოსავლური ხალიჩების საუკეთესო კოლექცია. მიწოდება მთელ მსოფლიოში.',
+      description: 'კავკასიური და აღმოსავლური ხალიჩების საუკეთესო კოლექცია. ონლაინ შეკვეთა და მიწოდება მალე.',
       shop: 'მაღაზია',
       productCatalog: 'პროდუქტების კატალოგი',
       checkout: 'შეკვეთის გაფორმება',
