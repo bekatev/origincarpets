@@ -485,7 +485,7 @@ export default function CheckoutPage() {
           </div>
           {quote && (
             <p className="mt-2 text-xs leading-relaxed text-[var(--oc-muted)]">
-              {t.shippingProvider}: {t.methods.georgianPost.title}
+              {t.shippingProvider}: {quote.provider || 'UPS'}
               <br />
               {t.shippingEta}:{' '}
               {t.shippingDays

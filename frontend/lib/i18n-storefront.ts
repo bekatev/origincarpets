@@ -95,8 +95,8 @@ export const storefrontTranslations = {
       browseProducts: 'Browse products',
       methods: {
         georgianPost: {
-          title: 'Georgian Post',
-          badge: 'Georgian Post'
+          title: 'UPS',
+          badge: 'UPS'
         },
         recommended: 'Recommended'
       },
@@ -374,8 +374,8 @@ export const storefrontTranslations = {
       browseProducts: 'პროდუქტების ნახვა',
       methods: {
         georgianPost: {
-          title: 'საქართველოს ფოსტა',
-          badge: 'საქართველოს ფოსტა'
+          title: 'UPS',
+          badge: 'UPS'
         },
         recommended: 'რეკომენდებული'
       },

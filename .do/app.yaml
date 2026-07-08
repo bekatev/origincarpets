@@ -95,7 +95,7 @@ services:
       - key: ADMIN_ORDER_EMAILS
         value: bekatevd@gmail.com,gallerycarpets19@gmail.com
       - key: USD_PER_EUR
-        value: "1.08"
+        value: "1.0869565217"
       - key: MAIL_RELAY_URL
         scope: RUN_TIME
         type: SECRET
