@@ -100,10 +100,6 @@ export function ShippingMethodPicker({
           );
         })}
       </div>
-
-      {quote?.isEstimate && !quote.freeShipping && selectedMethod && (
-        <p className="text-xs text-amber-700">{dict.shippingEstimateWarning}</p>
-      )}
     </div>
   );
 }
