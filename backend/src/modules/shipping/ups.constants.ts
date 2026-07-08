@@ -1,4 +1,4 @@
-export type UpsDeliveryMethodKey = 'UPS_STANDARD' | 'UPS_EXPRESS';
+export type UpsDeliveryMethodKey = 'UPS_STANDARD';
 
 export type UpsDeliveryMethod = {
   value: UpsDeliveryMethodKey;
@@ -23,20 +23,6 @@ export const UPS_DELIVERY_METHODS: Record<UpsDeliveryMethodKey, UpsDeliveryMetho
     },
     minDeliveryDays: 3,
     maxDeliveryDays: 10
-  },
-  UPS_EXPRESS: {
-    value: 'UPS_EXPRESS',
-    label: { en: 'UPS Express', ge: 'UPS ექსპრესი' },
-    descTop: {
-      en: 'Priority delivery via UPS',
-      ge: 'პრიორიტეტული მიწოდება UPS-ით'
-    },
-    descBottom: {
-      en: 'Typically 2–5 business days (international)',
-      ge: 'სავარაუდოდ 2–5 სამუშაო დღე (საერთაშორისო)'
-    },
-    minDeliveryDays: 1,
-    maxDeliveryDays: 5
   }
 };
 

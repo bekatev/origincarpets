@@ -15,7 +15,7 @@ export type DeliveryCity = {
   nameGe: string | null;
 };
 
-export type DeliveryMethodKey = 'UPS_STANDARD' | 'UPS_EXPRESS';
+export type DeliveryMethodKey = 'UPS_STANDARD';
 
 export type DeliveryMethod = {
   value: DeliveryMethodKey;
