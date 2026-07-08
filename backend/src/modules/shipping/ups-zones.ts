@@ -1,10 +1,7 @@
 /** UPS shipping zones from our Tbilisi gallery. */
-export type UpsRateZone = 'GE_DOMESTIC' | 'AMERICA' | 'EUROPE' | 'REST_OF_WORLD';
+export type UpsRateZone = 'GE_DOMESTIC' | 'EUROPE' | 'REST_OF_WORLD';
 
-/** North America — flat per-kg rate. */
-const AMERICA_CODES = new Set(['US', 'CA']);
-
-/** Europe — EU + UK + EFTA, priced in EUR per kg. */
+/** Europe — EU + UK + EFTA, priced at €10 per kg. */
 const EUROPE_CODES = new Set([
   // EU
   'AT',
@@ -34,7 +31,7 @@ const EUROPE_CODES = new Set([
   'SI',
   'ES',
   'SE',
-  // UK + EFTA + rest of geographic Europe
+  // UK + EFTA
   'GB',
   'CH',
   'NO',
@@ -47,9 +44,6 @@ export function resolveUpsRateZone(countryCode: string): UpsRateZone {
 
   if (code === 'GE') {
     return 'GE_DOMESTIC';
-  }
-  if (AMERICA_CODES.has(code)) {
-    return 'AMERICA';
   }
   if (EUROPE_CODES.has(code)) {
     return 'EUROPE';
