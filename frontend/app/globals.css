@@ -4,34 +4,34 @@
 
 :root {
   color-scheme: light;
-  /* Warm wheat / honey paper — light but clearly yellowish */
-  --oc-bg: #f7efd8;
-  --oc-bg-secondary: #efe3c4;
-  --oc-paper: #fbf4e3;
-  --oc-ink: #2a2216;
-  --oc-muted: #6d5f45;
-  --oc-line: #e2d3ad;
-  --oc-brand: #9a6435;
-  --oc-accent: #4a5a3a;
-  --oc-brand-soft: #7a6d52;
-  --oc-brand-hover: #4a5a3a;
+  /* Undyed wool + camel + soft madder — carpet showroom light */
+  --oc-bg: #f0e6d8;
+  --oc-bg-secondary: #e5d7c6;
+  --oc-paper: #f6eee4;
+  --oc-ink: #3a2c22;
+  --oc-muted: #7a6554;
+  --oc-line: #d4c2ae;
+  --oc-brand: #a85a3a;
+  --oc-accent: #5a4f3e;
+  --oc-brand-soft: #8a7564;
+  --oc-brand-hover: #5a4f3e;
   --oc-shadow: none;
-  --oc-shadow-lift: 0 24px 48px -32px rgba(42, 34, 22, 0.12);
+  --oc-shadow-lift: 0 24px 48px -32px rgba(58, 44, 34, 0.14);
   --oc-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 html.dark {
   color-scheme: dark;
-  /* Deep forest night — dark with a clear green cast */
-  --oc-bg: #101612;
-  --oc-bg-secondary: #171e19;
-  --oc-paper: #1c251f;
-  --oc-ink: #e8eee6;
-  --oc-muted: #9aada0;
-  --oc-line: #2c3a31;
-  --oc-brand: #c4a882;
-  --oc-accent: #7f9a78;
-  --oc-brand-soft: #8fa396;
+  /* Deep walnut / espresso rug room — warm dark, no pure black */
+  --oc-bg: #17110e;
+  --oc-bg-secondary: #221915;
+  --oc-paper: #2a1f1a;
+  --oc-ink: #efe4d6;
+  --oc-muted: #b29a82;
+  --oc-line: #3d3028;
+  --oc-brand: #c9956a;
+  --oc-accent: #8a9a78;
+  --oc-brand-soft: #a8927c;
 }
 
 body {
@@ -45,12 +45,12 @@ a {
 }
 
 ::selection {
-  background: rgba(154, 100, 53, 0.22);
+  background: rgba(168, 90, 58, 0.22);
   color: var(--oc-ink);
 }
 
 html.dark ::selection {
-  background: rgba(127, 154, 120, 0.35);
+  background: rgba(201, 149, 106, 0.3);
   color: var(--oc-ink);
 }
 
@@ -105,7 +105,7 @@ html.dark ::selection {
     color: var(--oc-ink);
     background-color: var(--oc-paper);
     padding-right: 2.75rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236d5f45' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a6554' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 1rem center;
     background-size: 0.75rem;
@@ -119,15 +119,15 @@ html.dark ::selection {
   }
 
   html.dark select.oc-input {
-    color: #e8eee6;
-    background-color: #1c251f;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239aada0' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    color: #efe4d6;
+    background-color: #2a1f1a;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b29a82' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   }
 
   html.dark select.oc-input option,
   html.dark select.oc-input optgroup {
-    color: #e8eee6;
-    background-color: #1c251f;
+    color: #efe4d6;
+    background-color: #2a1f1a;
   }
 
   .oc-btn {

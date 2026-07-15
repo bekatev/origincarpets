@@ -15,25 +15,25 @@ const config: Config = {
       },
       colors: {
         luxury: {
-          bg: '#f7efd8',
-          secondary: '#efe3c4',
-          paper: '#fbf4e3',
-          ink: '#2a2216',
-          muted: '#6d5f45',
-          line: '#e2d3ad',
-          terracotta: '#9a6435',
-          olive: '#4a5a3a'
+          bg: '#f0e6d8',
+          secondary: '#e5d7c6',
+          paper: '#f6eee4',
+          ink: '#3a2c22',
+          muted: '#7a6554',
+          line: '#d4c2ae',
+          terracotta: '#a85a3a',
+          olive: '#5a4f3e'
         },
         brand: {
-          500: '#9a6435',
-          600: '#7f522c',
-          700: '#4a5a3a'
+          500: '#a85a3a',
+          600: '#8c4a30',
+          700: '#5a4f3e'
         },
         ink: {
-          50: '#f7efd8',
-          100: '#efe3c4',
-          500: '#6d5f45',
-          900: '#2a2216'
+          50: '#f0e6d8',
+          100: '#e5d7c6',
+          500: '#7a6554',
+          900: '#3a2c22'
         }
       },
       boxShadow: {
