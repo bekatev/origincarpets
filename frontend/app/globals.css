@@ -194,14 +194,14 @@ html.dark ::selection {
   }
 }
 
-/* Product card hover — Thames Carpets slide + scale reveal (same image) */
+/* Product card hover — slide reveal with a tiny zoom (full carpet stays visible) */
 .product-reveal__panel {
   transform: translateX(100%);
   transition: transform 0.65s cubic-bezier(0.63, 0.22, 0.1, 1);
 }
 
 .product-reveal__panel-inner {
-  transform: translateX(-100%) scale(1.12);
+  transform: translateX(-100%) scale(1.04);
   transition: transform 0.65s cubic-bezier(0.63, 0.22, 0.1, 1);
 }
 
@@ -211,10 +211,10 @@ html.dark ::selection {
   }
 
   .product-reveal:hover .product-reveal__panel-inner {
-    transform: translateX(0) scale(1.06);
+    transform: translateX(0) scale(1.03);
   }
 
-  /* Arrow navigation: keep the new slide at rest size (full carpet) until pointer leaves. */
+  /* Arrow navigation: keep the new slide at rest size until pointer leaves. */
   .product-reveal--browsing:hover .product-reveal__panel,
   .product-reveal--browsing .product-reveal__panel {
     transform: translateX(100%);
@@ -222,7 +222,7 @@ html.dark ::selection {
 
   .product-reveal--browsing:hover .product-reveal__panel-inner,
   .product-reveal--browsing .product-reveal__panel-inner {
-    transform: translateX(-100%) scale(1.12);
+    transform: translateX(-100%) scale(1.04);
   }
 }
 
@@ -238,7 +238,7 @@ html.dark ::selection {
     }
 
     .product-reveal:hover .product-reveal__panel-inner {
-      transform: translateX(0) scale(1.03);
+      transform: translateX(0) scale(1.02);
     }
 
     .product-reveal--browsing:hover .product-reveal__panel,
@@ -248,7 +248,7 @@ html.dark ::selection {
 
     .product-reveal--browsing:hover .product-reveal__panel-inner,
     .product-reveal--browsing .product-reveal__panel-inner {
-      transform: translateX(-100%) scale(1.12);
+      transform: translateX(-100%) scale(1.04);
     }
   }
 }

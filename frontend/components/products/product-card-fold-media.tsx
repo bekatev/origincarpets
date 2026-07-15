@@ -94,12 +94,11 @@ export function ProductCardFoldMedia({
         />
       </div>
 
-      {/* Hover zoom panel — disabled while browsing via arrows so the full carpet stays visible. */}
+      {/* Hover panel: same full carpet + tiny zoom (not bg-cover crop). */}
       <div className="product-reveal__panel absolute inset-0 overflow-hidden bg-[var(--oc-bg-secondary)]" aria-hidden>
-        <div
-          className="product-reveal__panel-inner h-full w-full bg-cover bg-center"
-          style={{ backgroundImage: `url("${src}")` }}
-        />
+        <div className="product-reveal__panel-inner h-full w-full p-2 sm:p-3">
+          <img src={src} alt="" className="h-full w-full object-contain" />
+        </div>
       </div>
 
       {hasMultiple ? (
