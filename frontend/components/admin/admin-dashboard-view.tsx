@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { FormEvent, useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -110,6 +109,20 @@ const emptyProduct: ProductFormState = {
   imagesText: '',
   isPublished: true
 };
+
+function resolveAdminImageSrc(url: string) {
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  if (path.startsWith('/uploads/')) {
+    return `${API_ORIGIN}/api/media/${path.slice('/uploads/'.length)}`;
+  }
+  if (path.startsWith('/api/')) {
+    return `${API_ORIGIN}${path}`;
+  }
+  return `${API_ORIGIN}${path}`;
+}
 
 function parseOptionalNumber(value: string) {
   const trimmed = value.trim();
@@ -1195,7 +1208,12 @@ function ProductsTab({
                 {parsedImages.map((url, index) => (
                   <div key={`${url}-${index}`} className="relative overflow-hidden border border-[var(--oc-line)] bg-[var(--oc-bg-secondary)]">
                     <div className="relative aspect-square">
-                      <Image src={url.startsWith('http') ? url : `${API_ORIGIN}${url}`} alt="" fill className="object-contain p-1" unoptimized />
+                      {/* Native img — Next/Image can mask 404s as a blank preview tile */}
+                      <img
+                        src={resolveAdminImageSrc(url)}
+                        alt=""
+                        className="h-full w-full object-contain p-1"
+                      />
                     </div>
                     <button
                       type="button"
@@ -1296,11 +1314,7 @@ function ProductsTab({
                 {product.images[0] && (
                   <div className="relative aspect-[4/3] border-b border-[var(--oc-line)] bg-[var(--oc-bg-secondary)]">
                     <img
-                      src={
-                        product.images[0].startsWith('http')
-                          ? product.images[0]
-                          : `${API_ORIGIN}${product.images[0].startsWith('/') ? '' : '/'}${product.images[0]}`
-                      }
+                      src={resolveAdminImageSrc(product.images[0])}
                       alt={product.title}
                       loading="lazy"
                       decoding="async"

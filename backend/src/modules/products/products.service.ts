@@ -371,6 +371,7 @@ export class ProductsService {
   private normalizeImageUrl(url: string) {
     const trimmed = url.trim();
     if (!trimmed) return '';
+    let path = trimmed;
     try {
       if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
         const parsed = new URL(trimmed);
@@ -381,14 +382,22 @@ export class ProductsService {
           host === 'localhost' ||
           host === '127.0.0.1';
         // Persist site-relative paths so images work across envs / behind nginx.
-        if (isOwnHost || parsed.pathname.startsWith('/uploads/')) {
-          return parsed.pathname || trimmed;
+        if (isOwnHost || parsed.pathname.startsWith('/uploads/') || parsed.pathname.startsWith('/api/media/')) {
+          path = parsed.pathname || trimmed;
+        } else {
+          return trimmed;
         }
       }
     } catch {
-      return trimmed;
+      path = trimmed;
     }
-    return trimmed.startsWith('/') ? trimmed : trimmed;
+
+    if (!path.startsWith('/')) path = `/${path}`;
+    // /uploads/... is not reliably served in production — prefer /api/media/...
+    if (path.startsWith('/uploads/')) {
+      return `/api/media/${path.slice('/uploads/'.length)}`;
+    }
+    return path;
   }
 
   async deleteProduct(id: string) {

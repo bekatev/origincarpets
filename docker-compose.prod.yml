@@ -15,8 +15,10 @@ services:
     volumes:
       # Editorial/brand images update on git pull — no Docker rebuild needed.
       - ./frontend/public:/app/frontend/public:ro
-      # Persist admin product uploads across container rebuilds.
+      # Nest fallback uploads dir
       - ./data/uploads:/app/backend/uploads
+      # Same folder nginx already serves as /file.webp for the catalog
+      - /home/gdg/.carpets-data/uploads:/legacy-uploads
     env_file:
       - backend/.env
     environment:

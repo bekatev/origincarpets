@@ -1,17 +1,32 @@
-import { BadRequestException, Body, Controller, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+  Res,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { randomUUID } from 'crypto';
+import { existsSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import { extname, join } from 'path';
+import type { Response } from 'express';
 import { IsOptional, IsString, MinLength } from 'class-validator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { resolveUploadsDir } from '../../uploads-path';
+import { resolveMediaSearchDirs, resolveUploadTarget } from '../../uploads-path';
 
 const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp']);
 const MAX_BYTES = 12 * 1024 * 1024;
+const SAFE_NAME = /^[a-zA-Z0-9._-]+$/;
 
 class UploadImageJsonDto {
   @IsString()
@@ -59,11 +74,35 @@ async function persistImage(buffer: Buffer, filename: string, contentType?: stri
     throw new BadRequestException('Only jpg/jpeg/png/webp files are allowed (not HEIC)');
   }
 
-  const uploadDir = resolveUploadsDir();
+  const target = resolveUploadTarget();
   const storedName = `${Date.now()}-${randomUUID()}${resolvedExt}`;
-  await writeFile(join(uploadDir, storedName), buffer);
+  await writeFile(join(target.dir, storedName), buffer);
 
-  return { url: `/uploads/${storedName}` };
+  return {
+    url: target.publicUrl(storedName),
+    mode: target.mode
+  };
+}
+
+/** Public image files — no auth (used by shop + admin previews). */
+@Controller('media')
+export class MediaController {
+  @Get(':filename')
+  serve(@Param('filename') filename: string, @Res() res: Response) {
+    if (!SAFE_NAME.test(filename) || filename.includes('..')) {
+      throw new BadRequestException('Invalid filename');
+    }
+
+    for (const dir of resolveMediaSearchDirs()) {
+      const fullPath = join(dir, filename);
+      if (existsSync(fullPath)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        return res.sendFile(fullPath);
+      }
+    }
+
+    throw new NotFoundException('Image not found');
+  }
 }
 
 @Controller('uploads')

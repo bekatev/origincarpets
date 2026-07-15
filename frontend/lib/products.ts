@@ -72,7 +72,7 @@ function toPublicImageUrl(url: unknown): string {
       const parsed = new URL(url);
       // Legacy uploads are served at the site root by nginx — use a path so the browser loads them directly.
       if (parsed.hostname === 'origincarpets.com' || parsed.hostname === 'www.origincarpets.com') {
-        return parsed.pathname;
+        return toPublicImageUrl(parsed.pathname);
       }
     } catch {
       return url;
@@ -80,7 +80,12 @@ function toPublicImageUrl(url: unknown): string {
     return url;
   }
 
-  return url.startsWith('/') ? url : `/${url}`;
+  const path = url.startsWith('/') ? url : `/${url}`;
+  // Older admin uploads were stored under /uploads/... which is not reliably served in prod.
+  if (path.startsWith('/uploads/')) {
+    return `/api/media/${path.slice('/uploads/'.length)}`;
+  }
+  return path;
 }
 
 export interface ProductListResponse {

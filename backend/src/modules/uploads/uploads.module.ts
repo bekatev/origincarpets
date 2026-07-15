@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { UploadsController } from './uploads.controller';
+import { MediaController, UploadsController } from './uploads.controller';
 
 @Module({
-  controllers: [UploadsController],
+  controllers: [MediaController, UploadsController],
   providers: [RolesGuard]
 })
 export class UploadsModule {}
