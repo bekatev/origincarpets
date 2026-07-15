@@ -6,8 +6,12 @@ import { AppModule } from './app.module';
 import { resolveUploadsDir } from './uploads-path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Disable default body parser so we can raise the limit for base64 image uploads.
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
   const config = app.get(ConfigService);
+
+  app.use(express.json({ limit: '25mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
   const frontendUrl = config.get<string>('FRONTEND_URL', 'http://localhost:3000');
   const corsOrigins = [...new Set([frontendUrl, 'http://localhost:3000', 'http://localhost:3001'])];

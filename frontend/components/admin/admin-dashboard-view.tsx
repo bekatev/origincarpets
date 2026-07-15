@@ -202,6 +202,7 @@ export function AdminDashboardView() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const savingRef = useRef(false);
+  const uploadingRef = useRef(false);
 
   const token = readStoredToken();
   const isAdmin = user?.role === 'ADMIN';
@@ -266,25 +267,6 @@ export function AdminDashboardView() {
     }
   }
 
-  function parseImageList(imagesText: string) {
-    return [
-      ...new Set(
-        imagesText
-          .split('\n')
-          .map((line) => line.trim())
-          .filter(Boolean)
-      )
-    ];
-  }
-
-  async function persistProductImages(productId: string, images: string[], authToken: string) {
-    return apiRequest<Product>(`/products/admin/${productId}/images`, authToken, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ images })
-    });
-  }
-
   function applySavedProductToForm(product: Product) {
     const next = normalizeProduct(product);
     setEditingProductId(next.id);
@@ -346,7 +328,14 @@ export function AdminDashboardView() {
     const wasEditing = Boolean(editingProductId);
     const editingId = editingProductId;
     try {
-      const images = parseImageList(productForm.imagesText);
+      const images = [
+        ...new Set(
+          productForm.imagesText
+            .split('\n')
+            .map((line) => line.trim())
+            .filter(Boolean)
+        )
+      ];
       const payload = {
         title: productForm.title.trim(),
         slug: productForm.slug.trim(),
@@ -361,6 +350,7 @@ export function AdminDashboardView() {
         lengthCm: parseOptionalNumber(productForm.lengthCm),
         widthCm: parseOptionalNumber(productForm.widthCm),
         heightCm: parseOptionalNumber(productForm.heightCm),
+        images,
         isPublished: productForm.isPublished
       };
 
@@ -374,33 +364,15 @@ export function AdminDashboardView() {
         throw new Error('Category is required');
       }
 
-      let saved: Product;
-      if (editingId) {
-        // Images are saved on their own endpoint first so gallery edits always hit the DB,
-        // even when other product fields fail validation.
-        const withImages = await persistProductImages(editingId, images, authToken);
-        try {
-          saved = await apiRequest<Product>(`/products/admin/${editingId}`, authToken, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          saved = { ...saved, images: withImages.images };
-        } catch (detailsError) {
-          applySavedProductToForm(withImages);
-          const detailMsg =
-            detailsError instanceof Error ? detailsError.message : a.products.saveFailed;
-          flashError(`${a.products.imagesSavedFieldsFailed}: ${detailMsg}`);
-          await revalidateShop(authToken);
-          return;
-        }
-      } else {
-        saved = await apiRequest<Product>('/products', authToken, {
-          method: 'POST',
+      const saved = await apiRequest<Product>(
+        editingId ? `/products/admin/${editingId}` : '/products',
+        authToken,
+        {
+          method: editingId ? 'PATCH' : 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...payload, images })
-        });
-      }
+          body: JSON.stringify(payload)
+        }
+      );
 
       const next = applySavedProductToForm(saved);
       setTab('products');
@@ -420,44 +392,6 @@ export function AdminDashboardView() {
       }
       await revalidateShop(authToken);
     } catch (actionError) {
-      flashError(actionError instanceof Error ? actionError.message : a.products.saveFailed);
-    } finally {
-      savingRef.current = false;
-      setBusy(false);
-    }
-  }
-
-  async function onRemoveProductImage(index: number) {
-    if (savingRef.current) return;
-    const previousText = productForm.imagesText;
-    const nextImages = parseImageList(previousText).filter((_, i) => i !== index);
-    setProductForm((prev) => ({
-      ...prev,
-      imagesText: nextImages.join('\n')
-    }));
-
-    // New product draft — only local until Create is clicked.
-    if (!editingProductId) {
-      flash(a.products.imageRemovedLocal);
-      return;
-    }
-
-    const authToken = readStoredToken();
-    if (!authToken) {
-      setProductForm((prev) => ({ ...prev, imagesText: previousText }));
-      flashError('Session expired — please log in again');
-      return;
-    }
-
-    savingRef.current = true;
-    setBusy(true);
-    try {
-      const saved = await persistProductImages(editingProductId, nextImages, authToken);
-      applySavedProductToForm(saved);
-      await revalidateShop(authToken);
-      flash(`${a.products.imageRemoved} · ${saved.images.length} image(s) left`);
-    } catch (actionError) {
-      setProductForm((prev) => ({ ...prev, imagesText: previousText }));
       flashError(actionError instanceof Error ? actionError.message : a.products.saveFailed);
     } finally {
       savingRef.current = false;
@@ -524,28 +458,52 @@ export function AdminDashboardView() {
   }
 
   async function onUploadImage(file: File | null) {
-    if (!file) return;
-    if (savingRef.current) return;
+    if (!file) {
+      flashError(a.products.uploadFailed);
+      return;
+    }
+    if (uploadingRef.current || savingRef.current) {
+      flashError('Please wait for the current save/upload to finish');
+      return;
+    }
     const authToken = readStoredToken();
     if (!authToken) {
       flashError('Session expired — please log in again');
       return;
     }
-    savingRef.current = true;
+
+    const lower = file.name.toLowerCase();
+    const typeOk =
+      file.type === 'image/jpeg' ||
+      file.type === 'image/png' ||
+      file.type === 'image/webp' ||
+      lower.endsWith('.jpg') ||
+      lower.endsWith('.jpeg') ||
+      lower.endsWith('.png') ||
+      lower.endsWith('.webp');
+    if (!typeOk) {
+      flashError('Only jpg/jpeg/png/webp files are allowed (not HEIC)');
+      return;
+    }
+    if (file.size > 12 * 1024 * 1024) {
+      flashError('Image is too large (max 12MB)');
+      return;
+    }
+
+    uploadingRef.current = true;
     setBusy(true);
     try {
       const uploaded = await uploadImage(file, authToken);
-      // Store site-relative paths so create/update persist cleanly across environments.
       const path = uploaded.url.startsWith('/') ? uploaded.url : `/${uploaded.url}`;
       setProductForm((prev) => ({
         ...prev,
         imagesText: prev.imagesText ? `${prev.imagesText}\n${path}` : path
       }));
-      flash(a.products.uploadSuccess);
+      flash(`${a.products.uploadSuccess}: ${path}`);
     } catch (uploadError) {
       flashError(uploadError instanceof Error ? uploadError.message : a.products.uploadFailed);
     } finally {
-      savingRef.current = false;
+      uploadingRef.current = false;
       setBusy(false);
     }
   }
@@ -731,7 +689,6 @@ export function AdminDashboardView() {
                 busy={busy}
                 onSubmit={onSubmitProduct}
                 onUpload={onUploadImage}
-                onRemoveImage={onRemoveProductImage}
                 onEdit={startEdit}
                 onDelete={onDeleteProduct}
                 onTogglePublished={onTogglePublished}
@@ -1032,7 +989,6 @@ function ProductsTab({
   busy,
   onSubmit,
   onUpload,
-  onRemoveImage,
   onEdit,
   onDelete,
   onTogglePublished,
@@ -1048,7 +1004,6 @@ function ProductsTab({
   busy: boolean;
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   onUpload: (file: File | null) => void;
-  onRemoveImage: (index: number) => void;
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
   onTogglePublished: (product: Product) => void;
@@ -1244,9 +1199,18 @@ function ProductsTab({
                     </div>
                     <button
                       type="button"
-                      disabled={busy}
-                      className="absolute right-1 top-1 bg-[var(--oc-ink)] px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-[var(--oc-bg)] disabled:opacity-50"
-                      onClick={() => onRemoveImage(index)}
+                      className="absolute right-1 top-1 bg-[var(--oc-ink)] px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-[var(--oc-bg)]"
+                      onClick={() =>
+                        setProductForm((prev) => ({
+                          ...prev,
+                          imagesText: prev.imagesText
+                            .split('\n')
+                            .map((line) => line.trim())
+                            .filter(Boolean)
+                            .filter((_, i) => i !== index)
+                            .join('\n')
+                        }))
+                      }
                     >
                       {a.products.removeImage}
                     </button>

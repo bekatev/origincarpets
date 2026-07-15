@@ -107,15 +107,28 @@ export async function deleteJson<T>(path: string, token: string): Promise<T> {
 }
 
 export async function uploadImage(file: File, token: string): Promise<{ url: string }> {
-  const formData = new FormData();
-  formData.append('file', file);
+  // Prefer JSON/base64 — multipart uploads are often dropped by proxies or multer misconfig.
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') resolve(reader.result);
+      else reject(new Error('Could not read image file'));
+    };
+    reader.onerror = () => reject(new Error('Could not read image file'));
+    reader.readAsDataURL(file);
+  });
 
-  const response = await fetch(`${API_URL}/uploads/image`, {
+  const response = await fetch(`${API_URL}/uploads/image-json`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
     },
-    body: formData
+    body: JSON.stringify({
+      filename: file.name || 'upload.jpg',
+      contentType: file.type || 'image/jpeg',
+      data: dataUrl
+    })
   });
 
   const payload = await readPayload(response);
