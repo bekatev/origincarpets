@@ -201,7 +201,7 @@ html.dark ::selection {
 }
 
 .product-reveal__panel-inner {
-  transform: translateX(-100%) scale(1.5);
+  transform: translateX(-100%) scale(1.12);
   transition: transform 0.65s cubic-bezier(0.63, 0.22, 0.1, 1);
 }
 
@@ -211,7 +211,7 @@ html.dark ::selection {
   }
 
   .product-reveal:hover .product-reveal__panel-inner {
-    transform: translateX(0) scale(1.25);
+    transform: translateX(0) scale(1.06);
   }
 
   /* Arrow navigation: keep the new slide at rest size (full carpet) until pointer leaves. */
@@ -222,7 +222,7 @@ html.dark ::selection {
 
   .product-reveal--browsing:hover .product-reveal__panel-inner,
   .product-reveal--browsing .product-reveal__panel-inner {
-    transform: translateX(-100%) scale(1.5);
+    transform: translateX(-100%) scale(1.12);
   }
 }
 
@@ -238,7 +238,7 @@ html.dark ::selection {
     }
 
     .product-reveal:hover .product-reveal__panel-inner {
-      transform: translateX(0) scale(1.1);
+      transform: translateX(0) scale(1.03);
     }
 
     .product-reveal--browsing:hover .product-reveal__panel,
@@ -248,7 +248,7 @@ html.dark ::selection {
 
     .product-reveal--browsing:hover .product-reveal__panel-inner,
     .product-reveal--browsing .product-reveal__panel-inner {
-      transform: translateX(-100%) scale(1.5);
+      transform: translateX(-100%) scale(1.12);
     }
   }
 }
