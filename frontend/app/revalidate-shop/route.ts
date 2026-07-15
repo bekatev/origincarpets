@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  revalidateTag('products');
+  revalidateTag('products', 'max');
   revalidatePath('/');
   revalidatePath('/products');
   revalidatePath('/products', 'layout');

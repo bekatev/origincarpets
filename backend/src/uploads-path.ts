@@ -33,20 +33,15 @@ export type UploadTarget = {
  * (`/<file>.webp` at site root). Fall back to Nest `/api/media/<file>`.
  */
 export function resolveUploadTarget(): UploadTarget {
-  const legacyCandidates = [
-    process.env.LEGACY_UPLOADS_DIR,
-    '/legacy-uploads',
-    '/home/gdg/.carpets-data/uploads'
-  ].filter((dir): dir is string => Boolean(dir));
-
-  for (const dir of legacyCandidates) {
-    if (existsSync(dir)) {
-      return {
-        dir,
-        publicUrl: (storedName) => `/${storedName}`,
-        mode: 'legacy'
-      };
-    }
+  // Only use a legacy host folder when explicitly configured — never auto-mount
+  // absolute server paths from compose (that broke deploys).
+  const legacy = process.env.LEGACY_UPLOADS_DIR;
+  if (legacy && existsSync(legacy)) {
+    return {
+      dir: legacy,
+      publicUrl: (storedName) => `/${storedName}`,
+      mode: 'legacy'
+    };
   }
 
   const dir = resolveUploadsDir();
@@ -62,8 +57,7 @@ export function resolveMediaSearchDirs() {
   const dirs = new Set<string>();
   dirs.add(resolveUploadTarget().dir);
   dirs.add(resolveUploadsDir());
-  for (const dir of ['/legacy-uploads', '/home/gdg/.carpets-data/uploads', process.env.LEGACY_UPLOADS_DIR]) {
-    if (dir && existsSync(dir)) dirs.add(dir);
-  }
+  const legacy = process.env.LEGACY_UPLOADS_DIR;
+  if (legacy && existsSync(legacy)) dirs.add(legacy);
   return [...dirs];
 }
