@@ -27,23 +27,35 @@ function Chevron({ direction }: { direction: 'left' | 'right' }) {
   );
 }
 
+function uniqueImages(images: string[]) {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const url of images) {
+    if (!url || seen.has(url)) continue;
+    seen.add(url);
+    result.push(url);
+  }
+  return result;
+}
+
 export function ProductCardFoldMedia({
   images,
   alt,
   priority = false,
   className = ''
 }: ProductCardFoldMediaProps) {
-  const slides = useMemo(() => images.filter(Boolean), [images]);
+  const slides = useMemo(() => uniqueImages(images), [images]);
   const [index, setIndex] = useState(0);
   const safeIndex = slides.length ? index % slides.length : 0;
   const src = slides[safeIndex];
+  const hoverSrc = slides.length > 1 ? slides[(safeIndex + 1) % slides.length] : src;
   const hasMultiple = slides.length > 1;
 
   const go = useCallback(
     (delta: number) => (event: MouseEvent) => {
       event.preventDefault();
       event.stopPropagation();
-      if (!slides.length) return;
+      if (slides.length < 2) return;
       setIndex((current) => (current + delta + slides.length) % slides.length);
     },
     [slides.length]
@@ -65,7 +77,7 @@ export function ProductCardFoldMedia({
       <div className="absolute inset-0 overflow-hidden p-2 sm:p-3">
         {/* Native img — legacy product files are served by nginx at the site root, not via /_next/image */}
         <img
-          key={src}
+          key={`base-${src}`}
           src={src}
           alt={alt}
           loading={priority && safeIndex === 0 ? 'eager' : 'lazy'}
@@ -74,11 +86,14 @@ export function ProductCardFoldMedia({
         />
       </div>
 
-      <div className="product-reveal__panel absolute inset-0 overflow-hidden bg-[var(--oc-bg-secondary)]" aria-hidden>
-        <div className="product-reveal__panel-inner h-full w-full p-2 sm:p-3">
-          <img src={src} alt="" className="h-full w-full object-contain" />
+      {/* Hover slide reveals the next gallery image (never a zoomed duplicate of the current one). */}
+      {hasMultiple ? (
+        <div className="product-reveal__panel absolute inset-0 overflow-hidden bg-[var(--oc-bg-secondary)]" aria-hidden>
+          <div className="product-reveal__panel-inner h-full w-full p-2 sm:p-3">
+            <img key={`hover-${hoverSrc}`} src={hoverSrc} alt="" className="h-full w-full object-contain" />
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {hasMultiple ? (
         <>
