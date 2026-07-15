@@ -3,30 +3,28 @@ import {
   ArrayMaxSize,
   IsArray,
   IsBoolean,
-  IsInt,
   IsNumber,
   IsOptional,
   IsString,
-  Max,
   Min,
   MinLength
 } from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
-  @MinLength(2)
+  @MinLength(1)
   title!: string;
 
   @IsString()
-  @MinLength(2)
+  @MinLength(1)
   slug!: string;
 
   @IsString()
-  @MinLength(2)
+  @MinLength(1)
   sku!: string;
 
   @IsString()
-  @MinLength(10)
+  @MinLength(1)
   description!: string;
 
   @Type(() => Number)
@@ -52,29 +50,25 @@ export class CreateProductDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(0.1)
-  @Max(500)
+  @Min(0)
   weightKg?: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  @Min(10)
-  @Max(1000)
+  @IsNumber()
+  @Min(0)
   lengthCm?: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  @Min(10)
-  @Max(1000)
+  @IsNumber()
+  @Min(0)
   widthCm?: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  @Min(5)
-  @Max(200)
+  @IsNumber()
+  @Min(0)
   heightCm?: number;
 
   @IsOptional()
@@ -88,7 +82,7 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayMaxSize(10)
+  @ArrayMaxSize(50)
   @IsString({ each: true })
   images?: string[];
 }

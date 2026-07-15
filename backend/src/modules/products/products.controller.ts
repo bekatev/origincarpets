@@ -6,6 +6,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ListProductsDto } from './dto/list-products.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { UpdateProductImagesDto } from './dto/update-product-images.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsService } from './products.service';
 
@@ -69,6 +70,13 @@ export class ProductsController {
   @Post()
   create(@Body() dto: CreateProductDto) {
     return this.productsService.createProduct(dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Patch('admin/:id/images')
+  adminUpdateImages(@Param('id') id: string, @Body() dto: UpdateProductImagesDto) {
+    return this.productsService.updateProductImages(id, dto.images);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

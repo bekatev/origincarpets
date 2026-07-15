@@ -6,30 +6,29 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  Max,
   Min,
   MinLength
 } from 'class-validator';
 
+/** Admin updates must accept existing catalog data (short descriptions, large rugs, etc.). */
 export class UpdateProductDto {
   @IsOptional()
   @IsString()
-  @MinLength(2)
+  @MinLength(1)
   title?: string;
 
   @IsOptional()
   @IsString()
-  @MinLength(2)
+  @MinLength(1)
   slug?: string;
 
   @IsOptional()
   @IsString()
-  @MinLength(2)
+  @MinLength(1)
   sku?: string;
 
   @IsOptional()
   @IsString()
-  @MinLength(1)
   description?: string;
 
   @IsOptional()
@@ -57,29 +56,25 @@ export class UpdateProductDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(0.1)
-  @Max(500)
+  @Min(0)
   weightKg?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(1)
-  @Max(1000)
+  @Min(0)
   lengthCm?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(1)
-  @Max(1000)
+  @Min(0)
   widthCm?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(1)
-  @Max(200)
+  @Min(0)
   heightCm?: number;
 
   @IsOptional()
@@ -92,7 +87,7 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayMaxSize(10)
+  @ArrayMaxSize(50)
   @IsString({ each: true })
   images?: string[];
 }

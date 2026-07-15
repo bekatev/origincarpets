@@ -258,6 +258,8 @@ export class ProductsService {
         ? dto.images.map((url) => this.normalizeImageUrl(url)).filter(Boolean)
         : undefined;
 
+    const colorAttribute = dto.color !== undefined ? await this.getOrCreateColorAttribute() : null;
+
     await this.prisma.$transaction(async (tx) => {
       await tx.product.update({
         where: { id },
@@ -279,30 +281,19 @@ export class ProductsService {
       });
 
       if (imageUrls !== undefined) {
-        await tx.productImage.deleteMany({ where: { productId: id } });
-        if (imageUrls.length) {
-          await tx.productImage.createMany({
-            data: imageUrls.map((url, index) => ({
-              productId: id,
-              url,
-              sortOrder: index,
-              isPrimary: index === 0
-            }))
-          });
-        }
+        await this.replaceProductImages(tx, id, imageUrls);
       }
 
-      if (dto.color !== undefined) {
-        const attribute = await this.getOrCreateColorAttribute();
+      if (colorAttribute && dto.color !== undefined) {
         if (!dto.color.trim()) {
           await tx.productAttributeValue.deleteMany({
-            where: { productId: id, attributeId: attribute.id }
+            where: { productId: id, attributeId: colorAttribute.id }
           });
         } else {
           await tx.productAttributeValue.upsert({
-            where: { productId_attributeId: { productId: id, attributeId: attribute.id } },
+            where: { productId_attributeId: { productId: id, attributeId: colorAttribute.id } },
             update: { value: dto.color.trim() },
-            create: { productId: id, attributeId: attribute.id, value: dto.color.trim() }
+            create: { productId: id, attributeId: colorAttribute.id, value: dto.color.trim() }
           });
         }
       }
@@ -314,6 +305,39 @@ export class ProductsService {
     }
 
     return this.serializeProduct(refreshed);
+  }
+
+  async updateProductImages(id: string, images: string[]) {
+    await this.ensureProductExists(id);
+    const imageUrls = images.map((url) => this.normalizeImageUrl(url)).filter(Boolean);
+
+    await this.prisma.$transaction(async (tx) => {
+      await this.replaceProductImages(tx, id, imageUrls);
+    });
+
+    const refreshed = await this.prisma.product.findUnique({ where: { id }, include: PRODUCT_INCLUDE });
+    if (!refreshed) {
+      throw new NotFoundException('Product not found after image update');
+    }
+
+    return this.serializeProduct(refreshed);
+  }
+
+  private async replaceProductImages(
+    tx: Prisma.TransactionClient,
+    productId: string,
+    imageUrls: string[]
+  ) {
+    await tx.productImage.deleteMany({ where: { productId } });
+    if (!imageUrls.length) return;
+    await tx.productImage.createMany({
+      data: imageUrls.map((url, index) => ({
+        productId,
+        url,
+        sortOrder: index,
+        isPrimary: index === 0
+      }))
+    });
   }
 
   private normalizeImageUrl(url: string) {

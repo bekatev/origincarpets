@@ -284,28 +284,50 @@ export function AdminDashboardView() {
         .map((line) => line.trim())
         .filter(Boolean);
       const payload = {
-        title: productForm.title,
-        slug: productForm.slug,
-        sku: productForm.sku,
-        description: productForm.description,
+        title: productForm.title.trim(),
+        slug: productForm.slug.trim(),
+        sku: productForm.sku.trim(),
+        description: productForm.description.trim() || productForm.title.trim(),
         price: Number(productForm.price),
         categoryId: productForm.categoryId,
-        size: productForm.size || undefined,
-        color: productForm.color || undefined,
-        material: productForm.material || undefined,
+        size: productForm.size.trim() || undefined,
+        color: productForm.color.trim() || undefined,
+        material: productForm.material.trim() || undefined,
         weightKg: parseOptionalNumber(productForm.weightKg),
         lengthCm: parseOptionalNumber(productForm.lengthCm),
         widthCm: parseOptionalNumber(productForm.widthCm),
         heightCm: parseOptionalNumber(productForm.heightCm),
-        images,
         isPublished: productForm.isPublished
       };
-      const path = editingId ? `/products/admin/${editingId}` : '/products';
-      const saved = await apiRequest<Product>(path, token, {
-        method: editingId ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+
+      if (!Number.isFinite(payload.price) || payload.price < 0) {
+        throw new Error('Price must be a valid number');
+      }
+      if (!payload.categoryId) {
+        throw new Error('Category is required');
+      }
+
+      let saved: Product;
+      if (editingId) {
+        // Images first — dedicated endpoint so short descriptions / shipping rules never block gallery edits.
+        await apiRequest<Product>(`/products/admin/${editingId}/images`, token, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ images })
+        });
+        saved = await apiRequest<Product>(`/products/admin/${editingId}`, token, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        saved = await apiRequest<Product>('/products', token, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, images })
+        });
+      }
+
       await loadAll(token);
       if (wasEditing && editingId) {
         const next = normalizeProduct(saved);

@@ -49,7 +49,12 @@ export function resolveProductPublication(params: {
   const { shipping, requestedPublished, currentPublished, isCreate } = params;
 
   if (!hasCompleteShipping(shipping)) {
-    if (requestedPublished === true) {
+    // Never block saves — incomplete shipping just keeps the product off the storefront.
+    // Only reject when explicitly trying to *newly* publish without dimensions.
+    if (requestedPublished === true && !currentPublished && !isCreate) {
+      return { isActive: false, rejectPublish: true };
+    }
+    if (requestedPublished === true && isCreate) {
       return { isActive: false, rejectPublish: true };
     }
     return { isActive: false };
