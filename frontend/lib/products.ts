@@ -96,7 +96,7 @@ export interface ProductListResponse {
 async function apiFetch<T>(path: string): Promise<T | null> {
   try {
     const response = await fetch(`${API_URL}${path}`, {
-      next: { revalidate: 300, tags: ['products'] }
+      next: { revalidate: 60, tags: ['products'] }
     });
 
     if (!response.ok) {

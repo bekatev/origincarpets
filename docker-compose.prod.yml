@@ -15,6 +15,8 @@ services:
     volumes:
       # Editorial/brand images update on git pull — no Docker rebuild needed.
       - ./frontend/public:/app/frontend/public:ro
+      # Persist admin product uploads across container rebuilds.
+      - ./data/uploads:/app/backend/uploads
     env_file:
       - backend/.env
     environment:

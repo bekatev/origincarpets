@@ -255,6 +255,44 @@ export function AdminDashboardView() {
     setMessage(null);
   }
 
+  async function revalidateShop(authToken: string) {
+    try {
+      await fetch('/revalidate-shop', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+    } catch {
+      // Shop cache refresh is best-effort; admin save already succeeded.
+    }
+  }
+
+  function applySavedProductToForm(product: Product) {
+    const next = normalizeProduct(product);
+    setEditingProductId(next.id);
+    setProductForm({
+      title: next.title,
+      slug: next.slug,
+      sku: next.sku,
+      description: next.description,
+      price: next.price.toString(),
+      categoryId: next.category.id,
+      size: next.attributes.size ?? '',
+      color: next.attributes.color ?? '',
+      material: next.attributes.material ?? '',
+      weightKg: next.shipping?.weightKg?.toString() ?? '',
+      lengthCm: next.shipping?.lengthCm?.toString() ?? '',
+      widthCm: next.shipping?.widthCm?.toString() ?? '',
+      heightCm: next.shipping?.heightCm?.toString() ?? '',
+      imagesText: next.images.join('\n'),
+      isPublished: next.isPublished
+    });
+    setProducts((prev) => {
+      const exists = prev.some((p) => p.id === next.id);
+      return exists ? prev.map((p) => (p.id === next.id ? next : p)) : [next, ...prev];
+    });
+    return next;
+  }
+
   async function onCreateCategory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!token) return;
@@ -335,41 +373,23 @@ export function AdminDashboardView() {
         }
       );
 
-      if (wasEditing && editingId) {
-        const next = normalizeProduct(saved);
-        setEditingProductId(next.id);
-        setProductForm({
-          title: next.title,
-          slug: next.slug,
-          sku: next.sku,
-          description: next.description,
-          price: next.price.toString(),
-          categoryId: next.category.id,
-          size: next.attributes.size ?? '',
-          color: next.attributes.color ?? '',
-          material: next.attributes.material ?? '',
-          weightKg: next.shipping?.weightKg?.toString() ?? '',
-          lengthCm: next.shipping?.lengthCm?.toString() ?? '',
-          widthCm: next.shipping?.widthCm?.toString() ?? '',
-          heightCm: next.shipping?.heightCm?.toString() ?? '',
-          imagesText: next.images.join('\n'),
-          isPublished: next.isPublished
-        });
-        // Update list row immediately so image count is visible even if reload fails.
-        setProducts((prev) => prev.map((p) => (p.id === next.id ? next : p)));
-        flash(`${a.products.updated} · ${next.images.length} image(s) saved`);
-      } else {
-        setProductForm((prev) => ({ ...emptyProduct, categoryId: prev.categoryId || categories[0]?.id || '' }));
-        setEditingProductId(null);
-        flash(a.products.created);
-      }
+      const next = applySavedProductToForm(saved);
       setTab('products');
+
+      if (wasEditing) {
+        flash(`${a.products.updated} · ${next.images.length} image(s) saved`);
+      } else if (next.isPublished) {
+        flash(`${a.products.createdPublished} · ${next.images.length} image(s)`);
+      } else {
+        flash(a.products.createdUnpublished);
+      }
 
       try {
         await loadAll(authToken);
       } catch {
         // Save already succeeded — don't surface a reload failure as a failed save.
       }
+      await revalidateShop(authToken);
     } catch (actionError) {
       flashError(actionError instanceof Error ? actionError.message : a.products.saveFailed);
     } finally {
@@ -393,22 +413,27 @@ export function AdminDashboardView() {
   }
 
   async function onTogglePublished(product: Product) {
-    if (!token) return;
+    const authToken = readStoredToken();
+    if (!authToken) {
+      flashError('Session expired — please log in again');
+      return;
+    }
     if (!product.isPublished && !hasShippingData(product.shipping)) {
       flashError(a.products.publishRequiresShipping);
       return;
     }
     setBusy(true);
     try {
-      await apiRequest(`/products/admin/${product.id}`, token, {
+      await apiRequest(`/products/admin/${product.id}`, authToken, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isPublished: !product.isPublished })
       });
-      await loadAll(token);
+      await loadAll(authToken);
       if (editingProductId === product.id) {
         setProductForm((prev) => ({ ...prev, isPublished: !product.isPublished }));
       }
+      await revalidateShop(authToken);
       flash(a.products.updated);
     } catch (actionError) {
       flashError(actionError instanceof Error ? actionError.message : a.products.saveFailed);
@@ -443,10 +468,11 @@ export function AdminDashboardView() {
     setBusy(true);
     try {
       const uploaded = await uploadImage(file, authToken);
-      const fullUrl = `${API_ORIGIN}${uploaded.url}`;
+      // Store site-relative paths so create/update persist cleanly across environments.
+      const path = uploaded.url.startsWith('/') ? uploaded.url : `/${uploaded.url}`;
       setProductForm((prev) => ({
         ...prev,
-        imagesText: prev.imagesText ? `${prev.imagesText}\n${fullUrl}` : fullUrl
+        imagesText: prev.imagesText ? `${prev.imagesText}\n${path}` : path
       }));
       flash(a.products.uploadSuccess);
     } catch (uploadError) {
@@ -1073,52 +1099,52 @@ function ProductsTab({
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Field
                 label={a.products.weightKg}
-                highlightMissing={Boolean(editingProductId && isFormFieldMissing(productForm.weightKg))}
+                highlightMissing={isFormFieldMissing(productForm.weightKg)}
               >
                 <input
                   type="number"
                   min={0.1}
                   step="0.1"
-                  className={missingShippingInputClass(Boolean(editingProductId), productForm.weightKg)}
+                  className={missingShippingInputClass(true, productForm.weightKg)}
                   value={productForm.weightKg}
                   onChange={(e) => applyShippingField(setProductForm, 'weightKg', e.target.value)}
                 />
               </Field>
               <Field
                 label={a.products.lengthCm}
-                highlightMissing={Boolean(editingProductId && isFormFieldMissing(productForm.lengthCm))}
+                highlightMissing={isFormFieldMissing(productForm.lengthCm)}
               >
                 <input
                   type="number"
                   min={10}
                   step="1"
-                  className={missingShippingInputClass(Boolean(editingProductId), productForm.lengthCm)}
+                  className={missingShippingInputClass(true, productForm.lengthCm)}
                   value={productForm.lengthCm}
                   onChange={(e) => applyShippingField(setProductForm, 'lengthCm', e.target.value)}
                 />
               </Field>
               <Field
                 label={a.products.widthCm}
-                highlightMissing={Boolean(editingProductId && isFormFieldMissing(productForm.widthCm))}
+                highlightMissing={isFormFieldMissing(productForm.widthCm)}
               >
                 <input
                   type="number"
                   min={10}
                   step="1"
-                  className={missingShippingInputClass(Boolean(editingProductId), productForm.widthCm)}
+                  className={missingShippingInputClass(true, productForm.widthCm)}
                   value={productForm.widthCm}
                   onChange={(e) => applyShippingField(setProductForm, 'widthCm', e.target.value)}
                 />
               </Field>
               <Field
                 label={a.products.heightCm}
-                highlightMissing={Boolean(editingProductId && isFormFieldMissing(productForm.heightCm))}
+                highlightMissing={isFormFieldMissing(productForm.heightCm)}
               >
                 <input
                   type="number"
                   min={5}
                   step="1"
-                  className={missingShippingInputClass(Boolean(editingProductId), productForm.heightCm)}
+                  className={missingShippingInputClass(true, productForm.heightCm)}
                   value={productForm.heightCm}
                   onChange={(e) => applyShippingField(setProductForm, 'heightCm', e.target.value)}
                 />
@@ -1126,7 +1152,17 @@ function ProductsTab({
             </div>
           </div>
           <Field label={a.products.uploadImage}>
-            <input type="file" accept="image/*" className="text-sm" onChange={(e) => onUpload(e.target.files?.[0] ?? null)} />
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+              className="text-sm"
+              disabled={busy}
+              onChange={(e) => {
+                const selected = e.target.files?.[0] ?? null;
+                e.target.value = '';
+                void onUpload(selected);
+              }}
+            />
           </Field>
           <Field label={a.products.imageUrls}>
             {parsedImages.length ? (

@@ -128,6 +128,9 @@ export const adminTranslations = {
         deleteBtn: 'Delete',
         deleteConfirm: 'Delete this product?',
         created: 'Product created',
+        createdUnpublished:
+          'Product saved in admin but not on the shop yet — fill all shipping dimensions and publish.',
+        createdPublished: 'Product created and published to the shop',
         updated: 'Product updated',
         deleted: 'Product deleted',
         saveFailed: 'Failed to save product',
@@ -267,6 +270,9 @@ export const adminTranslations = {
         deleteBtn: 'წაშლა',
         deleteConfirm: 'წავშალოთ ეს პროდუქტი?',
         created: 'პროდუქტი შეიქმნა',
+        createdUnpublished:
+          'პროდუქტი ადმინში შეინახა, მაგრამ მაღაზიაში ჯერ არ ჩანს — შეავსეთ მიწოდების ზომები და გამოაქვეყნეთ.',
+        createdPublished: 'პროდუქტი შეიქმნა და გამოქვეყნდა მაღაზიაში',
         updated: 'პროდუქტი განახლდა',
         deleted: 'პროდუქტი წაიშალა',
         saveFailed: 'პროდუქტის შენახვა ვერ მოხერხდა',

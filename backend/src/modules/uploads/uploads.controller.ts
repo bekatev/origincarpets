@@ -1,35 +1,54 @@
 import { BadRequestException, Controller, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { randomUUID } from 'crypto';
-import { writeFile, mkdir } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 import { extname, join } from 'path';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { resolveUploadsDir } from '../../uploads-path';
+
+const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+const MAX_BYTES = 15 * 1024 * 1024;
 
 @Controller('uploads')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('ADMIN')
 export class UploadsController {
   @Post('image')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadImage(@UploadedFile() file?: { originalname: string; buffer: Buffer }) {
-    if (!file) {
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: MAX_BYTES }
+    })
+  )
+  async uploadImage(
+    @UploadedFile()
+    file?: { originalname: string; mimetype?: string; buffer?: Buffer; size?: number }
+  ) {
+    if (!file?.buffer?.length) {
       throw new BadRequestException('File is required');
     }
 
     const ext = extname(file.originalname || '').toLowerCase();
-    const allowed = ['.jpg', '.jpeg', '.png', '.webp'];
-    if (!allowed.includes(ext)) {
-      throw new BadRequestException('Only jpg/jpeg/png/webp files are allowed');
+    const mime = (file.mimetype || '').toLowerCase();
+    const mimeOk = mime === 'image/jpeg' || mime === 'image/png' || mime === 'image/webp';
+    if (!ALLOWED_EXT.has(ext) && !mimeOk) {
+      throw new BadRequestException('Only jpg/jpeg/png/webp files are allowed (not HEIC)');
     }
 
-    const uploadDir = join(process.cwd(), 'backend', 'uploads');
-    await mkdir(uploadDir, { recursive: true });
+    const resolvedExt = ALLOWED_EXT.has(ext)
+      ? ext
+      : mime === 'image/png'
+        ? '.png'
+        : mime === 'image/webp'
+          ? '.webp'
+          : '.jpg';
 
-    const filename = `${Date.now()}-${randomUUID()}${ext}`;
-    const targetPath = join(uploadDir, filename);
-    await writeFile(targetPath, file.buffer);
+    const uploadDir = resolveUploadsDir();
+    const filename = `${Date.now()}-${randomUUID()}${resolvedExt}`;
+    await writeFile(join(uploadDir, filename), file.buffer);
 
     return {
       url: `/uploads/${filename}`

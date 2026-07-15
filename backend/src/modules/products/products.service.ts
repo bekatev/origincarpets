@@ -209,9 +209,9 @@ export class ProductsService {
         sizeLabel: dto.size,
         material: dto.material,
         weightKg: dto.weightKg,
-        lengthCm: dto.lengthCm,
-        widthCm: dto.widthCm,
-        heightCm: dto.heightCm,
+        lengthCm: dto.lengthCm != null ? Math.round(dto.lengthCm) : dto.lengthCm,
+        widthCm: dto.widthCm != null ? Math.round(dto.widthCm) : dto.widthCm,
+        heightCm: dto.heightCm != null ? Math.round(dto.heightCm) : dto.heightCm,
         isActive: publication.isActive,
         images: imageUrls.length
           ? {

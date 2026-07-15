@@ -5,7 +5,7 @@ import { getServerDictionary } from '@/lib/i18n-server';
 import { fetchProductBySlug } from '@/lib/products';
 import { toPlainText } from '@/lib/text';
 
-export const revalidate = 300;
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;

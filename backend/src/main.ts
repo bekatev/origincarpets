@@ -1,19 +1,9 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-import { existsSync } from 'fs';
-import { join } from 'path';
 import express from 'express';
 import { AppModule } from './app.module';
-
-function resolveUploadsDir() {
-  const candidates = [
-    join(process.cwd(), 'uploads'),
-    join(process.cwd(), 'backend', 'uploads'),
-    join(__dirname, '..', 'uploads')
-  ];
-  return candidates.find((dir) => existsSync(dir)) ?? candidates[0];
-}
+import { resolveUploadsDir } from './uploads-path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -27,7 +17,8 @@ async function bootstrap() {
     credentials: true
   });
 
-  app.use('/uploads', express.static(resolveUploadsDir()));
+  const uploadsDir = resolveUploadsDir();
+  app.use('/uploads', express.static(uploadsDir));
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
