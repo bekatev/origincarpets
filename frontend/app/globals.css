@@ -4,33 +4,34 @@
 
 :root {
   color-scheme: light;
-  /* Warm ivory / natural wool — carpet showroom, not gallery white */
-  --oc-bg: #f8f4eb;
-  --oc-bg-secondary: #f0eae0;
-  --oc-paper: #faf6ef;
-  --oc-ink: #1c1916;
-  --oc-muted: #5c564c;
-  --oc-line: #e4dbd0;
-  --oc-brand: #8b5a3c;
-  --oc-accent: #3d4a38;
-  --oc-brand-soft: #6b655c;
-  --oc-brand-hover: #3d4a38;
+  /* Warm wheat / honey paper — light but clearly yellowish */
+  --oc-bg: #f7efd8;
+  --oc-bg-secondary: #efe3c4;
+  --oc-paper: #fbf4e3;
+  --oc-ink: #2a2216;
+  --oc-muted: #6d5f45;
+  --oc-line: #e2d3ad;
+  --oc-brand: #9a6435;
+  --oc-accent: #4a5a3a;
+  --oc-brand-soft: #7a6d52;
+  --oc-brand-hover: #4a5a3a;
   --oc-shadow: none;
-  --oc-shadow-lift: 0 24px 48px -32px rgba(28, 25, 22, 0.1);
+  --oc-shadow-lift: 0 24px 48px -32px rgba(42, 34, 22, 0.12);
   --oc-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 html.dark {
   color-scheme: dark;
-  --oc-bg: #141413;
-  --oc-bg-secondary: #1c1c1b;
-  --oc-paper: #222221;
-  --oc-ink: #f5f3ef;
-  --oc-muted: #a8a29e;
-  --oc-line: #333330;
-  --oc-brand: #c49a7a;
-  --oc-accent: #7a8f72;
-  --oc-brand-soft: #9a9a9a;
+  /* Deep forest night — dark with a clear green cast */
+  --oc-bg: #101612;
+  --oc-bg-secondary: #171e19;
+  --oc-paper: #1c251f;
+  --oc-ink: #e8eee6;
+  --oc-muted: #9aada0;
+  --oc-line: #2c3a31;
+  --oc-brand: #c4a882;
+  --oc-accent: #7f9a78;
+  --oc-brand-soft: #8fa396;
 }
 
 body {
@@ -44,7 +45,12 @@ a {
 }
 
 ::selection {
-  background: rgba(139, 90, 60, 0.2);
+  background: rgba(154, 100, 53, 0.22);
+  color: var(--oc-ink);
+}
+
+html.dark ::selection {
+  background: rgba(127, 154, 120, 0.35);
   color: var(--oc-ink);
 }
 
@@ -90,21 +96,38 @@ a {
   }
 
   .oc-input {
-    @apply w-full border border-[var(--oc-line)] bg-transparent px-4 py-3 text-sm text-[var(--oc-ink)] outline-none transition duration-300 ease-luxury placeholder:text-[var(--oc-muted)] focus:border-[var(--oc-ink)];
+    @apply w-full border border-[var(--oc-line)] bg-[var(--oc-paper)] px-4 py-3 text-sm text-[var(--oc-ink)] outline-none transition duration-300 ease-luxury placeholder:text-[var(--oc-muted)] focus:border-[var(--oc-ink)];
   }
 
   select.oc-input {
     appearance: none;
     -webkit-appearance: none;
+    color: var(--oc-ink);
+    background-color: var(--oc-paper);
     padding-right: 2.75rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235c564c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236d5f45' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 1rem center;
     background-size: 0.75rem;
   }
 
+  /* Native <option> menus ignore most CSS; force solid ink/paper so dark theme stays readable. */
+  select.oc-input option,
+  select.oc-input optgroup {
+    color: var(--oc-ink);
+    background-color: var(--oc-paper);
+  }
+
   html.dark select.oc-input {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    color: #e8eee6;
+    background-color: #1c251f;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239aada0' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+
+  html.dark select.oc-input option,
+  html.dark select.oc-input optgroup {
+    color: #e8eee6;
+    background-color: #1c251f;
   }
 
   .oc-btn {
