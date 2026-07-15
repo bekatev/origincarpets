@@ -8,6 +8,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: https://origincarpets.com/api
+        NEXT_PUBLIC_SITE_URL: https://origincarpets.com
         NEXT_PUBLIC_PURCHASE_ENABLED: "true"
     container_name: origincarpets-app
     restart: unless-stopped
@@ -23,4 +24,5 @@ services:
       NODE_ENV: production
       FRONTEND_URL: https://origincarpets.com
       NEXT_PUBLIC_API_URL: https://origincarpets.com/api
+      NEXT_PUBLIC_SITE_URL: https://origincarpets.com
       INTERNAL_API_URL: http://127.0.0.1:4000/api

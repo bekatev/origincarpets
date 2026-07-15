@@ -21,7 +21,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
         <div className="relative aspect-[16/8] w-full overflow-hidden sm:aspect-[16/7] lg:aspect-[21/8]">
           <Image
             src={stockImages.hero}
-            alt=""
+            alt="Origin Carpets gallery exterior — Caucasian and Oriental handmade rugs in Tbilisi"
             fill
             priority
             className="object-cover object-center"
@@ -72,7 +72,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             <div className="relative aspect-[4/3] overflow-hidden bg-[var(--oc-bg-secondary)]">
               <Image
                 src={stockImages.collection}
-                alt=""
+                alt="Handmade Caucasian and Oriental carpet collection at Origin Carpets"
                 fill
                 className="object-cover object-center"
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -112,7 +112,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
           <div className="relative aspect-[3/4] overflow-hidden bg-[var(--oc-bg)]">
             <Image
               src={stockImages.about}
-              alt=""
+              alt="Historic carpet bazaar — the heritage behind Origin Carpets"
               fill
               className="object-cover object-center grayscale-[15%]"
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -128,7 +128,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
           <div className="relative aspect-[4/3] overflow-hidden bg-[var(--oc-bg-secondary)]">
             <Image
               src={stockImages.gallery}
-              alt=""
+              alt="Interior of Origin Carpets gallery with handmade rugs on display"
               fill
               className="object-cover object-center"
               sizes="(max-width: 1024px) 100vw, 50vw"
