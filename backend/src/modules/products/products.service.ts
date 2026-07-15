@@ -7,7 +7,6 @@ import { ListProductsDto } from './dto/list-products.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import {
-  CANNOT_PUBLISH_INCOMPLETE_SHIPPING,
   hasCompleteShipping,
   mergeShippingFields,
   PUBLIC_SHIPPABLE_PRODUCT_WHERE,
@@ -31,6 +30,17 @@ type LegacyProductMetadata = {
 
 function isTruthyFilterFlag(value?: string): boolean {
   return value === '1' || value === 'true' || value === 'yes';
+}
+
+function dedupeUrls(urls: string[]) {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const url of urls) {
+    if (seen.has(url)) continue;
+    seen.add(url);
+    result.push(url);
+  }
+  return result;
 }
 
 function readMetadata(metadata: unknown): LegacyProductMetadata | null {
@@ -183,9 +193,10 @@ export class ProductsService {
       requestedPublished,
       isCreate: true
     });
-    if (publication.rejectPublish) {
-      throw new BadRequestException(CANNOT_PUBLISH_INCOMPLETE_SHIPPING);
-    }
+
+    const imageUrls = dto.images?.length
+      ? dedupeUrls(dto.images.map((url) => this.normalizeImageUrl(url)).filter(Boolean))
+      : [];
 
     const product = await this.prisma.product.create({
       data: {
@@ -202,12 +213,9 @@ export class ProductsService {
         widthCm: dto.widthCm,
         heightCm: dto.heightCm,
         isActive: publication.isActive,
-        images: dto.images?.length
+        images: imageUrls.length
           ? {
-              create: dto.images
-                .map((url) => this.normalizeImageUrl(url))
-                .filter(Boolean)
-                .map((url, index) => ({ url, sortOrder: index, isPrimary: index === 0 }))
+              create: imageUrls.map((url, index) => ({ url, sortOrder: index, isPrimary: index === 0 }))
             }
           : undefined,
         attributes:
@@ -249,55 +257,59 @@ export class ProductsService {
       requestedPublished,
       currentPublished: existing.isActive
     });
-    if (publication.rejectPublish) {
-      throw new BadRequestException(CANNOT_PUBLISH_INCOMPLETE_SHIPPING);
-    }
 
     const imageUrls =
       dto.images !== undefined
-        ? dto.images.map((url) => this.normalizeImageUrl(url)).filter(Boolean)
+        ? dedupeUrls(dto.images.map((url) => this.normalizeImageUrl(url)).filter(Boolean))
         : undefined;
 
     const colorAttribute = dto.color !== undefined ? await this.getOrCreateColorAttribute() : null;
 
-    await this.prisma.$transaction(async (tx) => {
-      await tx.product.update({
-        where: { id },
-        data: {
-          ...(dto.title !== undefined ? { title: dto.title } : {}),
-          ...(dto.slug !== undefined ? { slug: dto.slug } : {}),
-          ...(dto.sku !== undefined ? { sku: dto.sku } : {}),
-          ...(dto.description !== undefined ? { description: dto.description } : {}),
-          ...(dto.price !== undefined ? { price: dto.price } : {}),
-          ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
-          ...(dto.size !== undefined ? { sizeLabel: dto.size } : {}),
-          ...(dto.material !== undefined ? { material: dto.material } : {}),
-          ...(dto.weightKg !== undefined ? { weightKg: dto.weightKg } : {}),
-          ...(dto.lengthCm !== undefined ? { lengthCm: Math.round(dto.lengthCm) } : {}),
-          ...(dto.widthCm !== undefined ? { widthCm: Math.round(dto.widthCm) } : {}),
-          ...(dto.heightCm !== undefined ? { heightCm: Math.round(dto.heightCm) } : {}),
-          isActive: publication.isActive
-        }
-      });
-
-      if (imageUrls !== undefined) {
-        await this.replaceProductImages(tx, id, imageUrls);
-      }
-
-      if (colorAttribute && dto.color !== undefined) {
-        if (!dto.color.trim()) {
-          await tx.productAttributeValue.deleteMany({
-            where: { productId: id, attributeId: colorAttribute.id }
+    try {
+      await this.prisma.$transaction(
+        async (tx) => {
+          await tx.product.update({
+            where: { id },
+            data: {
+              ...(dto.title !== undefined ? { title: dto.title } : {}),
+              ...(dto.slug !== undefined ? { slug: dto.slug } : {}),
+              ...(dto.sku !== undefined ? { sku: dto.sku } : {}),
+              ...(dto.description !== undefined ? { description: dto.description } : {}),
+              ...(dto.price !== undefined ? { price: dto.price } : {}),
+              ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
+              ...(dto.size !== undefined ? { sizeLabel: dto.size } : {}),
+              ...(dto.material !== undefined ? { material: dto.material } : {}),
+              ...(dto.weightKg !== undefined ? { weightKg: dto.weightKg } : {}),
+              ...(dto.lengthCm !== undefined ? { lengthCm: Math.round(dto.lengthCm) } : {}),
+              ...(dto.widthCm !== undefined ? { widthCm: Math.round(dto.widthCm) } : {}),
+              ...(dto.heightCm !== undefined ? { heightCm: Math.round(dto.heightCm) } : {}),
+              isActive: publication.isActive
+            }
           });
-        } else {
-          await tx.productAttributeValue.upsert({
-            where: { productId_attributeId: { productId: id, attributeId: colorAttribute.id } },
-            update: { value: dto.color.trim() },
-            create: { productId: id, attributeId: colorAttribute.id, value: dto.color.trim() }
-          });
-        }
-      }
-    });
+
+          if (imageUrls !== undefined) {
+            await this.replaceProductImages(tx, id, imageUrls);
+          }
+
+          if (colorAttribute && dto.color !== undefined) {
+            if (!dto.color.trim()) {
+              await tx.productAttributeValue.deleteMany({
+                where: { productId: id, attributeId: colorAttribute.id }
+              });
+            } else {
+              await tx.productAttributeValue.upsert({
+                where: { productId_attributeId: { productId: id, attributeId: colorAttribute.id } },
+                update: { value: dto.color.trim() },
+                create: { productId: id, attributeId: colorAttribute.id, value: dto.color.trim() }
+              });
+            }
+          }
+        },
+        { timeout: 20000 }
+      );
+    } catch (error) {
+      throw this.mapProductWriteError(error);
+    }
 
     const refreshed = await this.prisma.product.findUnique({ where: { id }, include: PRODUCT_INCLUDE });
     if (!refreshed) {
@@ -309,11 +321,18 @@ export class ProductsService {
 
   async updateProductImages(id: string, images: string[]) {
     await this.ensureProductExists(id);
-    const imageUrls = images.map((url) => this.normalizeImageUrl(url)).filter(Boolean);
+    const imageUrls = dedupeUrls(images.map((url) => this.normalizeImageUrl(url)).filter(Boolean));
 
-    await this.prisma.$transaction(async (tx) => {
-      await this.replaceProductImages(tx, id, imageUrls);
-    });
+    try {
+      await this.prisma.$transaction(
+        async (tx) => {
+          await this.replaceProductImages(tx, id, imageUrls);
+        },
+        { timeout: 20000 }
+      );
+    } catch (error) {
+      throw this.mapProductWriteError(error);
+    }
 
     const refreshed = await this.prisma.product.findUnique({ where: { id }, include: PRODUCT_INCLUDE });
     if (!refreshed) {
@@ -338,6 +357,15 @@ export class ProductsService {
         isPrimary: index === 0
       }))
     });
+  }
+
+  private mapProductWriteError(error: unknown): Error {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      const target = Array.isArray(error.meta?.target) ? error.meta.target.join(', ') : 'field';
+      return new BadRequestException(`A product with this ${target} already exists`);
+    }
+    if (error instanceof Error) return error;
+    return new BadRequestException('Failed to save product');
   }
 
   private normalizeImageUrl(url: string) {

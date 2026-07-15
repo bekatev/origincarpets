@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { FormEvent, useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { useAuth } from '@/components/providers/auth-provider';
@@ -201,6 +201,7 @@ export function AdminDashboardView() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const savingRef = useRef(false);
 
   const token = readStoredToken();
   const isAdmin = user?.role === 'ADMIN';
@@ -221,9 +222,11 @@ export function AdminDashboardView() {
     setProducts(productData.items.map(normalizeProduct));
     setProductsTotal(productData.meta?.total ?? productData.items.length);
 
-    if (!productForm.categoryId && categoryData.length) {
-      setProductForm((prev) => ({ ...prev, categoryId: categoryData[0].id }));
-    }
+    // Only fill empty category on create form — never touch an in-progress edit.
+    setProductForm((prev) => {
+      if (prev.categoryId || !categoryData.length) return prev;
+      return { ...prev, categoryId: categoryData[0].id };
+    });
   }
 
   useEffect(() => {
@@ -274,15 +277,26 @@ export function AdminDashboardView() {
 
   async function onSubmitProduct(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!token) return;
+    if (savingRef.current) return;
+    const authToken = readStoredToken();
+    if (!authToken) {
+      flashError('Session expired — please log in again');
+      return;
+    }
+
+    savingRef.current = true;
     setBusy(true);
     const wasEditing = Boolean(editingProductId);
     const editingId = editingProductId;
     try {
-      const images = productForm.imagesText
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean);
+      const images = [
+        ...new Set(
+          productForm.imagesText
+            .split('\n')
+            .map((line) => line.trim())
+            .filter(Boolean)
+        )
+      ];
       const payload = {
         title: productForm.title.trim(),
         slug: productForm.slug.trim(),
@@ -297,9 +311,13 @@ export function AdminDashboardView() {
         lengthCm: parseOptionalNumber(productForm.lengthCm),
         widthCm: parseOptionalNumber(productForm.widthCm),
         heightCm: parseOptionalNumber(productForm.heightCm),
+        images,
         isPublished: productForm.isPublished
       };
 
+      if (!payload.title || !payload.slug || !payload.sku) {
+        throw new Error('Title, slug, and SKU are required');
+      }
       if (!Number.isFinite(payload.price) || payload.price < 0) {
         throw new Error('Price must be a valid number');
       }
@@ -307,28 +325,16 @@ export function AdminDashboardView() {
         throw new Error('Category is required');
       }
 
-      let saved: Product;
-      if (editingId) {
-        // Images first — dedicated endpoint so short descriptions / shipping rules never block gallery edits.
-        await apiRequest<Product>(`/products/admin/${editingId}/images`, token, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ images })
-        });
-        saved = await apiRequest<Product>(`/products/admin/${editingId}`, token, {
-          method: 'PATCH',
+      const saved = await apiRequest<Product>(
+        editingId ? `/products/admin/${editingId}` : '/products',
+        authToken,
+        {
+          method: editingId ? 'PATCH' : 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
-        });
-      } else {
-        saved = await apiRequest<Product>('/products', token, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...payload, images })
-        });
-      }
+        }
+      );
 
-      await loadAll(token);
       if (wasEditing && editingId) {
         const next = normalizeProduct(saved);
         setEditingProductId(next.id);
@@ -349,6 +355,8 @@ export function AdminDashboardView() {
           imagesText: next.images.join('\n'),
           isPublished: next.isPublished
         });
+        // Update list row immediately so image count is visible even if reload fails.
+        setProducts((prev) => prev.map((p) => (p.id === next.id ? next : p)));
         flash(`${a.products.updated} · ${next.images.length} image(s) saved`);
       } else {
         setProductForm((prev) => ({ ...emptyProduct, categoryId: prev.categoryId || categories[0]?.id || '' }));
@@ -356,9 +364,16 @@ export function AdminDashboardView() {
         flash(a.products.created);
       }
       setTab('products');
+
+      try {
+        await loadAll(authToken);
+      } catch {
+        // Save already succeeded — don't surface a reload failure as a failed save.
+      }
     } catch (actionError) {
       flashError(actionError instanceof Error ? actionError.message : a.products.saveFailed);
     } finally {
+      savingRef.current = false;
       setBusy(false);
     }
   }
@@ -417,10 +432,17 @@ export function AdminDashboardView() {
   }
 
   async function onUploadImage(file: File | null) {
-    if (!file || !token) return;
+    if (!file) return;
+    if (savingRef.current) return;
+    const authToken = readStoredToken();
+    if (!authToken) {
+      flashError('Session expired — please log in again');
+      return;
+    }
+    savingRef.current = true;
     setBusy(true);
     try {
-      const uploaded = await uploadImage(file, token);
+      const uploaded = await uploadImage(file, authToken);
       const fullUrl = `${API_ORIGIN}${uploaded.url}`;
       setProductForm((prev) => ({
         ...prev,
@@ -430,6 +452,7 @@ export function AdminDashboardView() {
     } catch (uploadError) {
       flashError(uploadError instanceof Error ? uploadError.message : a.products.uploadFailed);
     } finally {
+      savingRef.current = false;
       setBusy(false);
     }
   }
