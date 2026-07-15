@@ -198,37 +198,41 @@ export class ProductsService {
       ? dedupeUrls(dto.images.map((url) => this.normalizeImageUrl(url)).filter(Boolean))
       : [];
 
-    const product = await this.prisma.product.create({
-      data: {
-        title: dto.title,
-        slug: dto.slug,
-        sku: dto.sku,
-        description: dto.description,
-        price: dto.price,
-        categoryId: dto.categoryId,
-        sizeLabel: dto.size,
-        material: dto.material,
-        weightKg: dto.weightKg,
-        lengthCm: dto.lengthCm != null ? Math.round(dto.lengthCm) : dto.lengthCm,
-        widthCm: dto.widthCm != null ? Math.round(dto.widthCm) : dto.widthCm,
-        heightCm: dto.heightCm != null ? Math.round(dto.heightCm) : dto.heightCm,
-        isActive: publication.isActive,
-        images: imageUrls.length
-          ? {
-              create: imageUrls.map((url, index) => ({ url, sortOrder: index, isPrimary: index === 0 }))
-            }
-          : undefined,
-        attributes:
-          colorAttribute && dto.color
+    try {
+      const product = await this.prisma.product.create({
+        data: {
+          title: dto.title,
+          slug: dto.slug,
+          sku: dto.sku,
+          description: dto.description,
+          price: dto.price,
+          categoryId: dto.categoryId,
+          sizeLabel: dto.size,
+          material: dto.material,
+          weightKg: dto.weightKg,
+          lengthCm: dto.lengthCm != null ? Math.round(dto.lengthCm) : dto.lengthCm,
+          widthCm: dto.widthCm != null ? Math.round(dto.widthCm) : dto.widthCm,
+          heightCm: dto.heightCm != null ? Math.round(dto.heightCm) : dto.heightCm,
+          isActive: publication.isActive,
+          images: imageUrls.length
             ? {
-                create: [{ attributeId: colorAttribute.id, value: dto.color }]
+                create: imageUrls.map((url, index) => ({ url, sortOrder: index, isPrimary: index === 0 }))
               }
-            : undefined
-      },
-      include: PRODUCT_INCLUDE
-    });
+            : undefined,
+          attributes:
+            colorAttribute && dto.color
+              ? {
+                  create: [{ attributeId: colorAttribute.id, value: dto.color }]
+                }
+              : undefined
+        },
+        include: PRODUCT_INCLUDE
+      });
 
-    return this.serializeProduct(product);
+      return this.serializeProduct(product);
+    } catch (error) {
+      throw this.mapProductWriteError(error);
+    }
   }
 
   async updateProduct(id: string, dto: UpdateProductDto) {
@@ -362,7 +366,10 @@ export class ProductsService {
   private mapProductWriteError(error: unknown): Error {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       const target = Array.isArray(error.meta?.target) ? error.meta.target.join(', ') : 'field';
-      return new BadRequestException(`A product with this ${target} already exists`);
+      return new BadRequestException(`A product with this ${target} already exists — use a unique slug/SKU`);
+    }
+    if (error instanceof Prisma.PrismaClientValidationError) {
+      return new BadRequestException('Invalid product data — check price, shipping numbers, and required fields');
     }
     if (error instanceof Error) return error;
     return new BadRequestException('Failed to save product');
@@ -393,9 +400,14 @@ export class ProductsService {
     }
 
     if (!path.startsWith('/')) path = `/${path}`;
-    // /uploads/... is not reliably served in production — prefer /api/media/...
+    // /uploads/... → media file route (avoid nginx stealing *.png under /api/)
     if (path.startsWith('/uploads/')) {
-      return `/api/media/${path.slice('/uploads/'.length)}`;
+      const name = path.slice('/uploads/'.length);
+      return `/api/media/file/${name.replace(/\./g, '~')}`;
+    }
+    if (/^\/api\/media\/[^/]+\.(png|jpe?g|webp|gif)$/i.test(path)) {
+      const name = path.slice('/api/media/'.length);
+      return `/api/media/file/${name.replace(/\./g, '~')}`;
     }
     return path;
   }

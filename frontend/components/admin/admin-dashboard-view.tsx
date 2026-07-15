@@ -116,7 +116,12 @@ function resolveAdminImageSrc(url: string) {
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
   const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
   if (path.startsWith('/uploads/')) {
-    return `${API_ORIGIN}/api/media/${path.slice('/uploads/'.length)}`;
+    const name = path.slice('/uploads/'.length);
+    return `${API_ORIGIN}/api/media/file/${name.replace(/\./g, '~')}`;
+  }
+  if (/^\/api\/media\/[^/]+\.(png|jpe?g|webp|gif)$/i.test(path)) {
+    const name = path.slice('/api/media/'.length);
+    return `${API_ORIGIN}/api/media/file/${name.replace(/\./g, '~')}`;
   }
   if (path.startsWith('/api/')) {
     return `${API_ORIGIN}${path}`;

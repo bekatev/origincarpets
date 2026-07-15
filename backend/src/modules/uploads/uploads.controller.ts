@@ -3,9 +3,9 @@ import {
   Body,
   Controller,
   Get,
-  NotFoundException,
   Param,
   Post,
+  Query,
   Res,
   UploadedFile,
   UseGuards,
@@ -16,7 +16,7 @@ import { memoryStorage } from 'multer';
 import { randomUUID } from 'crypto';
 import { existsSync } from 'fs';
 import { writeFile } from 'fs/promises';
-import { extname, join } from 'path';
+import { extname, join, resolve as resolvePath } from 'path';
 import type { Response } from 'express';
 import { IsOptional, IsString, MinLength } from 'class-validator';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -61,6 +61,15 @@ function decodeBase64Payload(data: string) {
   return Buffer.from(raw.replace(/\s/g, ''), 'base64');
 }
 
+/** Encode so URL does not end in .png/.jpg (nginx steals those from /api/). */
+export function encodeMediaFileName(storedName: string) {
+  return storedName.replace(/\./g, '~');
+}
+
+export function decodeMediaFileName(encoded: string) {
+  return encoded.replace(/~/g, '.');
+}
+
 async function persistImage(buffer: Buffer, filename: string, contentType?: string) {
   if (!buffer.length) {
     throw new BadRequestException('File is empty');
@@ -78,30 +87,49 @@ async function persistImage(buffer: Buffer, filename: string, contentType?: stri
   const storedName = `${Date.now()}-${randomUUID()}${resolvedExt}`;
   await writeFile(join(target.dir, storedName), buffer);
 
+  // Always use Nest media URLs that avoid image-extension nginx hijacking.
+  // Legacy mode still writes into the nginx folder when configured, but public URL stays under /api/media/file/...
   return {
-    url: target.publicUrl(storedName),
+    url: `/api/media/file/${encodeMediaFileName(storedName)}`,
+    storedName,
     mode: target.mode
   };
 }
 
-/** Public image files — no auth (used by shop + admin previews). */
+function sendMediaFile(filename: string, res: Response) {
+  if (!SAFE_NAME.test(filename) || filename.includes('..')) {
+    return res.status(400).json({ message: 'Invalid filename' });
+  }
+
+  for (const dir of resolveMediaSearchDirs()) {
+    const fullPath = resolvePath(join(dir, filename));
+    if (existsSync(fullPath)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      return res.sendFile(fullPath);
+    }
+  }
+
+  return res.status(404).json({ message: 'Image not found' });
+}
+
+/**
+ * Public image files — no auth.
+ * IMPORTANT: do not use URLs that end in .png/.jpg/.webp/.gif — production nginx
+ * routes those to Next.js instead of the API.
+ */
 @Controller('media')
 export class MediaController {
-  @Get(':filename')
-  serve(@Param('filename') filename: string, @Res() res: Response) {
-    if (!SAFE_NAME.test(filename) || filename.includes('..')) {
-      throw new BadRequestException('Invalid filename');
-    }
+  @Get('file/:encodedName')
+  serveEncoded(@Param('encodedName') encodedName: string, @Res() res: Response) {
+    return sendMediaFile(decodeMediaFileName(encodedName), res);
+  }
 
-    for (const dir of resolveMediaSearchDirs()) {
-      const fullPath = join(dir, filename);
-      if (existsSync(fullPath)) {
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-        return res.sendFile(fullPath);
-      }
+  @Get('download')
+  serveQuery(@Query('f') fileName: string | undefined, @Res() res: Response) {
+    if (!fileName?.trim()) {
+      return res.status(400).json({ message: 'Missing file' });
     }
-
-    throw new NotFoundException('Image not found');
+    return sendMediaFile(fileName.trim(), res);
   }
 }
 

@@ -81,9 +81,15 @@ function toPublicImageUrl(url: unknown): string {
   }
 
   const path = url.startsWith('/') ? url : `/${url}`;
-  // Older admin uploads were stored under /uploads/... which is not reliably served in prod.
+  // Older admin uploads under /uploads/... → Nest media endpoint
   if (path.startsWith('/uploads/')) {
-    return `/api/media/${path.slice('/uploads/'.length)}`;
+    const name = path.slice('/uploads/'.length);
+    return `/api/media/file/${name.replace(/\./g, '~')}`;
+  }
+  // Older /api/media/file.png URLs are stolen by nginx image regex — rewrite.
+  if (/^\/api\/media\/[^/]+\.(png|jpe?g|webp|gif)$/i.test(path)) {
+    const name = path.slice('/api/media/'.length);
+    return `/api/media/file/${name.replace(/\./g, '~')}`;
   }
   return path;
 }
