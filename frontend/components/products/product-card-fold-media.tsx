@@ -62,25 +62,22 @@ export function ProductCardFoldMedia({
     <div
       className={`product-reveal group/media relative aspect-square overflow-hidden bg-[var(--oc-bg-secondary)] ${className}`}
     >
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0">
-          {/* Native img — legacy product files are served by nginx at the site root, not via /_next/image */}
-          <img
-            key={src}
-            src={src}
-            alt={alt}
-            loading={priority && safeIndex === 0 ? 'eager' : 'lazy'}
-            decoding="async"
-            className="h-full w-full object-contain"
-          />
-        </div>
+      <div className="absolute inset-0 overflow-hidden p-2 sm:p-3">
+        {/* Native img — legacy product files are served by nginx at the site root, not via /_next/image */}
+        <img
+          key={src}
+          src={src}
+          alt={alt}
+          loading={priority && safeIndex === 0 ? 'eager' : 'lazy'}
+          decoding="async"
+          className="h-full w-full object-contain"
+        />
       </div>
 
-      <div className="product-reveal__panel absolute inset-0 overflow-hidden" aria-hidden>
-        <div
-          className="product-reveal__panel-inner h-full w-full bg-contain bg-center bg-no-repeat"
-          style={{ backgroundImage: `url("${src}")`, backgroundColor: 'var(--oc-bg-secondary)' }}
-        />
+      <div className="product-reveal__panel absolute inset-0 overflow-hidden bg-[var(--oc-bg-secondary)]" aria-hidden>
+        <div className="product-reveal__panel-inner h-full w-full p-2 sm:p-3">
+          <img src={src} alt="" className="h-full w-full object-contain" />
+        </div>
       </div>
 
       {hasMultiple ? (
