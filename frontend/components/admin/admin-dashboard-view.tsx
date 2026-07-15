@@ -234,15 +234,6 @@ export function AdminDashboardView() {
       .finally(() => setLoading(false));
   }, [token, isAdmin, a.loadFailed]);
 
-  const parsedImages = useMemo(
-    () =>
-      productForm.imagesText
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean),
-    [productForm.imagesText]
-  );
-
   const tabs: Array<{ id: AdminTab; label: string }> = [
     { id: 'overview', label: a.tabs.overview },
     { id: 'orders', label: a.tabs.orders },
@@ -286,7 +277,12 @@ export function AdminDashboardView() {
     if (!token) return;
     setBusy(true);
     const wasEditing = Boolean(editingProductId);
+    const editingId = editingProductId;
     try {
+      const images = productForm.imagesText
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
       const payload = {
         title: productForm.title,
         slug: productForm.slug,
@@ -301,19 +297,42 @@ export function AdminDashboardView() {
         lengthCm: parseOptionalNumber(productForm.lengthCm),
         widthCm: parseOptionalNumber(productForm.widthCm),
         heightCm: parseOptionalNumber(productForm.heightCm),
-        images: parsedImages,
+        images,
         isPublished: productForm.isPublished
       };
-      const path = editingProductId ? `/products/${editingProductId}` : '/products';
-      await apiRequest(path, token, {
-        method: editingProductId ? 'PATCH' : 'POST',
+      const path = editingId ? `/products/admin/${editingId}` : '/products';
+      const saved = await apiRequest<Product>(path, token, {
+        method: editingId ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       await loadAll(token);
-      setProductForm((prev) => ({ ...emptyProduct, categoryId: prev.categoryId || categories[0]?.id || '' }));
-      setEditingProductId(null);
-      flash(wasEditing ? a.products.updated : a.products.created);
+      if (wasEditing && editingId) {
+        const next = normalizeProduct(saved);
+        setEditingProductId(next.id);
+        setProductForm({
+          title: next.title,
+          slug: next.slug,
+          sku: next.sku,
+          description: next.description,
+          price: next.price.toString(),
+          categoryId: next.category.id,
+          size: next.attributes.size ?? '',
+          color: next.attributes.color ?? '',
+          material: next.attributes.material ?? '',
+          weightKg: next.shipping?.weightKg?.toString() ?? '',
+          lengthCm: next.shipping?.lengthCm?.toString() ?? '',
+          widthCm: next.shipping?.widthCm?.toString() ?? '',
+          heightCm: next.shipping?.heightCm?.toString() ?? '',
+          imagesText: next.images.join('\n'),
+          isPublished: next.isPublished
+        });
+        flash(`${a.products.updated} · ${next.images.length} image(s) saved`);
+      } else {
+        setProductForm((prev) => ({ ...emptyProduct, categoryId: prev.categoryId || categories[0]?.id || '' }));
+        setEditingProductId(null);
+        flash(a.products.created);
+      }
       setTab('products');
     } catch (actionError) {
       flashError(actionError instanceof Error ? actionError.message : a.products.saveFailed);
@@ -344,7 +363,7 @@ export function AdminDashboardView() {
     }
     setBusy(true);
     try {
-      await apiRequest(`/products/${product.id}`, token, {
+      await apiRequest(`/products/admin/${product.id}`, token, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isPublished: !product.isPublished })
@@ -897,6 +916,15 @@ function ProductsTab({
   const [showMissingShippingOnly, setShowMissingShippingOnly] = useState(false);
   const [showUnpublishedOnly, setShowUnpublishedOnly] = useState(false);
 
+  const parsedImages = useMemo(
+    () =>
+      productForm.imagesText
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean),
+    [productForm.imagesText]
+  );
+
   const visibleProducts = useMemo(() => {
     let list = products;
     if (showMissingShippingOnly) {
@@ -1056,6 +1084,37 @@ function ProductsTab({
             <input type="file" accept="image/*" className="text-sm" onChange={(e) => onUpload(e.target.files?.[0] ?? null)} />
           </Field>
           <Field label={a.products.imageUrls}>
+            {parsedImages.length ? (
+              <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {parsedImages.map((url, index) => (
+                  <div key={`${url}-${index}`} className="relative overflow-hidden border border-[var(--oc-line)] bg-[var(--oc-bg-secondary)]">
+                    <div className="relative aspect-square">
+                      <Image src={url.startsWith('http') ? url : `${API_ORIGIN}${url}`} alt="" fill className="object-contain p-1" unoptimized />
+                    </div>
+                    <button
+                      type="button"
+                      className="absolute right-1 top-1 bg-[var(--oc-ink)] px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-[var(--oc-bg)]"
+                      onClick={() =>
+                        setProductForm((prev) => ({
+                          ...prev,
+                          imagesText: prev.imagesText
+                            .split('\n')
+                            .map((line) => line.trim())
+                            .filter(Boolean)
+                            .filter((_, i) => i !== index)
+                            .join('\n')
+                        }))
+                      }
+                    >
+                      {a.products.removeImage}
+                    </button>
+                    <p className="truncate px-2 py-1 text-[10px] text-[var(--oc-muted)]">{index + 1}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mb-2 text-xs text-[var(--oc-muted)]">{a.products.noImages}</p>
+            )}
             <textarea className="oc-input min-h-24 font-mono text-xs" value={productForm.imagesText} onChange={(e) => setProductForm((p) => ({ ...p, imagesText: e.target.value }))} />
           </Field>
           <div className="flex flex-wrap gap-3">
@@ -1131,7 +1190,11 @@ function ProductsTab({
                 {product.images[0] && (
                   <div className="relative aspect-[4/3] border-b border-[var(--oc-line)] bg-[var(--oc-bg-secondary)]">
                     <img
-                      src={product.images[0]}
+                      src={
+                        product.images[0].startsWith('http')
+                          ? product.images[0]
+                          : `${API_ORIGIN}${product.images[0].startsWith('/') ? '' : '/'}${product.images[0]}`
+                      }
                       alt={product.title}
                       loading="lazy"
                       decoding="async"
@@ -1145,6 +1208,7 @@ function ProductsTab({
                   </div>
                   <p className="mt-1 text-xs text-[var(--oc-muted)]">
                     {product.sku} · {product.category.name} · ${product.price.toFixed(2)}
+                    {product.images.length > 0 ? ` · ${product.images.length} img` : ''}
                   </p>
                   <p
                     className={cn(

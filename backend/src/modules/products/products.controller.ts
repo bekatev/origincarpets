@@ -28,11 +28,7 @@ export class ProductsController {
     return this.productsService.listFilterOptions();
   }
 
-  @Get(':slug')
-  detail(@Param('slug') slug: string) {
-    return this.productsService.getBySlug(slug);
-  }
-
+  /** Admin routes must be registered before `:slug` / `:id` params. */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Get('admin/all')
@@ -77,6 +73,13 @@ export class ProductsController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @Patch('admin/:id')
+  adminUpdate(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    return this.productsService.updateProduct(id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
     return this.productsService.updateProduct(id, dto);
@@ -87,5 +90,10 @@ export class ProductsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productsService.deleteProduct(id);
+  }
+
+  @Get(':slug')
+  detail(@Param('slug') slug: string) {
+    return this.productsService.getBySlug(slug);
   }
 }

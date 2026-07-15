@@ -3,7 +3,6 @@ import {
   ArrayMaxSize,
   IsArray,
   IsBoolean,
-  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -30,7 +29,7 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsString()
-  @MinLength(10)
+  @MinLength(1)
   description?: string;
 
   @IsOptional()
@@ -64,22 +63,22 @@ export class UpdateProductDto {
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  @Min(10)
+  @IsNumber()
+  @Min(1)
   @Max(1000)
   lengthCm?: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  @Min(10)
+  @IsNumber()
+  @Min(1)
   @Max(1000)
   widthCm?: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  @Min(5)
+  @IsNumber()
+  @Min(1)
   @Max(200)
   heightCm?: number;
 

@@ -204,7 +204,10 @@ export class ProductsService {
         isActive: publication.isActive,
         images: dto.images?.length
           ? {
-              create: dto.images.map((url, index) => ({ url, sortOrder: index, isPrimary: index === 0 }))
+              create: dto.images
+                .map((url) => this.normalizeImageUrl(url))
+                .filter(Boolean)
+                .map((url, index) => ({ url, sortOrder: index, isPrimary: index === 0 }))
             }
           : undefined,
         attributes:
@@ -229,9 +232,12 @@ export class ProductsService {
       await this.ensureCategoryExists(dto.categoryId);
     }
 
-    const colorAttribute = dto.color ? await this.getOrCreateColorAttribute() : null;
-
-    const shipping = mergeShippingFields(existing, dto);
+    const shipping = mergeShippingFields(existing, {
+      weightKg: dto.weightKg,
+      lengthCm: dto.lengthCm != null ? Math.round(dto.lengthCm) : dto.lengthCm,
+      widthCm: dto.widthCm != null ? Math.round(dto.widthCm) : dto.widthCm,
+      heightCm: dto.heightCm != null ? Math.round(dto.heightCm) : dto.heightCm
+    });
     const requestedPublished =
       dto.isPublished !== undefined
         ? dto.isPublished
@@ -247,45 +253,60 @@ export class ProductsService {
       throw new BadRequestException(CANNOT_PUBLISH_INCOMPLETE_SHIPPING);
     }
 
-    await this.prisma.product.update({
-      where: { id },
-      data: {
-        ...(dto.title !== undefined ? { title: dto.title } : {}),
-        ...(dto.slug !== undefined ? { slug: dto.slug } : {}),
-        ...(dto.sku !== undefined ? { sku: dto.sku } : {}),
-        ...(dto.description !== undefined ? { description: dto.description } : {}),
-        ...(dto.price !== undefined ? { price: dto.price } : {}),
-        ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
-        ...(dto.size !== undefined ? { sizeLabel: dto.size } : {}),
-        ...(dto.material !== undefined ? { material: dto.material } : {}),
-        ...(dto.weightKg !== undefined ? { weightKg: dto.weightKg } : {}),
-        ...(dto.lengthCm !== undefined ? { lengthCm: dto.lengthCm } : {}),
-        ...(dto.widthCm !== undefined ? { widthCm: dto.widthCm } : {}),
-        ...(dto.heightCm !== undefined ? { heightCm: dto.heightCm } : {}),
-        isActive: publication.isActive
+    const imageUrls =
+      dto.images !== undefined
+        ? dto.images.map((url) => this.normalizeImageUrl(url)).filter(Boolean)
+        : undefined;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id },
+        data: {
+          ...(dto.title !== undefined ? { title: dto.title } : {}),
+          ...(dto.slug !== undefined ? { slug: dto.slug } : {}),
+          ...(dto.sku !== undefined ? { sku: dto.sku } : {}),
+          ...(dto.description !== undefined ? { description: dto.description } : {}),
+          ...(dto.price !== undefined ? { price: dto.price } : {}),
+          ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
+          ...(dto.size !== undefined ? { sizeLabel: dto.size } : {}),
+          ...(dto.material !== undefined ? { material: dto.material } : {}),
+          ...(dto.weightKg !== undefined ? { weightKg: dto.weightKg } : {}),
+          ...(dto.lengthCm !== undefined ? { lengthCm: Math.round(dto.lengthCm) } : {}),
+          ...(dto.widthCm !== undefined ? { widthCm: Math.round(dto.widthCm) } : {}),
+          ...(dto.heightCm !== undefined ? { heightCm: Math.round(dto.heightCm) } : {}),
+          isActive: publication.isActive
+        }
+      });
+
+      if (imageUrls !== undefined) {
+        await tx.productImage.deleteMany({ where: { productId: id } });
+        if (imageUrls.length) {
+          await tx.productImage.createMany({
+            data: imageUrls.map((url, index) => ({
+              productId: id,
+              url,
+              sortOrder: index,
+              isPrimary: index === 0
+            }))
+          });
+        }
+      }
+
+      if (dto.color !== undefined) {
+        const attribute = await this.getOrCreateColorAttribute();
+        if (!dto.color.trim()) {
+          await tx.productAttributeValue.deleteMany({
+            where: { productId: id, attributeId: attribute.id }
+          });
+        } else {
+          await tx.productAttributeValue.upsert({
+            where: { productId_attributeId: { productId: id, attributeId: attribute.id } },
+            update: { value: dto.color.trim() },
+            create: { productId: id, attributeId: attribute.id, value: dto.color.trim() }
+          });
+        }
       }
     });
-
-    if (dto.images) {
-      await this.prisma.productImage.deleteMany({ where: { productId: id } });
-      if (dto.images.length) {
-        await this.prisma.productImage.createMany({
-          data: dto.images.map((url, index) => ({ productId: id, url, sortOrder: index, isPrimary: index === 0 }))
-        });
-      }
-    }
-
-    if (dto.color !== undefined) {
-      if (!colorAttribute) {
-        throw new BadRequestException('Color attribute config failed');
-      }
-
-      await this.prisma.productAttributeValue.upsert({
-        where: { productId_attributeId: { productId: id, attributeId: colorAttribute.id } },
-        update: { value: dto.color },
-        create: { productId: id, attributeId: colorAttribute.id, value: dto.color }
-      });
-    }
 
     const refreshed = await this.prisma.product.findUnique({ where: { id }, include: PRODUCT_INCLUDE });
     if (!refreshed) {
@@ -293,6 +314,29 @@ export class ProductsService {
     }
 
     return this.serializeProduct(refreshed);
+  }
+
+  private normalizeImageUrl(url: string) {
+    const trimmed = url.trim();
+    if (!trimmed) return '';
+    try {
+      if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        const parsed = new URL(trimmed);
+        const host = parsed.hostname;
+        const isOwnHost =
+          host === 'origincarpets.com' ||
+          host === 'www.origincarpets.com' ||
+          host === 'localhost' ||
+          host === '127.0.0.1';
+        // Persist site-relative paths so images work across envs / behind nginx.
+        if (isOwnHost || parsed.pathname.startsWith('/uploads/')) {
+          return parsed.pathname || trimmed;
+        }
+      }
+    } catch {
+      return trimmed;
+    }
+    return trimmed.startsWith('/') ? trimmed : trimmed;
   }
 
   async deleteProduct(id: string) {
