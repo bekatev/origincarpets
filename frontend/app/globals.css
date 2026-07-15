@@ -213,6 +213,17 @@ html.dark ::selection {
   .product-reveal:hover .product-reveal__panel-inner {
     transform: translateX(0) scale(1.25);
   }
+
+  /* Arrow navigation: keep the new slide at rest size (full carpet) until pointer leaves. */
+  .product-reveal--browsing:hover .product-reveal__panel,
+  .product-reveal--browsing .product-reveal__panel {
+    transform: translateX(100%);
+  }
+
+  .product-reveal--browsing:hover .product-reveal__panel-inner,
+  .product-reveal--browsing .product-reveal__panel-inner {
+    transform: translateX(-100%) scale(1.5);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -228,6 +239,16 @@ html.dark ::selection {
 
     .product-reveal:hover .product-reveal__panel-inner {
       transform: translateX(0) scale(1.1);
+    }
+
+    .product-reveal--browsing:hover .product-reveal__panel,
+    .product-reveal--browsing .product-reveal__panel {
+      transform: translateX(100%);
+    }
+
+    .product-reveal--browsing:hover .product-reveal__panel-inner,
+    .product-reveal--browsing .product-reveal__panel-inner {
+      transform: translateX(-100%) scale(1.5);
     }
   }
 }
