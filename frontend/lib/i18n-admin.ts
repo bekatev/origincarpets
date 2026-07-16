@@ -137,7 +137,10 @@ export const adminTranslations = {
         deleteFailed: 'Failed to delete product',
         uploadSuccess: 'Image uploaded',
         uploadFailed: 'Image upload failed',
-        inactive: 'Unpublished'
+        inactive: 'Unpublished',
+        viewLabel: 'Display',
+        viewGrid: 'Grid view',
+        viewList: 'List view'
       }
     }
   },
@@ -279,7 +282,10 @@ export const adminTranslations = {
         deleteFailed: 'პროდუქტის წაშლა ვერ მოხერხდა',
         uploadSuccess: 'სურათი აიტვირთა',
         uploadFailed: 'სურათის ატვირთვა ვერ მოხერხდა',
-        inactive: 'გამოუქვეყნებელი'
+        inactive: 'გამოუქვეყნებელი',
+        viewLabel: 'ხედი',
+        viewGrid: 'ბადის ხედი',
+        viewList: 'სიის ხედი'
       }
     }
   }

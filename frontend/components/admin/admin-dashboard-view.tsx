@@ -1029,6 +1029,25 @@ function ProductsTab({
 }) {
   const [showMissingShippingOnly, setShowMissingShippingOnly] = useState(false);
   const [showUnpublishedOnly, setShowUnpublishedOnly] = useState(false);
+  const [view, setView] = useState<'grid' | 'list'>('grid');
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem('oc-admin-products-view');
+      if (stored === 'list' || stored === 'grid') setView(stored);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const setViewMode = (next: 'grid' | 'list') => {
+    setView(next);
+    try {
+      window.localStorage.setItem('oc-admin-products-view', next);
+    } catch {
+      /* ignore */
+    }
+  };
 
   const parsedImages = useMemo(
     () =>
@@ -1271,7 +1290,43 @@ function ProductsTab({
                 .replace('{inactive}', String(unpublishedCount))}
             </p>
           </div>
-          <div className="flex flex-col gap-2 sm:items-end">
+          <div className="flex flex-col gap-3 sm:items-end">
+            <div
+              className="inline-flex items-center gap-1 rounded-sm border border-[var(--oc-line)] p-0.5"
+              role="group"
+              aria-label={a.products.viewLabel}
+            >
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                aria-pressed={view === 'list'}
+                aria-label={a.products.viewList}
+                title={a.products.viewList}
+                className={cn(
+                  'inline-flex h-9 w-9 items-center justify-center rounded-[2px] transition',
+                  view === 'list'
+                    ? 'bg-[var(--oc-ink)] text-[var(--oc-paper)]'
+                    : 'text-[var(--oc-muted)] hover:text-[var(--oc-ink)]'
+                )}
+              >
+                <AdminListIcon />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                aria-pressed={view === 'grid'}
+                aria-label={a.products.viewGrid}
+                title={a.products.viewGrid}
+                className={cn(
+                  'inline-flex h-9 w-9 items-center justify-center rounded-[2px] transition',
+                  view === 'grid'
+                    ? 'bg-[var(--oc-ink)] text-[var(--oc-paper)]'
+                    : 'text-[var(--oc-muted)] hover:text-[var(--oc-ink)]'
+                )}
+              >
+                <AdminGridIcon />
+              </button>
+            </div>
             <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--oc-muted)]">
               <input
                 type="checkbox"
@@ -1312,78 +1367,211 @@ function ProductsTab({
                 : a.products.emptyMissingShipping
             }
           />
+        ) : view === 'list' ? (
+          <div className="flex flex-col gap-3">
+            {visibleProducts.map((product) => (
+              <AdminProductCard
+                key={product.id}
+                product={product}
+                a={a}
+                busy={busy}
+                variant="list"
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onTogglePublished={onTogglePublished}
+              />
+            ))}
+          </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {visibleProducts.map((product) => (
-              <article key={product.id} className="oc-surface overflow-hidden">
-                {product.images[0] && (
-                  <div className="relative aspect-[4/3] border-b border-[var(--oc-line)] bg-[var(--oc-bg-secondary)]">
-                    <img
-                      src={resolveAdminImageSrc(product.images[0])}
-                      alt={product.title}
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                )}
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-display text-base uppercase tracking-[0.06em]">{product.title}</h3>
-                  </div>
-                  <p className="mt-1 text-xs text-[var(--oc-muted)]">
-                    {product.sku} · {product.category.name} · ${product.price.toFixed(2)}
-                    {product.images.length > 0 ? ` · ${product.images.length} img` : ''}
-                  </p>
-                  <p
-                    className={cn(
-                      'mt-1 text-[10px] uppercase tracking-[0.12em]',
-                      product.isPublished ? 'text-green-700' : 'text-slate-600 dark:text-slate-400'
-                    )}
-                  >
-                    {product.isPublished ? a.products.published : a.products.unpublished}
-                  </p>
-                  <p className={cn('mt-1 text-[10px] uppercase tracking-[0.12em]', hasShippingData(product.shipping) ? 'text-green-700' : 'text-amber-700')}>
-                    {hasShippingData(product.shipping) ? a.products.shippingReady : a.products.shippingMissing}
-                  </p>
-                  <label
-                    className={cn(
-                      'mt-3 flex items-center gap-2 text-xs text-[var(--oc-muted)]',
-                      hasShippingData(product.shipping) || product.isPublished ? 'cursor-pointer' : 'cursor-not-allowed opacity-70'
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={product.isPublished}
-                      disabled={busy || (!product.isPublished && !hasShippingData(product.shipping))}
-                      onChange={() => onTogglePublished(product)}
-                      className="h-4 w-4 accent-[var(--oc-ink)] disabled:cursor-not-allowed"
-                    />
-                    <span>{a.products.isPublished}</span>
-                  </label>
-                  <div className="mt-4 flex flex-wrap gap-4 text-xs uppercase tracking-[0.14em]">
-                    <button type="button" className="text-[var(--oc-brand)] hover:underline" onClick={() => onEdit(product)}>
-                      {a.products.editBtn}
-                    </button>
-                    <button
-                      type="button"
-                      className="text-[var(--oc-muted)] hover:text-[var(--oc-ink)] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-                      disabled={busy || (!product.isPublished && !hasShippingData(product.shipping))}
-                      onClick={() => onTogglePublished(product)}
-                    >
-                      {product.isPublished ? a.products.unpublishBtn : a.products.publishBtn}
-                    </button>
-                    <button type="button" className="text-red-600 hover:underline dark:text-red-400" onClick={() => onDelete(product.id)}>
-                      {a.products.deleteBtn}
-                    </button>
-                  </div>
-                </div>
-              </article>
+              <AdminProductCard
+                key={product.id}
+                product={product}
+                a={a}
+                busy={busy}
+                variant="grid"
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onTogglePublished={onTogglePublished}
+              />
             ))}
           </div>
         )}
       </section>
     </div>
+  );
+}
+
+function AdminGridIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3" y="3" width="7" height="7" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="14" y="3" width="7" height="7" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="3" y="14" width="7" height="7" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="14" y="14" width="7" height="7" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function AdminListIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M8 6h13M8 12h13M8 18h13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <rect x="3" y="5" width="2.5" height="2.5" fill="currentColor" />
+      <rect x="3" y="11" width="2.5" height="2.5" fill="currentColor" />
+      <rect x="3" y="17" width="2.5" height="2.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function AdminProductCard({
+  product,
+  a,
+  busy,
+  variant,
+  onEdit,
+  onDelete,
+  onTogglePublished
+}: {
+  product: Product;
+  a: AdminDict;
+  busy: boolean;
+  variant: 'grid' | 'list';
+  onEdit: (product: Product) => void;
+  onDelete: (id: string) => void;
+  onTogglePublished: (product: Product) => void;
+}) {
+  const meta = (
+    <p className="mt-1 text-xs text-[var(--oc-muted)]">
+      {product.sku} · {product.category.name} · ${product.price.toFixed(2)}
+      {product.images.length > 0 ? ` · ${product.images.length} img` : ''}
+      {[product.attributes.size, product.attributes.material, product.attributes.color]
+        .filter(Boolean)
+        .map((value) => ` · ${value}`)
+        .join('')}
+    </p>
+  );
+
+  const status = (
+    <>
+      <p
+        className={cn(
+          'mt-1 text-[10px] uppercase tracking-[0.12em]',
+          product.isPublished ? 'text-green-700' : 'text-slate-600 dark:text-slate-400'
+        )}
+      >
+        {product.isPublished ? a.products.published : a.products.unpublished}
+      </p>
+      <p
+        className={cn(
+          'mt-1 text-[10px] uppercase tracking-[0.12em]',
+          hasShippingData(product.shipping) ? 'text-green-700' : 'text-amber-700'
+        )}
+      >
+        {hasShippingData(product.shipping) ? a.products.shippingReady : a.products.shippingMissing}
+      </p>
+    </>
+  );
+
+  const actions = (
+    <>
+      <label
+        className={cn(
+          'flex items-center gap-2 text-xs text-[var(--oc-muted)]',
+          hasShippingData(product.shipping) || product.isPublished
+            ? 'cursor-pointer'
+            : 'cursor-not-allowed opacity-70'
+        )}
+      >
+        <input
+          type="checkbox"
+          checked={product.isPublished}
+          disabled={busy || (!product.isPublished && !hasShippingData(product.shipping))}
+          onChange={() => onTogglePublished(product)}
+          className="h-4 w-4 accent-[var(--oc-ink)] disabled:cursor-not-allowed"
+        />
+        <span>{a.products.isPublished}</span>
+      </label>
+      <div className="flex flex-wrap gap-4 text-xs uppercase tracking-[0.14em]">
+        <button
+          type="button"
+          className="text-[var(--oc-brand)] hover:underline"
+          onClick={() => onEdit(product)}
+        >
+          {a.products.editBtn}
+        </button>
+        <button
+          type="button"
+          className="text-[var(--oc-muted)] hover:text-[var(--oc-ink)] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={busy || (!product.isPublished && !hasShippingData(product.shipping))}
+          onClick={() => onTogglePublished(product)}
+        >
+          {product.isPublished ? a.products.unpublishBtn : a.products.publishBtn}
+        </button>
+        <button
+          type="button"
+          className="text-red-600 hover:underline dark:text-red-400"
+          onClick={() => onDelete(product.id)}
+        >
+          {a.products.deleteBtn}
+        </button>
+      </div>
+    </>
+  );
+
+  if (variant === 'list') {
+    return (
+      <article className="oc-surface overflow-hidden">
+        <div className="flex flex-col sm:flex-row">
+          {product.images[0] ? (
+            <div className="relative aspect-[4/3] w-full shrink-0 border-b border-[var(--oc-line)] bg-[var(--oc-bg-secondary)] sm:aspect-square sm:w-[180px] sm:border-b-0 sm:border-r md:w-[220px]">
+              <img
+                src={resolveAdminImageSrc(product.images[0])}
+                alt={product.title}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="hidden w-[180px] shrink-0 bg-[var(--oc-bg-secondary)] sm:block md:w-[220px]" />
+          )}
+          <div className="flex min-w-0 flex-1 flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center sm:gap-6">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-display text-base uppercase tracking-[0.06em]">{product.title}</h3>
+              {meta}
+              {status}
+            </div>
+            <div className="flex shrink-0 flex-col gap-3 border-t border-[var(--oc-line)] pt-3 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
+              {actions}
+            </div>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  return (
+    <article className="oc-surface overflow-hidden">
+      {product.images[0] && (
+        <div className="relative aspect-[4/3] border-b border-[var(--oc-line)] bg-[var(--oc-bg-secondary)]">
+          <img
+            src={resolveAdminImageSrc(product.images[0])}
+            alt={product.title}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
+        </div>
+      )}
+      <div className="p-4">
+        <h3 className="font-display text-base uppercase tracking-[0.06em]">{product.title}</h3>
+        {meta}
+        {status}
+        <div className="mt-3 space-y-3">{actions}</div>
+      </div>
+    </article>
   );
 }
 
