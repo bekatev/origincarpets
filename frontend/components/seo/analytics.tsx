@@ -1,11 +1,21 @@
+import { getSiteUrl } from '@/lib/seo';
+
 /**
  * Umami Cloud analytics — cookieless, GDPR-friendly (no consent banner needed).
+ * Served through our own domain (/oc.js + /oc/api/send rewrites) so ad-blockers
+ * that blacklist cloud.umami.is don't drop the visits.
  * Renders nothing until NEXT_PUBLIC_UMAMI_WEBSITE_ID is configured.
  */
-const UMAMI_SRC = process.env.NEXT_PUBLIC_UMAMI_SRC || 'https://cloud.umami.is/script.js';
 const UMAMI_WEBSITE_ID = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID || '';
 
 export function Analytics() {
   if (!UMAMI_WEBSITE_ID) return null;
-  return <script defer src={UMAMI_SRC} data-website-id={UMAMI_WEBSITE_ID} />;
+  return (
+    <script
+      defer
+      src="/oc.js"
+      data-website-id={UMAMI_WEBSITE_ID}
+      data-host-url={`${getSiteUrl()}/oc`}
+    />
+  );
 }
