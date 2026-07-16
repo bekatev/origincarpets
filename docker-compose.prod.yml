@@ -10,6 +10,8 @@ services:
         NEXT_PUBLIC_API_URL: https://origincarpets.com/api
         NEXT_PUBLIC_SITE_URL: https://origincarpets.com
         NEXT_PUBLIC_PURCHASE_ENABLED: "true"
+        # Umami Cloud website ID (cloud.umami.is) — empty disables analytics
+        NEXT_PUBLIC_UMAMI_WEBSITE_ID: "1595dbe3-2176-45b5-b09f-3e5be99ff4f6"
     container_name: origincarpets-app
     restart: unless-stopped
     network_mode: host

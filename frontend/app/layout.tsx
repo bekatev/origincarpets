@@ -14,6 +14,7 @@ import { AuthProvider } from '@/components/providers/auth-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { ThemeScript } from '@/components/layout/theme-script';
 import { JsonLd } from '@/components/seo/json-ld';
+import { Analytics } from '@/components/seo/analytics';
 import { CURRENCY_COOKIE, normalizeCurrency } from '@/lib/currency';
 import { LANG_COOKIE, resolveSiteLocale } from '@/lib/i18n';
 import {
@@ -117,6 +118,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <head>
         <ThemeScript />
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
+        <Analytics />
       </head>
       <body suppressHydrationWarning className={`${inter.variable} ${playfair.variable} font-sans`}>
         <ThemeProvider initialTheme={theme}>

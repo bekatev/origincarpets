@@ -40,6 +40,9 @@ function isTruthyFilterFlag(value?: string): boolean {
   return value === '1' || value === 'true' || value === 'yes';
 }
 
+/** Sizes always offered in filters even before any product is tagged with them. */
+const BASE_SIZE_OPTIONS = ['Small', 'Medium', 'Large', 'Extra large', 'Runner', 'Circle'];
+
 const PRICE_HISTOGRAM_BUCKETS = 40;
 
 function buildPriceFacet(prices: number[]) {
@@ -128,7 +131,7 @@ export class ProductsService {
     ]);
 
     const materials = new Set<string>();
-    const sizes = new Set<string>();
+    const sizes = new Set<string>(BASE_SIZE_OPTIONS);
     const origins = new Set<string>();
     const colors = new Set<string>();
     const periods = new Set<string>();

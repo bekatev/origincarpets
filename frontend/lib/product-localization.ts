@@ -20,7 +20,8 @@ const ATTRIBUTE_TRANSLATIONS: Record<string, Record<string, string>> = {
     Medium: 'საშუალო',
     Large: 'დიდი',
     'Extra large': 'ძალიან დიდი',
-    Runner: 'გრძელი'
+    Runner: 'გრძელი',
+    Circle: 'წრიული'
   },
   color: {
     Blue: 'ლურჯი',
