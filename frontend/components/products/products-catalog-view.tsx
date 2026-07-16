@@ -32,6 +32,29 @@ function ListIcon() {
   );
 }
 
+function SearchIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />
+      <path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Filter params re-submitted as hidden inputs so searching keeps active filters. */
+const SEARCH_PRESERVED_PARAMS = [
+  'category',
+  'material',
+  'size',
+  'origin',
+  'color',
+  'period',
+  'age',
+  'georgian',
+  'minPrice',
+  'maxPrice'
+] as const;
+
 export function ProductsCatalogView({
   facets,
   products,
@@ -43,6 +66,7 @@ export function ProductsCatalogView({
 }) {
   const { dict } = useI18n();
   const p = dict.products;
+  const f = dict.filters;
   const [view, setView] = useState<ProductCardVariant>('grid');
 
   useEffect(() => {
@@ -85,6 +109,26 @@ export function ProductsCatalogView({
           <ProductFilters facets={facets} current={params} />
 
           <div className="min-w-0 space-y-5">
+            <form method="get" className="flex gap-2" role="search">
+              {SEARCH_PRESERVED_PARAMS.map((name) => {
+                const value = params[name];
+                return value ? <input key={name} type="hidden" name={name} value={value} /> : null;
+              })}
+              <input
+                id="search"
+                name="search"
+                type="search"
+                defaultValue={params.search}
+                placeholder={f.searchPlaceholder}
+                aria-label={f.search}
+                className="oc-input flex-1 py-2 text-sm"
+              />
+              <button type="submit" className="oc-btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm">
+                <SearchIcon />
+                {f.search}
+              </button>
+            </form>
+
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--oc-line)] pb-4">
               <p className="text-sm text-[var(--oc-muted)]">{countLabel}</p>
               <div

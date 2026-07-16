@@ -75,18 +75,8 @@ export function ProductFilters({
         </div>
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3 sm:px-5">
-          <div className="space-y-1">
-            <label htmlFor="search" className="oc-kicker block">
-              {f.search}
-            </label>
-            <input
-              id="search"
-              name="search"
-              defaultValue={current.search}
-              placeholder={f.searchPlaceholder}
-              className="oc-input py-2 text-sm"
-            />
-          </div>
+          {/* Search moved to the toolbar above the results; keep it when applying filters. */}
+          {current.search ? <input type="hidden" name="search" value={current.search} /> : null}
 
           {facets.price && facets.price.buckets.length > 0 ? (
             <PriceRangeFilter
