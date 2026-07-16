@@ -740,7 +740,7 @@ function OverviewTab({
     <div className="space-y-8">
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label={a.metrics.orders} value={overview?.orders ?? 0} />
-        <MetricCard label={a.metrics.revenue} value={`${(overview?.revenue ?? 0).toFixed(2)} GEL`} />
+        <MetricCard label={a.metrics.revenue} value={`$${(overview?.revenue ?? 0).toFixed(2)}`} />
         <MetricCard label={a.metrics.products} value={overview?.products ?? 0} />
         <MetricCard label={a.metrics.customers} value={overview?.customers ?? 0} />
       </section>
@@ -904,7 +904,7 @@ function CustomersTab({ a, customers }: { a: AdminDict; customers: Customer[] })
                   {customer.fullName || a.customers.unnamed}
                 </td>
                 <td className="px-4 py-3">{customer.ordersCount}</td>
-                <td className="px-4 py-3">{customer.spentTotal.toFixed(2)} GEL</td>
+                <td className="px-4 py-3">${customer.spentTotal.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>

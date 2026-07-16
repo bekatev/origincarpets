@@ -152,7 +152,7 @@ export class AdminService {
       where: { role: 'CUSTOMER' },
       include: {
         orders: {
-          select: { id: true, total: true },
+          select: { id: true, total: true, status: true },
           orderBy: { createdAt: 'desc' }
         }
       },
@@ -160,14 +160,19 @@ export class AdminService {
       take: 200
     });
 
-    return users.map((user) => ({
-      id: user.id,
-      email: user.email,
-      fullName: [user.firstName, user.lastName].filter(Boolean).join(' ') || null,
-      createdAt: user.createdAt,
-      ordersCount: user.orders.length,
-      spentTotal: user.orders.reduce((sum, order) => sum + Number(order.total), 0)
-    }));
+    return users.map((user) => {
+      const paidOrders = user.orders.filter((order) =>
+        ['PAID', 'SHIPPED', 'DELIVERED'].includes(order.status)
+      );
+      return {
+        id: user.id,
+        email: user.email,
+        fullName: [user.firstName, user.lastName].filter(Boolean).join(' ') || null,
+        createdAt: user.createdAt,
+        ordersCount: user.orders.length,
+        spentTotal: paidOrders.reduce((sum, order) => sum + Number(order.total), 0)
+      };
+    });
   }
 
   async syncOrigincarpets(mode: 'full' | 'sync' = 'sync') {
