@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { convertFromUsd, formatMoney, type DisplayCurrency } from '@/lib/currency';
 import { cn } from '@/lib/cn';
@@ -24,12 +24,15 @@ export function PriceRangeFilter({
   facet,
   currentMin,
   currentMax,
-  label
+  label,
+  onCommit
 }: {
   facet: ProductPriceFacet;
   currentMin?: string;
   currentMax?: string;
   label: string;
+  /** Called with USD values ('' means unbounded) when the user releases a slider thumb. */
+  onCommit?: (minPrice: string, maxPrice: string) => void;
 }) {
   const { currency } = useCurrency();
   const absoluteMin = facet.min;
@@ -50,6 +53,13 @@ export function PriceRangeFilter({
   const [minValue, setMinValue] = useState(initialMin);
   const [maxValue, setMaxValue] = useState(Math.max(initialMin, initialMax));
 
+  // Keep thumbs in sync when the URL changes externally (e.g. "Clear all").
+  useEffect(() => {
+    setMinValue(initialMin);
+    setMaxValue(Math.max(initialMin, initialMax));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentMin, currentMax, absoluteMin, absoluteMax]);
+
   const peak = useMemo(() => Math.max(1, ...facet.buckets), [facet.buckets]);
   const span = absoluteMax - absoluteMin || 1;
   const minPct = ((minValue - absoluteMin) / span) * 100;
@@ -65,6 +75,13 @@ export function PriceRangeFilter({
   const onMaxChange = (next: number) => {
     const clamped = Math.max(next, minValue + step);
     setMaxValue(Math.min(absoluteMax, clamped));
+  };
+
+  const commit = () => {
+    if (!onCommit) return;
+    const fullRange = minValue <= absoluteMin && maxValue >= absoluteMax;
+    const openMax = maxValue >= absoluteMax;
+    onCommit(fullRange ? '' : String(minValue), fullRange || openMax ? '' : String(maxValue));
   };
 
   if (!facet.buckets.length || absoluteMax <= absoluteMin) {
@@ -116,6 +133,8 @@ export function PriceRangeFilter({
           step={step}
           value={minValue}
           onChange={(event) => onMinChange(Number(event.target.value))}
+          onPointerUp={commit}
+          onKeyUp={commit}
           aria-label={`${label} min`}
           className="price-range-thumb absolute inset-0 z-20 w-full appearance-none bg-transparent"
         />
@@ -126,6 +145,8 @@ export function PriceRangeFilter({
           step={step}
           value={maxValue}
           onChange={(event) => onMaxChange(Number(event.target.value))}
+          onPointerUp={commit}
+          onKeyUp={commit}
           aria-label={`${label} max`}
           className="price-range-thumb absolute inset-0 z-30 w-full appearance-none bg-transparent"
         />
@@ -135,9 +156,13 @@ export function PriceRangeFilter({
         {formatMoney(absoluteMin, currency)} – {formatMoney(absoluteMax, currency)}
       </p>
 
-      {/* Submit USD values; omit when full range so no filter is applied */}
-      <input type="hidden" name="minPrice" value={atFullRange ? '' : String(minValue)} />
-      <input type="hidden" name="maxPrice" value={atFullRange || maxIsOpen ? '' : String(maxValue)} />
+      {/* When used inside a form, submit USD values; omit when full range so no filter is applied */}
+      {!onCommit && (
+        <>
+          <input type="hidden" name="minPrice" value={atFullRange ? '' : String(minValue)} />
+          <input type="hidden" name="maxPrice" value={atFullRange || maxIsOpen ? '' : String(maxValue)} />
+        </>
+      )}
     </div>
   );
 }
