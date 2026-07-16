@@ -43,7 +43,7 @@ export function CurrencySwitcher() {
   }, [open]);
 
   return (
-    <div ref={rootRef} className="fixed bottom-6 right-6 z-50">
+    <div ref={rootRef} className="relative">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}

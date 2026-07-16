@@ -24,6 +24,14 @@ export const dictionaries = {
     topbar: {
       shipping: 'Worldwide delivery'
     },
+    chat: {
+      open: 'Chat with us',
+      title: 'Origin Carpets',
+      subtitle: 'We usually reply within a few hours',
+      body: 'Have a question about a carpet, shipping, or anything else? Message us and we will get back to you.',
+      cta: 'Continue in Messenger',
+      note: 'Opens Facebook Messenger'
+    },
     nav: {
       shop: 'Shop',
       about: 'About Us',
@@ -101,6 +109,14 @@ export const dictionaries = {
     },
     topbar: {
       shipping: 'მსოფლიო მიწოდება'
+    },
+    chat: {
+      open: 'მოგვწერეთ',
+      title: 'Origin Carpets',
+      subtitle: 'ჩვეულებრივ რამდენიმე საათში გპასუხობთ',
+      body: 'გაქვთ შეკითხვა ხალიჩაზე, მიწოდებაზე ან სხვა თემაზე? მოგვწერეთ და მალე გიპასუხებთ.',
+      cta: 'გაგრძელება Messenger-ში',
+      note: 'იხსნება Facebook Messenger-ში'
     },
     nav: {
       shop: 'მაღაზია',

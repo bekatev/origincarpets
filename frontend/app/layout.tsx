@@ -9,6 +9,7 @@ import { SiteTopbar } from '@/components/layout/site-topbar';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { I18nProvider } from '@/components/providers/i18n-provider';
 import { CurrencySwitcher } from '@/components/layout/currency-switcher';
+import { MessengerChat } from '@/components/layout/messenger-chat';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
@@ -130,7 +131,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   <SiteHeader />
                   {children}
                   <SiteFooter />
-                  <CurrencySwitcher />
+                  <div className="fixed bottom-6 right-6 z-50 flex items-end gap-2">
+                    <MessengerChat />
+                    <CurrencySwitcher />
+                  </div>
                 </CartProvider>
               </AuthProvider>
             </CurrencyProvider>
