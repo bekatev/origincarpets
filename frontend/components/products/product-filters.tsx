@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { ProductFilterOptions, ProductListFilters } from '@/lib/products';
 import { useI18n } from '@/components/providers/i18n-provider';
+import { PriceRangeFilter } from '@/components/products/price-range-filter';
 
 function FilterSelect({
   label,
@@ -87,6 +88,15 @@ export function ProductFilters({
             />
           </div>
 
+          {facets.price && facets.price.buckets.length > 0 ? (
+            <PriceRangeFilter
+              facet={facets.price}
+              currentMin={current.minPrice}
+              currentMax={current.maxPrice}
+              label={f.price}
+            />
+          ) : null}
+
           <div className="space-y-1">
             <label htmlFor="category" className="oc-kicker block">
               {f.category}
@@ -130,30 +140,6 @@ export function ProductFilters({
               <option value="" />
               <option value="1">{f.georgianOnly}</option>
             </select>
-          </div>
-
-          <div className="space-y-1">
-            <p className="oc-kicker">{f.price}</p>
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                type="number"
-                min={0}
-                name="minPrice"
-                defaultValue={current.minPrice}
-                placeholder={f.minPrice}
-                className="oc-input py-2 text-sm"
-                aria-label={f.minPrice}
-              />
-              <input
-                type="number"
-                min={0}
-                name="maxPrice"
-                defaultValue={current.maxPrice}
-                placeholder={f.maxPrice}
-                className="oc-input py-2 text-sm"
-                aria-label={f.maxPrice}
-              />
-            </div>
           </div>
         </div>
 

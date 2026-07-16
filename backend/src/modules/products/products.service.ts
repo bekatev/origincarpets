@@ -32,6 +32,28 @@ function isTruthyFilterFlag(value?: string): boolean {
   return value === '1' || value === 'true' || value === 'yes';
 }
 
+const PRICE_HISTOGRAM_BUCKETS = 40;
+
+function buildPriceFacet(prices: number[]) {
+  if (!prices.length) {
+    return { min: 0, max: 0, buckets: [] as number[] };
+  }
+
+  const min = Math.floor(Math.min(...prices));
+  const maxRaw = Math.max(...prices);
+  const max = Math.max(min + 1, Math.ceil(maxRaw));
+  const span = max - min;
+  const buckets = Array.from({ length: PRICE_HISTOGRAM_BUCKETS }, () => 0);
+
+  for (const price of prices) {
+    const ratio = span <= 0 ? 0 : (price - min) / span;
+    const index = Math.min(PRICE_HISTOGRAM_BUCKETS - 1, Math.max(0, Math.floor(ratio * PRICE_HISTOGRAM_BUCKETS)));
+    buckets[index] += 1;
+  }
+
+  return { min, max, buckets };
+}
+
 function dedupeUrls(urls: string[]) {
   const seen = new Set<string>();
   const result: string[] = [];
@@ -87,6 +109,7 @@ export class ProductsService {
       this.prisma.product.findMany({
         where: { isActive: true, ...PUBLIC_SHIPPABLE_PRODUCT_WHERE },
         select: {
+          price: true,
           material: true,
           sizeLabel: true,
           origin: true,
@@ -102,8 +125,13 @@ export class ProductsService {
     const colors = new Set<string>();
     const periods = new Set<string>();
     const ages = new Set<string>();
+    const prices: number[] = [];
 
     for (const product of products) {
+      const price = Number(product.price);
+      if (Number.isFinite(price) && price >= 0) {
+        prices.push(price);
+      }
       if (product.material?.trim()) materials.add(product.material.trim());
       if (product.sizeLabel?.trim()) sizes.add(product.sizeLabel.trim());
       if (product.origin?.trim()) origins.add(product.origin.trim());
@@ -136,7 +164,8 @@ export class ProductsService {
       origins: sortAlpha(origins),
       colors: sortAlpha(colors),
       periods: sortAlpha(periods),
-      ages: sortAlpha(ages)
+      ages: sortAlpha(ages),
+      price: buildPriceFacet(prices)
     };
   }
 

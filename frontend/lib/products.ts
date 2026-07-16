@@ -7,6 +7,13 @@ export interface ProductCategory {
   slug: string;
 }
 
+export interface ProductPriceFacet {
+  min: number;
+  max: number;
+  /** Product counts per histogram bucket (USD). */
+  buckets: number[];
+}
+
 export interface ProductFilterOptions {
   categories: ProductCategory[];
   materials: string[];
@@ -15,6 +22,7 @@ export interface ProductFilterOptions {
   colors: string[];
   periods: string[];
   ages: string[];
+  price?: ProductPriceFacet;
 }
 
 export interface ProductListFilters {
@@ -179,7 +187,8 @@ export async function fetchProductFilters(): Promise<ProductFilterOptions> {
     origins: [],
     colors: [],
     periods: [],
-    ages: []
+    ages: [],
+    price: { min: 0, max: 0, buckets: [] }
   };
 
   const [categories, fromApi] = await Promise.all([
@@ -195,7 +204,8 @@ export async function fetchProductFilters(): Promise<ProductFilterOptions> {
       origins: fromApi.origins ?? [],
       colors: fromApi.colors ?? [],
       periods: fromApi.periods ?? [],
-      ages: fromApi.ages ?? []
+      ages: fromApi.ages ?? [],
+      price: fromApi.price ?? empty.price
     };
   }
 

@@ -11,6 +11,18 @@ export function buildFacetsFromProducts(
   categories: ProductFilterOptions['categories'],
   items: ProductItem[]
 ): ProductFilterOptions {
+  const prices = items.map((p) => p.price).filter((price) => Number.isFinite(price) && price >= 0);
+  const min = prices.length ? Math.floor(Math.min(...prices)) : 0;
+  const maxRaw = prices.length ? Math.max(...prices) : 0;
+  const max = Math.max(min + 1, Math.ceil(maxRaw));
+  const bucketCount = 40;
+  const buckets = Array.from({ length: bucketCount }, () => 0);
+  const span = max - min || 1;
+  for (const price of prices) {
+    const index = Math.min(bucketCount - 1, Math.max(0, Math.floor(((price - min) / span) * bucketCount)));
+    buckets[index] += 1;
+  }
+
   return {
     categories,
     materials: uniqueSorted(items.map((p) => p.attributes.material)),
@@ -18,7 +30,8 @@ export function buildFacetsFromProducts(
     origins: uniqueSorted(items.map((p) => p.origin)),
     colors: uniqueSorted(items.map((p) => p.attributes.color)),
     periods: uniqueSorted(items.map((p) => p.attributes.period)),
-    ages: uniqueSorted(items.map((p) => p.attributes.age))
+    ages: uniqueSorted(items.map((p) => p.attributes.age)),
+    price: { min, max, buckets }
   };
 }
 
@@ -35,6 +48,7 @@ export function mergeFacetOptions(
     origins: merge(primary.origins, fallback.origins),
     colors: merge(primary.colors, fallback.colors),
     periods: merge(primary.periods, fallback.periods),
-    ages: merge(primary.ages, fallback.ages)
+    ages: merge(primary.ages, fallback.ages),
+    price: primary.price?.buckets?.length ? primary.price : fallback.price
   };
 }

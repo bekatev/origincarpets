@@ -224,6 +224,61 @@ html.dark ::selection {
   .product-reveal--browsing .product-reveal__panel-inner {
     transform: translateX(-100%) scale(1.12);
   }
+
+  /* Dual price-range thumbs (Booking-style filter) */
+  .price-range-thumb {
+    pointer-events: none;
+    height: 2rem;
+    margin: 0;
+  }
+
+  .price-range-thumb::-webkit-slider-runnable-track {
+    appearance: none;
+    height: 0.375rem;
+    background: transparent;
+  }
+
+  .price-range-thumb::-moz-range-track {
+    appearance: none;
+    height: 0.375rem;
+    background: transparent;
+    border: none;
+  }
+
+  .price-range-thumb::-webkit-slider-thumb {
+    appearance: none;
+    pointer-events: auto;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: -0.4375rem;
+    border-radius: 9999px;
+    border: 2px solid var(--oc-paper);
+    background: var(--oc-ink);
+    box-shadow: 0 1px 3px rgba(52, 40, 39, 0.25);
+    cursor: grab;
+  }
+
+  .price-range-thumb::-moz-range-thumb {
+    appearance: none;
+    pointer-events: auto;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 9999px;
+    border: 2px solid var(--oc-paper);
+    background: var(--oc-ink);
+    box-shadow: 0 1px 3px rgba(52, 40, 39, 0.25);
+    cursor: grab;
+  }
+
+  .price-range-thumb:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--oc-ink);
+    outline-offset: 2px;
+  }
+
+  .price-range-thumb:focus-visible::-moz-range-thumb {
+    outline: 2px solid var(--oc-ink);
+    outline-offset: 2px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
