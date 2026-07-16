@@ -3,12 +3,10 @@ const nextConfig = {
   output: "standalone",
   typedRoutes: true,
   // First-party proxy for Umami so ad-blockers (Brave, uBlock) don't drop it.
-  // Neutral paths on our own domain instead of cloud.umami.is.
+  // /oc.js is served by app/oc.js/route.ts with the endpoint renamed to /oc-data,
+  // because EasyPrivacy blocks any "/api/send" path even on first-party domains.
   async rewrites() {
-    return [
-      { source: "/oc.js", destination: "https://cloud.umami.is/script.js" },
-      { source: "/oc/api/send", destination: "https://cloud.umami.is/api/send" }
-    ];
+    return [{ source: "/oc-data", destination: "https://cloud.umami.is/api/send" }];
   },
   images: {
     remotePatterns: [
