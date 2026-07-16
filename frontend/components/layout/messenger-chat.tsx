@@ -74,7 +74,7 @@ export function MessengerChat() {
         <div
           role="dialog"
           aria-label={t.title}
-          className="absolute bottom-full right-0 mb-2 w-72 border border-[var(--oc-line)] bg-[var(--oc-bg)] shadow-[var(--oc-shadow-lift)]"
+          className="fixed inset-x-4 bottom-20 border border-[var(--oc-line)] bg-[var(--oc-bg)] shadow-[var(--oc-shadow-lift)] sm:absolute sm:inset-x-auto sm:bottom-full sm:right-0 sm:mb-2 sm:w-72"
         >
           <div className="border-b border-[var(--oc-line)] px-5 py-4">
             <p className="font-display text-base uppercase tracking-[0.08em] text-[var(--oc-ink)]">{t.title}</p>
