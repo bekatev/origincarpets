@@ -236,7 +236,7 @@ export class PaymentsService {
   }
 
   ipayReturnRedirect() {
-    return `${this.frontendUrl()}/checkout/result`;
+    return this.frontendUrl().replace(/\/$/, '') || 'https://origincarpets.com';
   }
 
   async createPayPalOrder(userId: string, orderId: string) {
