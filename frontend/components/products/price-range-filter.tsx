@@ -92,8 +92,8 @@ export function PriceRangeFilter({
               <div
                 key={index}
                 className={cn(
-                  'min-w-0 flex-1 rounded-t-sm transition-colors',
-                  inRange ? 'bg-[var(--oc-ink)]/55' : 'bg-[var(--oc-ink)]/15'
+                  'min-w-0 flex-1 rounded-t-sm bg-[var(--oc-ink)] transition-opacity',
+                  inRange ? 'opacity-60' : 'opacity-20'
                 )}
                 style={{ height: `${height}%` }}
               />
