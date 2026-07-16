@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { FormEvent, useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/components/providers/i18n-provider';
+import { useCurrency } from '@/components/providers/currency-provider';
 import { useAuth } from '@/components/providers/auth-provider';
 import { readStoredToken } from '@/lib/auth';
 import { cn } from '@/lib/cn';
 import { API_ORIGIN, apiRequest, uploadImage } from '@/lib/api';
 import type { Dictionary } from '@/lib/i18n';
+import { FormattedPrice } from '@/components/products/formatted-price';
 
 type AdminTab = 'overview' | 'orders' | 'customers' | 'categories' | 'products';
 
@@ -736,11 +738,13 @@ function OverviewTab({
   busy: boolean;
   onSync: (mode: 'sync' | 'full') => void;
 }) {
+  const { formatPrice } = useCurrency();
+
   return (
     <div className="space-y-8">
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label={a.metrics.orders} value={overview?.orders ?? 0} />
-        <MetricCard label={a.metrics.revenue} value={`$${(overview?.revenue ?? 0).toFixed(2)}`} />
+        <MetricCard label={a.metrics.revenue} value={formatPrice(overview?.revenue ?? 0)} />
         <MetricCard label={a.metrics.products} value={overview?.products ?? 0} />
         <MetricCard label={a.metrics.customers} value={overview?.customers ?? 0} />
       </section>
@@ -774,6 +778,7 @@ function OrdersTab({
   onSaveTracking: (id: string, trackingNumber: string) => void;
 }) {
   const [trackingDrafts, setTrackingDrafts] = useState<Record<string, string>>({});
+  const { formatPrice } = useCurrency();
 
   if (!orders.length) {
     return <EmptyState text={a.orders.empty} />;
@@ -799,7 +804,9 @@ function OrdersTab({
                 <div>
                   <dt className="uppercase tracking-[0.12em]">{a.orders.customerShipping}</dt>
                   <dd className="mt-0.5 text-[var(--oc-ink)]">
-                    {order.shippingCost === 0 ? a.orders.customerShippingFree : `${order.shippingCost.toFixed(2)} ${order.currency}`}
+                    {order.shippingCost === 0
+                      ? a.orders.customerShippingFree
+                      : formatPrice(order.shippingCost)}
                   </dd>
                 </div>
                 <div>
@@ -858,7 +865,7 @@ function OrdersTab({
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-sm font-semibold uppercase tracking-[0.08em]">
-                {order.total.toFixed(2)} {order.currency}
+                {formatPrice(order.total)}
               </span>
               <select
                 className="oc-input min-w-[10rem] py-2 text-sm"
@@ -904,7 +911,9 @@ function CustomersTab({ a, customers }: { a: AdminDict; customers: Customer[] })
                   {customer.fullName || a.customers.unnamed}
                 </td>
                 <td className="px-4 py-3">{customer.ordersCount}</td>
-                <td className="px-4 py-3">${customer.spentTotal.toFixed(2)}</td>
+                <td className="px-4 py-3">
+                  <FormattedPrice amount={customer.spentTotal} />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -1444,7 +1453,7 @@ function AdminProductCard({
 }) {
   const meta = (
     <p className="mt-1 text-xs text-[var(--oc-muted)]">
-      {product.sku} · {product.category.name} · ${product.price.toFixed(2)}
+      {product.sku} · {product.category.name} · <FormattedPrice amount={product.price} />
       {product.images.length > 0 ? ` · ${product.images.length} img` : ''}
       {[product.attributes.size, product.attributes.material, product.attributes.color]
         .filter(Boolean)
