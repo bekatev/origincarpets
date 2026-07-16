@@ -13,7 +13,8 @@ export function Analytics() {
   return (
     <script
       defer
-      src="/oc.js"
+      // ?v busts Cloudflare's edge cache when the tracker setup changes
+      src="/oc.js?v=2"
       data-website-id={UMAMI_WEBSITE_ID}
       data-host-url={getSiteUrl()}
     />
