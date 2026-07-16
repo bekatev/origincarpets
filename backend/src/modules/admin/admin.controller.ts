@@ -32,6 +32,16 @@ export class AdminController {
     return this.adminService.updateOrderStatus(orderId, dto.status);
   }
 
+  @Post('orders/reconcile-ipay')
+  reconcileIpay() {
+    return this.adminService.reconcileIpayPayments();
+  }
+
+  @Post('orders/:orderId/notify-shipment')
+  notifyShipment(@Param('orderId') orderId: string) {
+    return this.adminService.resendShipmentNotification(orderId);
+  }
+
   @Patch('orders/:orderId/tracking')
   updateOrderTracking(@Param('orderId') orderId: string, @Body() dto: UpdateOrderTrackingDto) {
     return this.adminService.updateOrderTracking(orderId, dto.trackingNumber);

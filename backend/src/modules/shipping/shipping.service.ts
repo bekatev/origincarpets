@@ -205,7 +205,7 @@ export class ShippingService {
   }
 
   /** Notify gallery staff to create the UPS shipment manually (no carrier API). */
-  async notifyAdminsForPaidOrder(orderId: string) {
+  async notifyAdminsForPaidOrder(orderId: string, options?: { force?: boolean }) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -219,7 +219,7 @@ export class ShippingService {
       throw new NotFoundException('Order not found');
     }
 
-    if (order.shipmentNotifiedAt) {
+    if (order.shipmentNotifiedAt && !options?.force) {
       return { success: true as const, alreadyNotified: true };
     }
 

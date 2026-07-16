@@ -163,7 +163,7 @@ export class PaymentsService {
   }
 
   async handleIpayCallback(body: Record<string, unknown>) {
-    const trxIdentifier = String(body.order_id ?? '');
+    const trxIdentifier = String(body.order_id ?? body.ipay_payment_id ?? '');
     const status = String(body.status ?? '').toLowerCase();
 
     if (!trxIdentifier) {
@@ -187,7 +187,7 @@ export class PaymentsService {
         trxIdentifier,
         body.transaction_id ? String(body.transaction_id) : undefined
       );
-    } else if (status !== 'success') {
+    } else if (status && status !== 'success') {
       await this.prisma.payment.updateMany({
         where: { id: payment.id },
         data: { status: 'FAILED' }
@@ -195,6 +195,44 @@ export class PaymentsService {
     }
 
     return { ok: true, orderNumber: payment.order.orderNumber };
+  }
+
+  /** Poll iPay for PENDING card payments and mark paid + notify admins when successful. */
+  async reconcilePendingIpayPayments() {
+    const pending = await this.prisma.payment.findMany({
+      where: { provider: 'ipay', status: 'PENDING', providerPaymentId: { not: null } },
+      include: { order: true },
+      orderBy: { createdAt: 'desc' },
+      take: 50
+    });
+
+    const results: Array<{ orderNumber: string; status: string; synced: boolean }> = [];
+
+    for (const payment of pending) {
+      if (!payment.providerPaymentId || payment.order.status !== 'PENDING') {
+        continue;
+      }
+
+      try {
+        const details = await this.ipay.getOrderStatus(payment.providerPaymentId);
+        const status = String(details.status ?? '').toLowerCase();
+
+        if (status === 'success') {
+          await this.markOrderPaid(payment.orderId, 'ipay', payment.providerPaymentId);
+          results.push({ orderNumber: payment.order.orderNumber, status, synced: true });
+        } else {
+          results.push({ orderNumber: payment.order.orderNumber, status: status || 'unknown', synced: false });
+        }
+      } catch (error) {
+        this.logger.error(
+          `iPay reconcile failed for ${payment.order.orderNumber}`,
+          error instanceof Error ? error.message : error
+        );
+        results.push({ orderNumber: payment.order.orderNumber, status: 'error', synced: false });
+      }
+    }
+
+    return { checked: results.length, results };
   }
 
   ipayReturnRedirect() {

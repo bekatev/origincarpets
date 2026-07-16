@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,11 +29,14 @@ export class PaymentsController {
     return this.paymentsService.startIpayPayment(user.sub, dto.orderId);
   }
 
+  /** Customer browser return from iPay (redirect_url). Also processes query params if present. */
   @Get('ipay/callback')
-  ipayReturn(@Res() res: Response) {
+  async ipayReturn(@Query() query: Record<string, unknown>, @Res() res: Response) {
+    await this.paymentsService.handleIpayCallback(query);
     return res.redirect(this.paymentsService.ipayReturnRedirect());
   }
 
+  /** Server-to-server callback from iPay (merchant Callback URL in BOG portal). */
   @Post('ipay/callback')
   async ipayWebhook(@Body() body: Record<string, unknown>, @Res() res: Response) {
     await this.paymentsService.handleIpayCallback(body);

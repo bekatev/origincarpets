@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { PaymentsModule } from '../payments/payments.module';
 import { ShippingModule } from '../shipping/shipping.module';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 
 @Module({
-  imports: [ShippingModule],
+  imports: [ShippingModule, PaymentsModule],
   controllers: [AdminController],
   providers: [RolesGuard, AdminService],
   exports: [AdminService]

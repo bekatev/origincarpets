@@ -192,7 +192,9 @@ export class MailService {
       return;
     }
 
-    this.logger.log(`Password reset link for ${payload.to}: ${payload.text.split('\n')[3] ?? payload.text}`);
+    throw new Error(
+      'Mail is not configured (set RESEND_API_KEY, MAIL_RELAY_URL+SECRET, or SMTP_HOST/USER/PASS)'
+    );
   }
 
   private async sendViaResend(payload: MailPayload): Promise<void> {

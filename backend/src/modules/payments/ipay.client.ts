@@ -119,12 +119,23 @@ export class IpayClient {
 
   async getOrderStatus(trxIdentifier: string) {
     const accessToken = await this.getAccessToken();
-    const response = await this.client(accessToken).get(`/checkout/orders/${trxIdentifier}`);
-    return response.data as {
-      id: string;
-      status: string;
-      purchaseUnit?: { shop_order_id?: string; amount?: { value?: string; currency_code?: string } };
-    };
+    // Payment details endpoint returns status: success | error | in_progress
+    try {
+      const paymentDetails = await this.client(accessToken).get(`/checkout/payment/${trxIdentifier}`);
+      const data = paymentDetails.data as { status?: string; order_id?: string; shop_order_id?: string };
+      return {
+        id: data.order_id ?? trxIdentifier,
+        status: data.status ?? 'unknown',
+        purchaseUnit: { shop_order_id: data.shop_order_id }
+      };
+    } catch {
+      const response = await this.client(accessToken).get(`/checkout/orders/${trxIdentifier}`);
+      return response.data as {
+        id: string;
+        status: string;
+        purchaseUnit?: { shop_order_id?: string; amount?: { value?: string; currency_code?: string } };
+      };
+    }
   }
 
   private client(accessToken: string): AxiosInstance {

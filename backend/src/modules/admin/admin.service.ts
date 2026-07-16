@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PaymentsService } from '../payments/payments.service';
 import { ShippingService } from '../shipping/shipping.service';
 import { syncOrigincarpetsProducts } from './origincarpets-sync';
 
@@ -11,7 +12,8 @@ export class AdminService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly shippingService: ShippingService
+    private readonly shippingService: ShippingService,
+    private readonly paymentsService: PaymentsService
   ) {}
 
   async overview() {
@@ -116,6 +118,33 @@ export class AdminService {
 
   async updateOrderTracking(orderId: string, trackingNumber: string) {
     return this.shippingService.updateTrackingNumber(orderId, trackingNumber);
+  }
+
+  async reconcileIpayPayments() {
+    return this.paymentsService.reconcilePendingIpayPayments();
+  }
+
+  async resendShipmentNotification(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, status: true }
+    });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.status === 'PENDING') {
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { status: 'PAID' }
+      });
+      await this.prisma.payment.updateMany({
+        where: { orderId, status: 'PENDING' },
+        data: { status: 'CAPTURED', paidAt: new Date() }
+      });
+    }
+
+    return this.shippingService.notifyAdminsForPaidOrder(orderId, { force: true });
   }
 
   async listCustomers() {
