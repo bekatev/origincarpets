@@ -1,10 +1,36 @@
 'use client';
 
-import { ProductCard } from '@/components/products/product-card';
+import { useEffect, useState } from 'react';
+import { ProductCard, type ProductCardVariant } from '@/components/products/product-card';
 import { ProductFilters } from '@/components/products/product-filters';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { formatCount } from '@/lib/i18n';
+import { cn } from '@/lib/cn';
 import type { ProductFilterOptions, ProductItem, ProductListFilters } from '@/lib/products';
+
+const VIEW_STORAGE_KEY = 'oc-products-view';
+
+function GridIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3" y="3" width="7" height="7" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="14" y="3" width="7" height="7" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="3" y="14" width="7" height="7" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="14" y="14" width="7" height="7" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function ListIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M8 6h13M8 12h13M8 18h13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <rect x="3" y="5" width="2.5" height="2.5" fill="currentColor" />
+      <rect x="3" y="11" width="2.5" height="2.5" fill="currentColor" />
+      <rect x="3" y="17" width="2.5" height="2.5" fill="currentColor" />
+    </svg>
+  );
+}
 
 export function ProductsCatalogView({
   facets,
@@ -17,6 +43,28 @@ export function ProductsCatalogView({
 }) {
   const { dict } = useI18n();
   const p = dict.products;
+  const [view, setView] = useState<ProductCardVariant>('grid');
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(VIEW_STORAGE_KEY);
+      if (stored === 'list' || stored === 'grid') {
+        setView(stored);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const setViewMode = (next: ProductCardVariant) => {
+    setView(next);
+    try {
+      window.localStorage.setItem(VIEW_STORAGE_KEY, next);
+    } catch {
+      /* ignore */
+    }
+  };
+
   const countLabel =
     products.meta.total === 1
       ? formatCount(p.countOne, products.meta.total)
@@ -36,13 +84,69 @@ export function ProductsCatalogView({
         <div className="grid items-start gap-8 lg:grid-cols-[minmax(240px,280px)_1fr] lg:gap-12">
           <ProductFilters facets={facets} current={params} />
 
-          <div className="min-w-0 space-y-6">
+          <div className="min-w-0 space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--oc-line)] pb-4">
+              <p className="text-sm text-[var(--oc-muted)]">{countLabel}</p>
+              <div
+                className="inline-flex items-center gap-1 rounded-sm border border-[var(--oc-line)] p-0.5"
+                role="group"
+                aria-label={p.viewLabel}
+              >
+                <button
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  aria-pressed={view === 'list'}
+                  aria-label={p.viewList}
+                  title={p.viewList}
+                  className={cn(
+                    'inline-flex h-9 w-9 items-center justify-center rounded-[2px] transition',
+                    view === 'list'
+                      ? 'bg-[var(--oc-ink)] text-[var(--oc-paper)]'
+                      : 'text-[var(--oc-muted)] hover:text-[var(--oc-ink)]'
+                  )}
+                >
+                  <ListIcon />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('grid')}
+                  aria-pressed={view === 'grid'}
+                  aria-label={p.viewGrid}
+                  title={p.viewGrid}
+                  className={cn(
+                    'inline-flex h-9 w-9 items-center justify-center rounded-[2px] transition',
+                    view === 'grid'
+                      ? 'bg-[var(--oc-ink)] text-[var(--oc-paper)]'
+                      : 'text-[var(--oc-muted)] hover:text-[var(--oc-ink)]'
+                  )}
+                >
+                  <GridIcon />
+                </button>
+              </div>
+            </div>
+
             {products.items.length === 0 ? (
               <p className="py-12 text-center text-sm text-[var(--oc-muted)]">{p.noResults}</p>
+            ) : view === 'list' ? (
+              <div className="flex flex-col gap-4">
+                {products.items.map((product, index) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    priority={index < 4}
+                    variant="list"
+                  />
+                ))}
+              </div>
             ) : (
               <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 xl:grid-cols-3">
                 {products.items.map((product, index) => (
-                  <ProductCard key={product.id} product={product} priority={index < 6} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    priority={index < 6}
+                    variant="grid"
+                  />
                 ))}
               </div>
             )}

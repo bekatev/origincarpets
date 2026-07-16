@@ -16,7 +16,11 @@ export const storefrontTranslations = {
       intro: 'Search and filter carpets by category, material, size, origin, color, age, period, and more.',
       countOne: '{count} piece',
       countMany: '{count} pieces',
-      noResults: 'No products found for the current filters.'
+      noResults: 'No products found for the current filters.',
+      viewLabel: 'Display',
+      viewGrid: 'Grid view',
+      viewList: 'List view',
+      seeDetails: 'See details'
     },
     filters: {
       title: 'Filters',
@@ -295,7 +299,11 @@ export const storefrontTranslations = {
       intro: 'მოძებნეთ და გაფილტრეთ ხალიჩები კატეგორიით, მასალით, ზომით, წარმომავლობით, ფერით და სხვა.',
       countOne: '{count} ნამუშევარი',
       countMany: '{count} ნამუშევარი',
-      noResults: 'მოცემული ფილტრებით პროდუქტი ვერ მოიძებნა.'
+      noResults: 'მოცემული ფილტრებით პროდუქტი ვერ მოიძებნა.',
+      viewLabel: 'ხედი',
+      viewGrid: 'ბადის ხედი',
+      viewList: 'სიის ხედი',
+      seeDetails: 'დეტალები'
     },
     filters: {
       title: 'ფილტრები',
