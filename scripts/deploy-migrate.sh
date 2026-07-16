@@ -21,6 +21,6 @@ echo "==> Prisma migrate"
 docker run --rm --network host \
   -v "$APP_DIR:/app" -w /app/backend \
   -e DATABASE_URL="$DATABASE_URL" \
-  node:20-bookworm bash -lc "npm ci --omit=dev && npx prisma migrate deploy"
+  node:20-bookworm bash -lc "npm ci --omit=dev && npx prisma@6.19.3 migrate deploy"
 
 echo "==> Migrate done"
