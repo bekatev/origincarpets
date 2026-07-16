@@ -19,8 +19,9 @@ set -a && source backend/.env && set +a
 
 echo "==> Prisma migrate"
 docker run --rm --network host \
-  -v "$APP_DIR:/app" -w /app/backend \
+  -v "$APP_DIR/backend/prisma:/app/prisma" \
+  -w /app \
   -e DATABASE_URL="$DATABASE_URL" \
-  node:20-bookworm bash -lc "npm ci --omit=dev && npx prisma@6.19.3 migrate deploy"
+  node:20-bookworm bash -lc "npx --yes prisma@6.19.3 migrate deploy --schema=/app/prisma/schema.prisma"
 
 echo "==> Migrate done"
