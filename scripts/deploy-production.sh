@@ -49,5 +49,10 @@ else
   docker-compose -f docker-compose.prod.yml up -d --no-build
 fi
 
+# Keep daily DB + uploads backup cron in sync (does not dump on every deploy)
+if [[ -f scripts/install-backup-cron.sh ]]; then
+  bash scripts/install-backup-cron.sh --cron-only || echo "WARNING: backup cron install failed"
+fi
+
 echo "==> Deploy complete ($(git log -1 --oneline))"
 docker ps --filter name=origincarpets-app

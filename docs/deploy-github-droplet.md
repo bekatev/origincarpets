@@ -42,7 +42,33 @@ Watch **Actions** tab on GitHub. Small frontend-only changes usually deploy in *
 
 - `backend/.env` (iPay, JWT, DB, etc.)
 - `/opt/carp/.db-credentials`
-- `backups/`
+- `backups/` (repo folder; live dumps are under `/opt/backups`)
+
+## Automatic backups (security / disaster recovery)
+
+Every deploy installs a **daily cron** (03:15 UTC) that runs `scripts/backup-production.sh`:
+
+| What | Where |
+|------|--------|
+| Postgres dump (`pg_dump` custom format) | `/opt/backups/YYYY-MM-DD/postgres_*.dump` |
+| Product image uploads | `/opt/backups/YYYY-MM-DD/uploads_*.tar.gz` |
+| Log | `/opt/backups/backup.log` |
+| Retention | **14 days** |
+
+**Who is responsible:** the production droplet (this project) owns application backups; DigitalOcean droplet snapshots (if enabled in the DO panel) are separate infrastructure backups.
+
+### One-time install / run now
+
+```bash
+ssh root@157.230.122.82 'cd /opt/carp && bash scripts/install-backup-cron.sh'
+```
+
+### Restore Postgres (example)
+
+```bash
+# pick a dump file
+pg_restore --clean --if-exists --no-owner --dbname="$DATABASE_URL" /opt/backups/2026-07-15/postgres_*.dump
+```
 
 ## Manual deploy (if needed)
 

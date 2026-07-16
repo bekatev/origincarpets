@@ -4,34 +4,34 @@
 
 :root {
   color-scheme: light;
-  /* Undyed wool + camel + soft madder — carpet showroom light */
-  --oc-bg: #f0e6d8;
-  --oc-bg-secondary: #e5d7c6;
-  --oc-paper: #f6eee4;
-  --oc-ink: #3a2c22;
-  --oc-muted: #7a6554;
-  --oc-line: #d4c2ae;
-  --oc-brand: #a85a3a;
-  --oc-accent: #5a4f3e;
-  --oc-brand-soft: #8a7564;
-  --oc-brand-hover: #5a4f3e;
+  /* Warm sand — brand light field #C5AE8E */
+  --oc-bg: #c5ae8e;
+  --oc-bg-secondary: #b89f7c;
+  --oc-paper: #d2bea0;
+  --oc-ink: #342827;
+  --oc-muted: #5c4a42;
+  --oc-line: #a89272;
+  --oc-brand: #8f4a32;
+  --oc-accent: #4a3c34;
+  --oc-brand-soft: #6e5848;
+  --oc-brand-hover: #4a3c34;
   --oc-shadow: none;
-  --oc-shadow-lift: 0 24px 48px -32px rgba(58, 44, 34, 0.14);
+  --oc-shadow-lift: 0 24px 48px -32px rgba(52, 40, 39, 0.18);
   --oc-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 html.dark {
   color-scheme: dark;
-  /* Deep walnut / espresso rug room — warm dark, no pure black */
-  --oc-bg: #17110e;
-  --oc-bg-secondary: #221915;
-  --oc-paper: #2a1f1a;
-  --oc-ink: #efe4d6;
-  --oc-muted: #b29a82;
-  --oc-line: #3d3028;
-  --oc-brand: #c9956a;
-  --oc-accent: #8a9a78;
-  --oc-brand-soft: #a8927c;
+  /* Warm cocoa — brand dark field #342827 */
+  --oc-bg: #342827;
+  --oc-bg-secondary: #40312e;
+  --oc-paper: #473734;
+  --oc-ink: #e8dcc8;
+  --oc-muted: #b5a08c;
+  --oc-line: #4f3e3a;
+  --oc-brand: #c5ae8e;
+  --oc-accent: #9aab88;
+  --oc-brand-soft: #b89f7c;
 }
 
 body {
@@ -119,15 +119,15 @@ html.dark ::selection {
   }
 
   html.dark select.oc-input {
-    color: #efe4d6;
-    background-color: #2a1f1a;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b29a82' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    color: #e8dcc8;
+    background-color: #473734;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b5a08c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   }
 
   html.dark select.oc-input option,
   html.dark select.oc-input optgroup {
-    color: #efe4d6;
-    background-color: #2a1f1a;
+    color: #e8dcc8;
+    background-color: #473734;
   }
 
   .oc-btn {
