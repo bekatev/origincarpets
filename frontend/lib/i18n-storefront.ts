@@ -307,7 +307,7 @@ export const storefrontTranslations = {
     },
     filters: {
       title: 'ფილტრები',
-      subtitle: 'შეაზუსტეთ კოლექცია',
+      subtitle: 'დაავიწროეთ ძებნა',
       search: 'ძებნა',
       searchPlaceholder: 'ხალიჩების ძებნა',
       category: 'კატეგორია',

@@ -28,6 +28,14 @@ type LegacyProductMetadata = {
   originRegion?: string | null;
 };
 
+function splitFilterValues(value?: string): string[] {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
 function isTruthyFilterFlag(value?: string): boolean {
   return value === '1' || value === 'true' || value === 'yes';
 }
@@ -465,46 +473,69 @@ export class ProductsService {
       });
     }
 
-    if (query.category) and.push({ category: { slug: query.category } });
-
-    if (query.material) {
-      and.push({ material: { equals: query.material, mode: 'insensitive' } });
+    // Filters accept comma-separated values (multi-select checkboxes on the storefront).
+    const categories = splitFilterValues(query.category);
+    if (categories.length) {
+      and.push({ category: { slug: { in: categories } } });
     }
 
-    if (query.size) {
-      and.push({ sizeLabel: { equals: query.size, mode: 'insensitive' } });
-    }
-
-    if (query.origin) {
-      and.push({ origin: { contains: query.origin, mode: 'insensitive' } });
-    }
-
-    if (query.color) {
+    const materials = splitFilterValues(query.material);
+    if (materials.length) {
       and.push({
-        attributes: {
-          some: {
-            attribute: { code: 'color' },
-            value: { equals: query.color, mode: 'insensitive' }
+        OR: materials.map((value) => ({
+          material: { equals: value, mode: 'insensitive' as const }
+        }))
+      });
+    }
+
+    const sizes = splitFilterValues(query.size);
+    if (sizes.length) {
+      and.push({
+        OR: sizes.map((value) => ({
+          sizeLabel: { equals: value, mode: 'insensitive' as const }
+        }))
+      });
+    }
+
+    const origins = splitFilterValues(query.origin);
+    if (origins.length) {
+      and.push({
+        OR: origins.map((value) => ({
+          origin: { contains: value, mode: 'insensitive' as const }
+        }))
+      });
+    }
+
+    const colors = splitFilterValues(query.color);
+    if (colors.length) {
+      and.push({
+        OR: colors.map((value) => ({
+          attributes: {
+            some: {
+              attribute: { code: 'color' },
+              value: { equals: value, mode: 'insensitive' as const }
+            }
           }
-        }
+        }))
       });
     }
 
-    if (query.period) {
+    const periods = splitFilterValues(query.period);
+    if (periods.length) {
       and.push({
-        metadata: {
-          path: ['period', 'label'],
-          equals: query.period
-        }
+        OR: periods.map((value) => ({
+          metadata: { path: ['period', 'label'], equals: value }
+        }))
       });
     }
 
-    if (query.age) {
+    const ages = splitFilterValues(query.age);
+    if (ages.length) {
       and.push({
-        OR: [
-          { metadata: { path: ['period', 'ageTitle'], equals: query.age } },
-          { metadata: { path: ['period', 'label'], equals: query.age } }
-        ]
+        OR: ages.flatMap((value) => [
+          { metadata: { path: ['period', 'ageTitle'], equals: value } },
+          { metadata: { path: ['period', 'label'], equals: value } }
+        ])
       });
     }
 
