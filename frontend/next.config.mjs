@@ -2,12 +2,9 @@
 const nextConfig = {
   output: "standalone",
   typedRoutes: true,
-  // First-party proxy for Umami so ad-blockers (Brave, uBlock) don't drop it.
-  // /oc.js is served by app/oc.js/route.ts with the endpoint renamed to /oc-data,
-  // because EasyPrivacy blocks any "/api/send" path even on first-party domains.
-  async rewrites() {
-    return [{ source: "/oc-data", destination: "https://cloud.umami.is/api/send" }];
-  },
+  // First-party Umami proxy: /oc.js (app/oc.js/route.ts) renames the tracker's
+  // endpoint to /oc-data (app/oc-data/route.ts), which forwards the real client
+  // IP so geo stats stay correct. EasyPrivacy blocks "/api/send" even first-party.
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "placehold.co" },
