@@ -175,6 +175,11 @@ export class AdminService {
     });
   }
 
+  /**
+   * Legacy origincarpets.com import — no longer exposed via the API: that domain
+   * now serves THIS site, so syncing from it corrupts the catalog (it wiped
+   * images/categories of 50 products on 2026-07-16). Kept for the CLI script only.
+   */
   async syncOrigincarpets(mode: 'full' | 'sync' = 'sync') {
     return syncOrigincarpetsProducts(this.prisma, mode);
   }

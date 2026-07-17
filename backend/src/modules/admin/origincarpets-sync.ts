@@ -129,7 +129,13 @@ async function fetchLegacyPage(page: number): Promise<LegacyPageResponse> {
   if (!response.ok) {
     throw new Error(`Legacy API failed on page ${page}: ${response.status}`);
   }
-  return (await response.json()) as LegacyPageResponse;
+  const payload = (await response.json()) as LegacyPageResponse;
+  // Safety: origincarpets.com now serves the NEW site. If the payload doesn't
+  // look like the legacy Mongo API (items with _id), abort before touching the DB.
+  if (payload.items?.length && payload.items.some((item) => !item._id)) {
+    throw new Error('Legacy API shape mismatch — refusing to sync (endpoint is not the legacy site)');
+  }
+  return payload;
 }
 
 async function upsertCategory(prisma: PrismaClient, product: LegacyProduct) {

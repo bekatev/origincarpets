@@ -52,8 +52,4 @@ export class AdminController {
     return this.adminService.listCustomers();
   }
 
-  @Post('imports/origincarpets')
-  importOrigincarpets(@Query('mode') mode?: 'full' | 'sync') {
-    return this.adminService.syncOrigincarpets(mode === 'full' ? 'full' : 'sync');
-  }
 }
