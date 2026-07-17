@@ -38,6 +38,7 @@ type Product = {
   isActive: boolean;
   isPublished: boolean;
   images: string[];
+  origin?: string | null;
   category: { id: string; name: string; slug: string };
   attributes: { size: string | null; color: string | null; material: string | null };
   shipping?: ProductShipping;
@@ -564,30 +565,6 @@ export function AdminDashboardView() {
     }
   }
 
-  async function onSyncOrigincarpets(mode: 'sync' | 'full') {
-    if (!token) return;
-    setBusy(true);
-    try {
-      const result = await apiRequest<{ imported: number; skipped: number; totalFetched: number; mode: 'sync' | 'full' }>(
-        `/admin/imports/origincarpets?mode=${mode}`,
-        token,
-        { method: 'POST' }
-      );
-      await loadAll(token);
-      flash(
-        a.sync.success
-          .replace('{mode}', result.mode.toUpperCase())
-          .replace('{imported}', String(result.imported))
-          .replace('{skipped}', String(result.skipped))
-          .replace('{total}', String(result.totalFetched))
-      );
-    } catch (actionError) {
-      flashError(actionError instanceof Error ? actionError.message : a.sync.failed);
-    } finally {
-      setBusy(false);
-    }
-  }
-
   function startEdit(product: Product) {
     setEditingProductId(product.id);
     setProductForm({
@@ -668,14 +645,7 @@ export function AdminDashboardView() {
           <p className="oc-body mt-12">{a.loading}</p>
         ) : (
           <div className="mt-10">
-            {tab === 'overview' && (
-              <OverviewTab
-                a={a}
-                overview={overview}
-                busy={busy}
-                onSync={onSyncOrigincarpets}
-              />
-            )}
+            {tab === 'overview' && <OverviewTab a={a} overview={overview} />}
             {tab === 'orders' && (
               <OrdersTab
                 a={a}
@@ -727,17 +697,7 @@ export function AdminDashboardView() {
 
 type AdminDict = Dictionary['admin'];
 
-function OverviewTab({
-  a,
-  overview,
-  busy,
-  onSync
-}: {
-  a: AdminDict;
-  overview: AdminOverview | null;
-  busy: boolean;
-  onSync: (mode: 'sync' | 'full') => void;
-}) {
+function OverviewTab({ a, overview }: { a: AdminDict; overview: AdminOverview | null }) {
   const { formatPrice } = useCurrency();
 
   return (
@@ -747,18 +707,6 @@ function OverviewTab({
         <MetricCard label={a.metrics.revenue} value={formatPrice(overview?.revenue ?? 0)} />
         <MetricCard label={a.metrics.products} value={overview?.products ?? 0} />
         <MetricCard label={a.metrics.customers} value={overview?.customers ?? 0} />
-      </section>
-      <section className="oc-surface p-6 sm:p-8">
-        <h2 className="font-display text-xl uppercase tracking-[0.1em]">{a.sync.sync}</h2>
-        <p className="oc-body mt-2">{a.subtitle}</p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button type="button" disabled={busy} className="oc-btn-secondary" onClick={() => onSync('sync')}>
-            {a.sync.sync}
-          </button>
-          <button type="button" disabled={busy} className="oc-btn-primary" onClick={() => onSync('full')}>
-            {a.sync.full}
-          </button>
-        </div>
       </section>
     </div>
   );
@@ -1039,6 +987,12 @@ function ProductsTab({
   const [showMissingShippingOnly, setShowMissingShippingOnly] = useState(false);
   const [showUnpublishedOnly, setShowUnpublishedOnly] = useState(false);
   const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [search, setSearch] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterSize, setFilterSize] = useState('');
+  const [filterMaterial, setFilterMaterial] = useState('');
+  const [filterColor, setFilterColor] = useState('');
+  const [filterOrigin, setFilterOrigin] = useState('');
 
   useEffect(() => {
     try {
@@ -1067,6 +1021,32 @@ function ProductsTab({
     [productForm.imagesText]
   );
 
+  const facetOptions = useMemo(() => {
+    const collect = (values: Array<string | null | undefined>) =>
+      [...new Set(values.map((v) => v?.trim()).filter((v): v is string => Boolean(v)))].sort((a2, b2) =>
+        a2.localeCompare(b2)
+      );
+    return {
+      sizes: collect(products.map((p) => p.attributes.size)),
+      materials: collect(products.map((p) => p.attributes.material)),
+      colors: collect(products.map((p) => p.attributes.color)),
+      origins: collect(products.map((p) => p.origin))
+    };
+  }, [products]);
+
+  const hasActiveFilters = Boolean(
+    search.trim() || filterCategory || filterSize || filterMaterial || filterColor || filterOrigin
+  );
+
+  const clearFilters = () => {
+    setSearch('');
+    setFilterCategory('');
+    setFilterSize('');
+    setFilterMaterial('');
+    setFilterColor('');
+    setFilterOrigin('');
+  };
+
   const visibleProducts = useMemo(() => {
     let list = products;
     if (showMissingShippingOnly) {
@@ -1075,8 +1055,41 @@ function ProductsTab({
     if (showUnpublishedOnly) {
       list = list.filter((product) => !product.isPublished);
     }
+    const query = search.trim().toLowerCase();
+    if (query) {
+      list = list.filter((product) =>
+        [product.title, product.sku, product.slug, product.description]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(query))
+      );
+    }
+    if (filterCategory) {
+      list = list.filter((product) => product.category.id === filterCategory);
+    }
+    if (filterSize) {
+      list = list.filter((product) => product.attributes.size === filterSize);
+    }
+    if (filterMaterial) {
+      list = list.filter((product) => product.attributes.material === filterMaterial);
+    }
+    if (filterColor) {
+      list = list.filter((product) => product.attributes.color === filterColor);
+    }
+    if (filterOrigin) {
+      list = list.filter((product) => product.origin === filterOrigin);
+    }
     return list;
-  }, [products, showMissingShippingOnly, showUnpublishedOnly]);
+  }, [
+    products,
+    showMissingShippingOnly,
+    showUnpublishedOnly,
+    search,
+    filterCategory,
+    filterSize,
+    filterMaterial,
+    filterColor,
+    filterOrigin
+  ]);
 
   const missingShippingCount = useMemo(
     () => products.filter((product) => !hasShippingData(product.shipping)).length,
@@ -1366,14 +1379,69 @@ function ProductsTab({
             </label>
           </div>
         </div>
+
+        <div className="mb-6 space-y-3">
+          <input
+            type="search"
+            className="oc-input"
+            placeholder={a.products.searchPlaceholder}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <select className="oc-input" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+              <option value="">{a.products.filterCategory}: {a.products.filterAll}</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <select className="oc-input" value={filterSize} onChange={(e) => setFilterSize(e.target.value)}>
+              <option value="">{a.products.filterSize}: {a.products.filterAll}</option>
+              {facetOptions.sizes.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+            <select className="oc-input" value={filterMaterial} onChange={(e) => setFilterMaterial(e.target.value)}>
+              <option value="">{a.products.filterMaterial}: {a.products.filterAll}</option>
+              {facetOptions.materials.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+            <select className="oc-input" value={filterColor} onChange={(e) => setFilterColor(e.target.value)}>
+              <option value="">{a.products.filterColor}: {a.products.filterAll}</option>
+              {facetOptions.colors.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+            <select className="oc-input" value={filterOrigin} onChange={(e) => setFilterOrigin(e.target.value)}>
+              <option value="">{a.products.filterOrigin}: {a.products.filterAll}</option>
+              {facetOptions.origins.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+          </div>
+          {hasActiveFilters && (
+            <div className="flex items-center justify-between gap-3 text-xs text-[var(--oc-muted)]">
+              <span>
+                {visibleProducts.length} / {products.length}
+              </span>
+              <button type="button" className="oc-link uppercase tracking-[0.14em]" onClick={clearFilters}>
+                {a.products.clearFilters}
+              </button>
+            </div>
+          )}
+        </div>
+
         {!products.length ? (
           <EmptyState text={a.products.empty} />
         ) : visibleProducts.length === 0 ? (
           <EmptyState
             text={
-              showUnpublishedOnly && !showMissingShippingOnly
-                ? a.products.emptyUnpublished
-                : a.products.emptyMissingShipping
+              hasActiveFilters
+                ? a.products.emptyFiltered
+                : showUnpublishedOnly && !showMissingShippingOnly
+                  ? a.products.emptyUnpublished
+                  : a.products.emptyMissingShipping
             }
           />
         ) : view === 'list' ? (
