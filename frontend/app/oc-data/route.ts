@@ -10,9 +10,13 @@ import type { NextRequest } from 'next/server';
 const UPSTREAM = 'https://cloud.umami.is/api/send';
 
 export async function POST(request: NextRequest) {
+  // The site sits behind Cloudflare: cf-connecting-ip is the visitor's real IP.
+  // X-Forwarded-For's FIRST entry is the original client; x-real-ip as set by
+  // nginx would be the Cloudflare edge node, so it comes last.
   const clientIp =
-    request.headers.get('x-real-ip') ||
+    request.headers.get('cf-connecting-ip') ||
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
     '';
 
   const headers: Record<string, string> = {
