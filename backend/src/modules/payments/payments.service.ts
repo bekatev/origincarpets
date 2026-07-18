@@ -31,7 +31,12 @@ export class PaymentsService {
   }
 
   private frontendUrl() {
-    return this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
+    const raw = (this.config.get<string>('FRONTEND_URL') || 'https://origincarpets.com').replace(/\/$/, '');
+    // Legacy Gallery Carpets domain must never be used as a post-payment return.
+    if (/gallerycarpets\.ge/i.test(raw)) {
+      return 'https://origincarpets.com';
+    }
+    return raw || 'https://origincarpets.com';
   }
 
   private async loadPendingOrder(userId: string, orderId: string) {
@@ -236,7 +241,7 @@ export class PaymentsService {
   }
 
   ipayReturnRedirect() {
-    return this.frontendUrl().replace(/\/$/, '') || 'https://origincarpets.com';
+    return `${this.frontendUrl()}/account/orders?payment=success`;
   }
 
   async createPayPalOrder(userId: string, orderId: string) {

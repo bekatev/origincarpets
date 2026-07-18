@@ -21,7 +21,11 @@ export class IpayClient {
     this.apiUrl = config.get<string>('IPAY_API_URL', 'https://ipay.ge/opay/api/v1');
     this.clientId = config.get<string>('IPAY_CLIENT_ID', '');
     this.clientSecret = config.get<string>('IPAY_CLIENT_SECRET', '');
-    this.redirectUrl = config.get<string>('IPAY_REDIRECT_URL', '');
+    const configuredRedirect = config.get<string>('IPAY_REDIRECT_URL', '') || '';
+    // Never send the browser back to the legacy Gallery Carpets domain.
+    this.redirectUrl = /gallerycarpets\.ge/i.test(configuredRedirect)
+      ? 'https://origincarpets.com/api/payments/ipay/callback'
+      : configuredRedirect;
     this.enabled = Boolean(this.clientId && this.clientSecret && this.redirectUrl);
   }
 
