@@ -6,7 +6,6 @@ import { BrandLogo } from '@/components/brand/brand-logo';
 import { DecorationDivider } from '@/components/home/decoration-divider';
 import { DecorationMotif } from '@/components/home/decoration-motif';
 import { FeaturedProductCard } from '@/components/home/featured-product-card';
-import { ParallaxMedia } from '@/components/motion/parallax-media';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
 import type { ProductItem } from '@/lib/products';
@@ -20,16 +19,14 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
     <main>
       <section className="relative">
         <div className="relative aspect-[16/8] w-full overflow-hidden sm:aspect-[16/7] lg:aspect-[21/8]">
-          <ParallaxMedia className="absolute inset-[-12%] h-[124%] w-full" intensity={72}>
-            <Image
-              src={stockImages.hero}
-              alt="Origin Carpets gallery exterior — Caucasian and Oriental handmade rugs in Tbilisi"
-              fill
-              priority
-              className="object-cover object-center"
-              sizes="100vw"
-            />
-          </ParallaxMedia>
+          <Image
+            src={stockImages.hero}
+            alt="Origin Carpets gallery exterior — Caucasian and Oriental handmade rugs in Tbilisi"
+            fill
+            priority
+            className="object-cover object-center"
+            sizes="100vw"
+          />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--oc-bg)]/20 via-transparent to-transparent" />
         </div>
         <div className="oc-container-narrow py-14 text-center sm:py-20">
@@ -73,15 +70,13 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
           </div>
           <div className="mt-14 grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
             <div className="relative aspect-[4/3] overflow-hidden bg-[var(--oc-bg-secondary)]">
-              <ParallaxMedia className="absolute inset-[-10%] h-[120%] w-full" intensity={48}>
-                <Image
-                  src={stockImages.collection}
-                  alt="Handmade Caucasian and Oriental carpet collection at Origin Carpets"
-                  fill
-                  className="object-cover object-center"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
-              </ParallaxMedia>
+              <Image
+                src={stockImages.collection}
+                alt="Handmade Caucasian and Oriental carpet collection at Origin Carpets"
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
             </div>
             <div className="space-y-6 lg:pr-8">
               <p className="oc-body">{dict.home.editorialBody}</p>
@@ -115,15 +110,13 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             </Link>
           </div>
           <div className="relative aspect-[3/4] overflow-hidden bg-[var(--oc-bg)]">
-            <ParallaxMedia className="absolute inset-[-10%] h-[120%] w-full" intensity={52}>
-              <Image
-                src={stockImages.about}
-                alt="Historic carpet bazaar — the heritage behind Origin Carpets"
-                fill
-                className="object-cover object-center grayscale-[15%]"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            </ParallaxMedia>
+            <Image
+              src={stockImages.about}
+              alt="Historic carpet bazaar — the heritage behind Origin Carpets"
+              fill
+              className="object-cover object-center grayscale-[15%]"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
           </div>
         </div>
       </section>
@@ -133,15 +126,13 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
       <section id="carpet-origin" className="oc-section">
         <div className="oc-container grid gap-12 lg:grid-cols-2">
           <div className="relative aspect-[4/3] overflow-hidden bg-[var(--oc-bg-secondary)]">
-            <ParallaxMedia className="absolute inset-[-10%] h-[120%] w-full" intensity={48}>
-              <Image
-                src={stockImages.gallery}
-                alt="Interior of Origin Carpets gallery with handmade rugs on display"
-                fill
-                className="object-cover object-center"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            </ParallaxMedia>
+            <Image
+              src={stockImages.gallery}
+              alt="Interior of Origin Carpets gallery with handmade rugs on display"
+              fill
+              className="object-cover object-center"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
           </div>
           <div className="flex flex-col justify-center space-y-8">
             <div>

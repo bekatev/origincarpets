@@ -13,9 +13,7 @@ import { MessengerChat } from '@/components/layout/messenger-chat';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
-import { SmoothScrollProvider } from '@/components/providers/smooth-scroll-provider';
 import { ThemeScript } from '@/components/layout/theme-script';
-import { ParallaxScroll } from '@/components/motion/parallax-scroll';
 import { JsonLd } from '@/components/seo/json-ld';
 import { Analytics } from '@/components/seo/analytics';
 import { CURRENCY_COOKIE, normalizeCurrency } from '@/lib/currency';
@@ -125,26 +123,22 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
       <body suppressHydrationWarning className={`${inter.variable} ${playfair.variable} font-sans`}>
         <ThemeProvider initialTheme={theme}>
-          <SmoothScrollProvider>
-            <I18nProvider initialLocale={locale}>
-              <CurrencyProvider initialCurrency={currency}>
-                <AuthProvider>
-                  <CartProvider>
-                    <ParallaxScroll>
-                      <SiteTopbar />
-                      <SiteHeader />
-                      {children}
-                      <SiteFooter />
-                    </ParallaxScroll>
-                    <div className="fixed bottom-6 right-6 z-50 flex items-end gap-2">
-                      <MessengerChat />
-                      <CurrencySwitcher />
-                    </div>
-                  </CartProvider>
-                </AuthProvider>
-              </CurrencyProvider>
-            </I18nProvider>
-          </SmoothScrollProvider>
+          <I18nProvider initialLocale={locale}>
+            <CurrencyProvider initialCurrency={currency}>
+              <AuthProvider>
+                <CartProvider>
+                  <SiteTopbar />
+                  <SiteHeader />
+                  {children}
+                  <SiteFooter />
+                  <div className="fixed bottom-6 right-6 z-50 flex items-end gap-2">
+                    <MessengerChat />
+                    <CurrencySwitcher />
+                  </div>
+                </CartProvider>
+              </AuthProvider>
+            </CurrencyProvider>
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>
