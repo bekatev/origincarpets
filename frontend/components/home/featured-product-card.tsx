@@ -16,11 +16,11 @@ export function FeaturedProductCard({ product, priority = false }: { product: Pr
     <article className="group">
       <Link href={`/products/${product.slug}`} className="block">
         <ProductCardFoldMedia images={product.images} alt={localized.title} priority={priority} />
-        <div className="mt-4 space-y-1.5 text-center">
-          <h3 className="font-display text-lg leading-snug text-[var(--oc-ink)] transition group-hover:opacity-60">
+        <div className="mt-4 bg-[var(--oc-paper)] px-3 py-3.5 sm:px-4">
+          <h3 className="font-display text-[1.05rem] leading-snug text-[var(--oc-ink)] transition group-hover:opacity-55">
             {localized.title}
           </h3>
-          <p className="text-sm text-[var(--oc-muted)]">
+          <p className="mt-1 text-[13px] tracking-wide text-[var(--oc-muted)]">
             <FormattedPrice amount={product.price} />
           </p>
         </div>
