@@ -58,7 +58,7 @@ export function AtHomeSlider() {
   }, [go, paused, reduceMotion, index]);
 
   return (
-    <section id="at-home" className="relative overflow-hidden bg-[var(--oc-bg)]">
+    <section id="at-home" className="relative scroll-mt-28 overflow-hidden bg-[var(--oc-bg)]">
       <div className="oc-container oc-section">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="oc-heading-sm">{dict.home.atHomeTitle}</h2>

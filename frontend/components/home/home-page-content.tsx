@@ -85,7 +85,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
       {/* Featured */}
       {featured.length > 0 && (
         <>
-          <section className="relative oc-section overflow-hidden">
+          <section id="featured" className="relative oc-section overflow-hidden scroll-mt-28">
             <CarpetBackdrop
               src={stockImages.carpets.lattice}
               tone="paper"
@@ -121,7 +121,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
       )}
 
       {/* Editorial */}
-      <section className="relative oc-section overflow-hidden">
+      <section id="collection" className="relative oc-section overflow-hidden scroll-mt-28">
         <CarpetBackdrop src={stockImages.carpets.layered} tone="paper" strength={0.28} zoom={1.1} intensity={110} />
         <ParallaxContent intensity={32} className="oc-container">
           <div className="mx-auto max-w-3xl text-center lg:mx-0 lg:max-w-2xl lg:text-left">
@@ -159,7 +159,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
       <DecorationDivider />
 
       {/* Expertise — reading carpets (video + copy) */}
-      <section id="expertise" className="relative oc-section overflow-hidden">
+      <section id="expertise" className="relative oc-section overflow-hidden scroll-mt-28">
         <CarpetBackdrop
           src={stockImages.carpets.column}
           tone="paper"
@@ -200,7 +200,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
       <DecorationDivider />
 
       {/* About */}
-      <section id="about-us" className="relative oc-section overflow-hidden">
+      <section id="about-us" className="relative oc-section overflow-hidden scroll-mt-28">
         <CarpetBackdrop src={stockImages.carpets.jewel} tone="paper" strength={0.28} zoom={1.2} intensity={105} />
         <ParallaxContent
           intensity={28}
@@ -238,7 +238,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
       <DecorationDivider />
 
       {/* Carpet / Kilim */}
-      <section id="carpet-origin" className="relative oc-section overflow-hidden">
+      <section id="carpet-origin" className="relative oc-section overflow-hidden scroll-mt-28">
         <CarpetBackdrop src={stockImages.carpets.heroCarpet} tone="paper" strength={0.28} zoom={1.1} intensity={100} />
         <ParallaxContent
           intensity={28}
@@ -282,7 +282,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
       <DecorationDivider />
 
       {/* Contact */}
-      <section id="contact-us" className="relative oc-section overflow-hidden">
+      <section id="contact-us" className="relative oc-section overflow-hidden scroll-mt-28">
         <CarpetBackdrop
           src={stockImages.carpets.lions}
           tone="ink"
