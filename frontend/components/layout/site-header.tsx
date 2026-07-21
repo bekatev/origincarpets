@@ -15,22 +15,17 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { dict } = useI18n();
 
-  const sectionNav: Array<{ href: Route; label: string }> = [
-    { href: '/#featured' as Route, label: dict.nav.featured },
-    { href: '/#collection' as Route, label: dict.nav.collection },
-    { href: '/#expertise' as Route, label: dict.nav.expertise },
+  const primaryNav: Array<{ href: Route; label: string }> = [
+    { href: '/products', label: dict.nav.shop },
     { href: '/#about-us' as Route, label: dict.nav.about },
-    { href: '/#carpet-origin' as Route, label: dict.nav.origin },
-    { href: '/#at-home' as Route, label: dict.nav.atHome },
     { href: '/#contact-us' as Route, label: dict.nav.contact }
   ];
 
-  const primaryNav: Array<{ href: Route; label: string }> = [
-    { href: '/products', label: dict.nav.shop },
-    ...sectionNav
+  const allNav: Array<{ href: Route; label: string }> = [
+    ...primaryNav,
+    { href: '/#carpet-origin' as Route, label: dict.nav.origin },
+    { href: '/#guides-policies' as Route, label: dict.nav.guides }
   ];
-
-  const allNav = primaryNav;
 
   return (
     <header
@@ -38,10 +33,10 @@ export function SiteHeader() {
       style={{ backgroundColor: 'color-mix(in srgb, var(--oc-bg) 55%, transparent)' }}
     >
       <div className="oc-container">
-        <div className="hidden items-center justify-between gap-6 py-6 lg:grid lg:grid-cols-[minmax(0,1.4fr)_auto_minmax(0,1fr)]">
-          <nav className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <div className="hidden items-center justify-between py-8 lg:grid lg:grid-cols-[1fr_auto_1fr]">
+          <nav className="flex items-center gap-8">
             {primaryNav.map((item) => (
-              <Link key={item.href} href={item.href} className="oc-nav-link whitespace-nowrap">
+              <Link key={item.href} href={item.href} className="oc-nav-link">
                 {item.label}
               </Link>
             ))}
