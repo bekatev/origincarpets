@@ -8,6 +8,8 @@ import { CarpetBackdrop } from '@/components/home/carpet-backdrop';
 import { DecorationDivider } from '@/components/home/decoration-divider';
 import { DecorationMotif, type MotifPlacement } from '@/components/home/decoration-motif';
 import { FeaturedProductCard } from '@/components/home/featured-product-card';
+import { AtHomeSlider } from '@/components/home/at-home-slider';
+import { ParallaxContent, ParallaxMedia } from '@/components/motion/parallax-media';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
 import type { ProductItem } from '@/lib/products';
@@ -43,18 +45,23 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
 
   return (
     <main>
-      {/* Hero — full-bleed carpet */}
+      {/* Hero — full-bleed carpet + parallax */}
       <section className="relative min-h-[78vh] overflow-hidden sm:min-h-[85vh]">
-        <Image
-          src={stockImages.hero}
-          alt="Colorful handmade Caucasian carpet detail"
-          fill
-          priority
-          className="object-cover object-center"
-          sizes="100vw"
-        />
+        <ParallaxMedia intensity={130}>
+          <Image
+            src={stockImages.hero}
+            alt="Colorful handmade Caucasian carpet detail"
+            fill
+            priority
+            className="object-cover object-center"
+            sizes="100vw"
+          />
+        </ParallaxMedia>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1a1210]/80 via-[#1a1210]/35 to-[#1a1210]/15" />
-        <div className="oc-container relative flex min-h-[78vh] flex-col items-center justify-end pb-20 pt-32 text-center sm:min-h-[85vh] sm:pb-28">
+        <ParallaxContent
+          intensity={48}
+          className="oc-container flex min-h-[78vh] flex-col items-center justify-end pb-20 pt-32 text-center sm:min-h-[85vh] sm:pb-28"
+        >
           <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-white/70">
             {dict.home.heroSubtitle}
           </p>
@@ -70,17 +77,24 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
           >
             {dict.home.exploreCollection}
           </Link>
-        </div>
+        </ParallaxContent>
       </section>
 
       <DecorationDivider />
 
-      {/* Featured — rust carpet backdrop */}
+      {/* Featured */}
       {featured.length > 0 && (
         <>
           <section className="relative oc-section overflow-hidden">
-            <CarpetBackdrop src={stockImages.carpets.lattice} tone="paper" strength={0} rotate={90} zoom={1.04} />
-            <div className="oc-container relative">
+            <CarpetBackdrop
+              src={stockImages.carpets.lattice}
+              tone="paper"
+              strength={0.28}
+              rotate={90}
+              zoom={1.04}
+              intensity={100}
+            />
+            <ParallaxContent intensity={28} className="oc-container">
               <div className="mx-auto max-w-2xl text-center">
                 <TextPanel className="inline-block px-8 py-5 sm:px-10 sm:py-6">
                   <h2 className="oc-heading-sm">{dict.home.featuredCollection}</h2>
@@ -100,16 +114,16 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
                   <span aria-hidden>→</span>
                 </Link>
               </div>
-            </div>
+            </ParallaxContent>
           </section>
           <DecorationDivider />
         </>
       )}
 
-      {/* Editorial — layered carpet backdrop */}
+      {/* Editorial */}
       <section className="relative oc-section overflow-hidden">
-        <CarpetBackdrop src={stockImages.carpets.layered} tone="paper" strength={0} zoom={1.1} />
-        <div className="oc-container relative">
+        <CarpetBackdrop src={stockImages.carpets.layered} tone="paper" strength={0.28} zoom={1.1} intensity={110} />
+        <ParallaxContent intensity={32} className="oc-container">
           <div className="mx-auto max-w-3xl text-center lg:mx-0 lg:max-w-2xl lg:text-left">
             <TextPanel className="inline-block px-8 py-5 sm:px-10 sm:py-6">
               <h2 className="font-display text-2xl font-normal leading-[1.3] tracking-[-0.01em] text-[var(--oc-ink)] sm:text-3xl lg:text-4xl">
@@ -119,13 +133,15 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
           </div>
           <div className="mt-16 grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
             <div className="relative aspect-[4/5] overflow-hidden sm:aspect-[4/3]">
-              <Image
-                src={stockImages.collection}
-                alt="Handmade Caucasian and Oriental carpet collection at Origin Carpets"
-                fill
-                className="object-cover object-center"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
+              <ParallaxMedia intensity={70}>
+                <Image
+                  src={stockImages.collection}
+                  alt="Handmade Caucasian and Oriental carpet collection at Origin Carpets"
+                  fill
+                  className="object-cover object-center"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              </ParallaxMedia>
             </div>
             <TextPanel motif motifSize="sm" motifPlacement="bottom-right" className="max-w-xl">
               <div className="space-y-6">
@@ -137,15 +153,59 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
               </div>
             </TextPanel>
           </div>
-        </div>
+        </ParallaxContent>
       </section>
 
       <DecorationDivider />
 
-      {/* About — jewel carpet backdrop */}
+      {/* Expertise — reading carpets (video + copy) */}
+      <section id="expertise" className="relative oc-section overflow-hidden">
+        <CarpetBackdrop
+          src={stockImages.carpets.column}
+          tone="paper"
+          strength={0.28}
+          rotate={90}
+          zoom={1.06}
+          intensity={95}
+        />
+        <ParallaxContent intensity={28} className="oc-container">
+          <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-14 xl:gap-16">
+            <div className="mx-auto w-full max-w-[280px] sm:max-w-[320px] lg:col-span-4 lg:mx-0 lg:max-w-none">
+              <div className="overflow-hidden bg-[var(--oc-paper)] shadow-[var(--oc-shadow-lift)]">
+                <video
+                  className="aspect-[9/16] h-auto w-full object-cover"
+                  controls
+                  playsInline
+                  preload="metadata"
+                  poster={stockImages.historyVideoPoster}
+                >
+                  <source src={stockImages.historyVideo} type="video/mp4" />
+                </video>
+              </div>
+            </div>
+            <TextPanel motif motifSize="md" motifPlacement="bottom-right" className="lg:col-span-8">
+              <p className="oc-eyebrow">{dict.home.expertiseEyebrow}</p>
+              <h2 className="oc-heading-sm mt-4">{dict.home.expertiseTitle}</h2>
+              <p className="oc-body mt-5 text-[var(--oc-ink)]/90 sm:text-base">{dict.home.expertiseLead}</p>
+              <div className="mt-8 space-y-5">
+                <p className="oc-body">{dict.home.expertiseP1}</p>
+                <p className="oc-body">{dict.home.expertiseP2}</p>
+                {dict.home.expertiseP3 ? <p className="oc-body">{dict.home.expertiseP3}</p> : null}
+              </div>
+            </TextPanel>
+          </div>
+        </ParallaxContent>
+      </section>
+
+      <DecorationDivider />
+
+      {/* About */}
       <section id="about-us" className="relative oc-section overflow-hidden">
-        <CarpetBackdrop src={stockImages.carpets.jewel} tone="paper" strength={0} zoom={1.2} />
-        <div className="oc-container relative grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+        <CarpetBackdrop src={stockImages.carpets.jewel} tone="paper" strength={0.28} zoom={1.2} intensity={105} />
+        <ParallaxContent
+          intensity={28}
+          className="oc-container grid items-center gap-10 lg:grid-cols-2 lg:gap-16"
+        >
           <TextPanel motif motifSize="lg" motifPlacement="center" className="lg:max-w-xl">
             <p className="oc-eyebrow">{dict.home.aboutHeading}</p>
             <h2 className="oc-heading-sm mt-4">{dict.home.historyTitle}</h2>
@@ -162,33 +222,40 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             </Link>
           </TextPanel>
           <div className="relative mx-auto aspect-[3/4] w-full max-w-md overflow-hidden lg:max-w-none">
-            <Image
-              src={stockImages.about}
-              alt="Historic carpet bazaar — the heritage behind Origin Carpets"
-              fill
-              className="object-cover object-center grayscale-[12%]"
-              sizes="(max-width: 1024px) 100vw, 45vw"
-            />
+            <ParallaxMedia intensity={60}>
+              <Image
+                src={stockImages.about}
+                alt="Historic carpet bazaar — the heritage behind Origin Carpets"
+                fill
+                className="object-cover object-center grayscale-[12%]"
+                sizes="(max-width: 1024px) 100vw, 45vw"
+              />
+            </ParallaxMedia>
           </div>
-        </div>
+        </ParallaxContent>
       </section>
 
       <DecorationDivider />
 
-      {/* Carpet / Kilim — heroCarpet backdrop */}
+      {/* Carpet / Kilim */}
       <section id="carpet-origin" className="relative oc-section overflow-hidden">
-        <CarpetBackdrop src={stockImages.carpets.heroCarpet} tone="paper" strength={0} zoom={1.1} />
-        <div className="oc-container relative grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
-          <div className="relative aspect-[4/3] overflow-hidden">
-            <Image
-              src={stockImages.gallery}
-              alt="Interior of Origin Carpets gallery with handmade rugs on display"
-              fill
-              className="object-cover object-center"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
+        <CarpetBackdrop src={stockImages.carpets.heroCarpet} tone="paper" strength={0.28} zoom={1.1} intensity={100} />
+        <ParallaxContent
+          intensity={28}
+          className="oc-container grid items-center gap-14 lg:grid-cols-2 lg:gap-20"
+        >
+          <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[16/10]">
+            <ParallaxMedia intensity={55}>
+              <Image
+                src={stockImages.gallery}
+                alt="Interior of Origin Carpets gallery with handmade rugs on display"
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </ParallaxMedia>
           </div>
-          <TextPanel motif motifSize="sm" motifPlacement="top-left" className="max-w-xl space-y-0">
+          <TextPanel motif motifSize="sm" motifPlacement="top-left">
             <div className="space-y-10">
               <div>
                 <h3 className="font-display text-2xl text-[var(--oc-ink)] sm:text-3xl">
@@ -205,15 +272,25 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
               </div>
             </div>
           </TextPanel>
-        </div>
+        </ParallaxContent>
       </section>
 
       <DecorationDivider />
 
-      {/* Contact — lions + dark wash */}
+      <AtHomeSlider />
+
+      <DecorationDivider />
+
+      {/* Contact */}
       <section id="contact-us" className="relative oc-section overflow-hidden">
-        <CarpetBackdrop src={stockImages.carpets.lions} tone="ink" strength={0.55} position="center 40%" />
-        <div className="oc-container-narrow relative text-center text-white">
+        <CarpetBackdrop
+          src={stockImages.carpets.lions}
+          tone="ink"
+          strength={0.55}
+          position="center 40%"
+          intensity={115}
+        />
+        <ParallaxContent intensity={36} className="oc-container-narrow text-center text-white">
           <div className="flex justify-center [&_.font-bold]:!text-white [&_.font-light]:!text-white [&_span.flex]:!border-white/50">
             <BrandLogo size="md" />
           </div>
@@ -246,7 +323,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
               {dict.home.policyPrivacy}
             </Link>
           </div>
-        </div>
+        </ParallaxContent>
       </section>
     </main>
   );

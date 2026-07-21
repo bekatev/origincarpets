@@ -13,3 +13,5 @@ shared/node_modules
 backups/
 data/
 *.tsbuildinfo
+
+.tmp/

@@ -88,7 +88,18 @@ export const dictionaries = {
       editorialBody:
         'Our gallery in Tbilisi holds a diverse collection of Georgian, Persian, Turkish, and Central Asian rugs. Each piece is chosen for its craftsmanship, colour, and story.',
       readStory: 'Read the story',
-      aboutHeading: 'About us'
+      aboutHeading: 'About us',
+      atHomeTitle: 'At Home',
+      atHomeBody:
+        'Origin carpets styled in living rooms, bedrooms, and outdoor spaces — colour and craft in everyday life.',
+      expertiseEyebrow: 'Expertise',
+      expertiseTitle: 'Reading the Carpet',
+      expertiseLead: 'What specialists look for: age, origin, and colour.',
+      expertiseP1:
+        'Age and origin are read from the weave, the knots, the drawing of the pattern, and how the wool has worn. Each region leaves its own handwriting on a carpet.',
+      expertiseP2:
+        'The film also tells the longer story — how carpet traditions travelled — and how colours were made from plants, roots, and insects before chemical dyes existed.',
+      expertiseP3: ''
     },
     footerLinks: footerTranslations.en,
     ...storefrontTranslations.en,
@@ -174,7 +185,18 @@ export const dictionaries = {
       editorialBody:
         'ჩვენი თბილისის გალერეა აერთიანებს ქართული, სპარსული, თურქული და ცენტრალური აზიის ხალიჩების მდიდარ კოლექციას. თითოეული ნაწარმოები შერჩეულია ხელოვნების, ფერისა და ისტორიის გამო.',
       readStory: 'ისტორიის წაკითხვა',
-      aboutHeading: 'ჩვენ შესახებ'
+      aboutHeading: 'ჩვენ შესახებ',
+      atHomeTitle: 'სახლში',
+      atHomeBody:
+        'ჩვენი ხალიჩები მისაღებში, საძინებელსა და ღია სივრცეებში — ფერი და ხელობა ყოველდღიურ ცხოვრებაში.',
+      expertiseEyebrow: 'ექსპერტიზა',
+      expertiseTitle: 'ხალიჩის წაკითხვა',
+      expertiseLead: 'რას უყურებენ სპეციალისტები: ასაკს, წარმომავლობას და ფერს.',
+      expertiseP1:
+        'ასაკი და წარმომავლობა იკითხება ქსოვიდან, კვანძებიდან, ორნამენტის ხატვიდან და იმიდან, როგორ არის გაცვეთილი მატყლი. თითოეულ რეგიონს თავისი „ხელწერა“ აქვს ხალიჩაზე.',
+      expertiseP2:
+        'ფილმშია ასევე ხალიჩის ისტორია — როგორ მოგზაურობდა ტრადიცია — და როგორ მზადდებოდა ფერები მცენარეებით, ფესვებითა და მწერებით, სანამ ქიმიური საღებავები გამოჩნდებოდა.',
+      expertiseP3: ''
     },
     footerLinks: footerTranslations.ka,
     ...storefrontTranslations.ka,

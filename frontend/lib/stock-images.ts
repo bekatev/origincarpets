@@ -12,6 +12,14 @@ export const stockImages = {
   og: '/brand/hero-exterior.png',
   decorationMotif: '/brand/decoration-ornament.png',
   decorationLine: '/brand/decoration-line.png',
+  /** Gallery history film for the Expertise section */
+  historyVideo: '/stock/video/gallery-history.mp4',
+  historyVideoPoster: '/stock/video/gallery-history-poster.jpg',
+  interiors: {
+    wallHanging: '/stock/interiors/wall-hanging.jpg',
+    livingRed: '/stock/interiors/living-red.jpg',
+    roomsCollage: '/stock/interiors/rooms-collage.jpg'
+  },
   carpets: {
     jewel: '/stock/editorial/detail-jewel.png',
     layered: '/stock/editorial/layered-pair.png',

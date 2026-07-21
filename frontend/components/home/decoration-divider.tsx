@@ -1,14 +1,18 @@
 import { stockImages } from '@/lib/stock-images';
 
+/**
+ * Full-bleed decorative strip — one continuous image edge-to-edge.
+ * Never tiled: repeating left visible gaps at tile seams.
+ */
 export function DecorationDivider({ className = '' }: { className?: string }) {
   return (
-    <div
-      className={`relative left-1/2 h-8 w-screen max-w-[100vw] -translate-x-1/2 overflow-hidden sm:h-10 ${className}`}
-      aria-hidden
-    >
-      <div
-        className="h-full w-full bg-repeat-x bg-[length:auto_100%] bg-center opacity-95 dark:opacity-80"
-        style={{ backgroundImage: `url('${stockImages.decorationLine}')` }}
+    <div className={`relative h-8 w-full overflow-hidden sm:h-10 ${className}`} aria-hidden>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={stockImages.decorationLine}
+        alt=""
+        className="pointer-events-none block h-full w-full max-w-none object-fill"
+        draggable={false}
       />
     </div>
   );
