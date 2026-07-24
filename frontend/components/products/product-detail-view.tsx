@@ -47,6 +47,14 @@ export function ProductDetailView({ product }: { product: ProductItem }) {
 
       <dl className="grid grid-cols-2 gap-6 border-t border-[var(--oc-line)] pt-8 text-sm">
         <div>
+          <dt className="text-[var(--oc-muted)]">{d.origin}</dt>
+          <dd className="mt-1 font-medium">{localized.origin?.trim() || d.na}</dd>
+        </div>
+        <div>
+          <dt className="text-[var(--oc-muted)]">{d.age}</dt>
+          <dd className="mt-1 font-medium">{localized.attributes.age ?? d.na}</dd>
+        </div>
+        <div>
           <dt className="text-[var(--oc-muted)]">{d.size}</dt>
           <dd className="mt-1 font-medium">{localized.attributes.size ?? d.na}</dd>
         </div>

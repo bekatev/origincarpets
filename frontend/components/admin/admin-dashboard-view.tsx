@@ -40,7 +40,7 @@ type Product = {
   images: string[];
   origin?: string | null;
   category: { id: string; name: string; slug: string };
-  attributes: { size: string | null; color: string | null; material: string | null };
+  attributes: { size: string | null; color: string | null; material: string | null; age?: string | null };
   shipping?: ProductShipping;
 };
 
@@ -87,6 +87,8 @@ type ProductFormState = {
   size: string;
   color: string;
   material: string;
+  origin: string;
+  age: string;
   weightKg: string;
   lengthCm: string;
   widthCm: string;
@@ -105,6 +107,8 @@ const emptyProduct: ProductFormState = {
   size: '',
   color: '',
   material: '',
+  origin: '',
+  age: '',
   weightKg: '',
   lengthCm: '',
   widthCm: '',
@@ -301,6 +305,8 @@ export function AdminDashboardView() {
       size: next.attributes.size ?? '',
       color: next.attributes.color ?? '',
       material: next.attributes.material ?? '',
+      origin: next.origin ?? '',
+      age: next.attributes.age ?? '',
       weightKg: next.shipping?.weightKg?.toString() ?? '',
       lengthCm: next.shipping?.lengthCm?.toString() ?? '',
       widthCm: next.shipping?.widthCm?.toString() ?? '',
@@ -367,6 +373,8 @@ export function AdminDashboardView() {
         size: productForm.size.trim() || undefined,
         color: productForm.color.trim() || undefined,
         material: productForm.material.trim() || undefined,
+        origin: productForm.origin.trim(),
+        age: productForm.age.trim(),
         weightKg: parseOptionalNumber(productForm.weightKg),
         lengthCm: parseOptionalNumber(productForm.lengthCm),
         widthCm: parseOptionalNumber(productForm.widthCm),
@@ -577,6 +585,8 @@ export function AdminDashboardView() {
       size: product.attributes.size ?? '',
       color: product.attributes.color ?? '',
       material: product.attributes.material ?? '',
+      origin: product.origin ?? '',
+      age: product.attributes.age ?? '',
       weightKg: product.shipping?.weightKg?.toString() ?? '',
       lengthCm: product.shipping?.lengthCm?.toString() ?? '',
       widthCm: product.shipping?.widthCm?.toString() ?? '',
@@ -1147,10 +1157,18 @@ function ProductsTab({
               <input className="oc-input" value={productForm.color} onChange={(e) => setProductForm((p) => ({ ...p, color: e.target.value }))} />
             </Field>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Field label={a.products.material}>
               <input className="oc-input" value={productForm.material} onChange={(e) => setProductForm((p) => ({ ...p, material: e.target.value }))} />
             </Field>
+            <Field label={a.products.origin}>
+              <input className="oc-input" value={productForm.origin} onChange={(e) => setProductForm((p) => ({ ...p, origin: e.target.value }))} />
+            </Field>
+            <Field label={a.products.age}>
+              <input className="oc-input" value={productForm.age} onChange={(e) => setProductForm((p) => ({ ...p, age: e.target.value }))} placeholder="e.g. Antic handmade" />
+            </Field>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
             <label
               className={cn(
                 'flex items-center gap-3 border border-[var(--oc-line)] px-4 py-3 text-sm',

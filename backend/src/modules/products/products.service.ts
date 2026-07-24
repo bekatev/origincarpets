@@ -81,6 +81,24 @@ function readMetadata(metadata: unknown): LegacyProductMetadata | null {
   return metadata as LegacyProductMetadata;
 }
 
+function withAgeMetadata(existing: unknown, age: string | undefined): Prisma.InputJsonValue | undefined {
+  if (age === undefined) return undefined;
+
+  const current = readMetadata(existing) ?? {};
+  const trimmed = age.trim();
+  const next: LegacyProductMetadata & Record<string, unknown> = {
+    ...(typeof existing === 'object' && existing && !Array.isArray(existing)
+      ? (existing as Record<string, unknown>)
+      : {}),
+    period: {
+      ...(current.period ?? {}),
+      ageTitle: trimmed || null
+    }
+  };
+
+  return next as Prisma.InputJsonValue;
+}
+
 @Injectable()
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -237,6 +255,7 @@ export class ProductsService {
     const imageUrls = dto.images?.length
       ? dedupeUrls(dto.images.map((url) => this.normalizeImageUrl(url)).filter(Boolean))
       : [];
+    const metadata = withAgeMetadata(null, dto.age);
 
     try {
       const product = await this.prisma.product.create({
@@ -249,11 +268,13 @@ export class ProductsService {
           categoryId: dto.categoryId,
           sizeLabel: dto.size,
           material: dto.material,
+          origin: dto.origin?.trim() || null,
           weightKg: dto.weightKg,
           lengthCm: dto.lengthCm != null ? Math.round(dto.lengthCm) : dto.lengthCm,
           widthCm: dto.widthCm != null ? Math.round(dto.widthCm) : dto.widthCm,
           heightCm: dto.heightCm != null ? Math.round(dto.heightCm) : dto.heightCm,
           isActive: publication.isActive,
+          ...(metadata !== undefined ? { metadata } : {}),
           images: imageUrls.length
             ? {
                 create: imageUrls.map((url, index) => ({ url, sortOrder: index, isPrimary: index === 0 }))
@@ -308,6 +329,7 @@ export class ProductsService {
         : undefined;
 
     const colorAttribute = dto.color !== undefined ? await this.getOrCreateColorAttribute() : null;
+    const metadata = withAgeMetadata(existing.metadata, dto.age);
 
     try {
       await this.prisma.$transaction(
@@ -323,6 +345,8 @@ export class ProductsService {
               ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
               ...(dto.size !== undefined ? { sizeLabel: dto.size } : {}),
               ...(dto.material !== undefined ? { material: dto.material } : {}),
+              ...(dto.origin !== undefined ? { origin: dto.origin.trim() || null } : {}),
+              ...(metadata !== undefined ? { metadata } : {}),
               ...(dto.weightKg !== undefined ? { weightKg: dto.weightKg } : {}),
               ...(dto.lengthCm !== undefined ? { lengthCm: Math.round(dto.lengthCm) } : {}),
               ...(dto.widthCm !== undefined ? { widthCm: Math.round(dto.widthCm) } : {}),
