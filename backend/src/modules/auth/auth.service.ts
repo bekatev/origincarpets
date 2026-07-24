@@ -56,6 +56,18 @@ export class AuthService {
       await this.addressesService.createSavedAddress(user.id, dto.shippingAddress, true);
     }
 
+    try {
+      await this.mailService.sendWelcomeEmail({
+        to: user.email,
+        firstName: user.firstName
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to send welcome email to ${user.email}`,
+        error instanceof Error ? error.stack : String(error)
+      );
+    }
+
     return this.createAuthResponse(user);
   }
 

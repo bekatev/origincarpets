@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
 import { ShippingService } from '../shipping/shipping.service';
 import { IpayClient } from './ipay.client';
 import { PayPalClient } from './paypal.client';
@@ -13,6 +14,7 @@ export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly shippingService: ShippingService,
+    private readonly mailService: MailService,
     private readonly config: ConfigService,
     private readonly ipay: IpayClient,
     private readonly paypal: PayPalClient
@@ -82,6 +84,65 @@ export class PaymentsService {
     } catch (error) {
       this.logger.error(`UPS admin notification error for order ${orderId}`, error);
     }
+
+    try {
+      await this.sendCustomerOrderConfirmation(orderId);
+    } catch (error) {
+      this.logger.error(
+        `Order confirmation email failed for order ${orderId}`,
+        error instanceof Error ? error.stack : String(error)
+      );
+    }
+  }
+
+  private async sendCustomerOrderConfirmation(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        user: true,
+        shippingAddress: { include: { deliveryCity: { include: { country: true } } } },
+        items: true
+      }
+    });
+
+    if (!order?.shippingAddress) {
+      this.logger.warn(`Skipping order confirmation email — order ${orderId} missing address`);
+      return;
+    }
+
+    const customerName =
+      [order.user.firstName, order.user.lastName].filter(Boolean).join(' ') ||
+      order.shippingAddress.fullName ||
+      'Customer';
+
+    const country =
+      order.shippingAddress.deliveryCity?.country.nameEn ?? order.shippingAddress.countryCode;
+
+    await this.mailService.sendOrderConfirmationEmail({
+      to: order.user.email,
+      customerName,
+      orderNumber: order.orderNumber,
+      currency: order.currency,
+      subtotal: Number(order.subtotal),
+      shippingCost: Number(order.shippingCost),
+      total: Number(order.total),
+      deliveryMethod: order.deliveryMethod,
+      items: order.items.map((item) => ({
+        title: item.titleSnapshot,
+        quantity: item.quantity,
+        unitPrice: Number(item.unitPrice)
+      })),
+      shippingAddress: {
+        fullName: order.shippingAddress.fullName,
+        line1: order.shippingAddress.line1,
+        line2: order.shippingAddress.line2,
+        city: order.shippingAddress.city,
+        region: order.shippingAddress.region,
+        postalCode: order.shippingAddress.postalCode,
+        country,
+        phone: order.shippingAddress.phone
+      }
+    });
   }
 
   async startBankTransfer(userId: string, orderId: string) {
