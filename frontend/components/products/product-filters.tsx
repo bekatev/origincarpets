@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { ProductFilterOptions, ProductListFilters } from '@/lib/products';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { PriceRangeFilter } from '@/components/products/price-range-filter';
+import { translateFacetLabel } from '@/lib/product-localization';
 import { cn } from '@/lib/cn';
 
 function splitValues(value?: string): string[] {
@@ -119,7 +120,7 @@ export function ProductFilters({
   facets: ProductFilterOptions;
   current: ProductListFilters;
 }) {
-  const { dict } = useI18n();
+  const { dict, locale } = useI18n();
   const f = dict.filters;
   const router = useRouter();
   const pathname = usePathname();
@@ -165,14 +166,41 @@ export function ProductFilters({
     {
       name: 'category',
       title: f.category,
-      options: facets.categories.map((category) => ({ value: category.slug, label: category.name }))
+      options: facets.categories.map((category) => ({
+        value: category.slug,
+        label: translateFacetLabel('category', category.name, locale)
+      }))
     },
-    { name: 'material', title: f.material, options: facets.materials.map((v) => ({ value: v, label: v })) },
-    { name: 'size', title: f.size, options: facets.sizes.map((v) => ({ value: v, label: v })) },
-    { name: 'origin', title: f.origin, options: facets.origins.map((v) => ({ value: v, label: v })) },
-    { name: 'color', title: f.color, options: facets.colors.map((v) => ({ value: v, label: v })) },
-    { name: 'age', title: f.age, options: facets.ages.map((v) => ({ value: v, label: v })) },
-    { name: 'period', title: f.period, options: facets.periods.map((v) => ({ value: v, label: v })) },
+    {
+      name: 'material',
+      title: f.material,
+      options: facets.materials.map((v) => ({ value: v, label: translateFacetLabel('material', v, locale) }))
+    },
+    {
+      name: 'size',
+      title: f.size,
+      options: facets.sizes.map((v) => ({ value: v, label: translateFacetLabel('size', v, locale) }))
+    },
+    {
+      name: 'origin',
+      title: f.origin,
+      options: facets.origins.map((v) => ({ value: v, label: translateFacetLabel('origin', v, locale) }))
+    },
+    {
+      name: 'color',
+      title: f.color,
+      options: facets.colors.map((v) => ({ value: v, label: translateFacetLabel('color', v, locale) }))
+    },
+    {
+      name: 'age',
+      title: f.age,
+      options: facets.ages.map((v) => ({ value: v, label: translateFacetLabel('age', v, locale) }))
+    },
+    {
+      name: 'period',
+      title: f.period,
+      options: facets.periods.map((v) => ({ value: v, label: translateFacetLabel('period', v, locale) }))
+    },
     { name: 'georgian', title: f.georgian, options: [{ value: '1', label: f.georgianOnly }] }
   ];
 
