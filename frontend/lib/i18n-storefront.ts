@@ -149,6 +149,11 @@ export const storefrontTranslations = {
       subtotal: 'Subtotal',
       shipping: 'Shipping',
       total: 'Total',
+      email: 'Email',
+      emailHint: 'Order confirmation and tracking updates will be sent here.',
+      signInHint: 'Have an account?',
+      signInLink: 'Sign in',
+      emailRequired: 'Please enter your email address.',
       loginRequired: 'Please login before checkout.',
       cartEmpty: 'Cart is empty.',
       failed: 'Checkout failed',
@@ -166,11 +171,29 @@ export const storefrontTranslations = {
       confirmFailed: 'Failed to confirm payment on server'
     },
     checkoutResult: {
-      title: 'Payment result',
-      success: 'Thank you — your payment was received. We will prepare your order for shipping.',
-      pending: 'If you completed payment, it may take a moment to confirm. Check your orders page.',
+      title: 'Thank you for your order',
+      success: 'Your payment was received. A confirmation email is on its way with your order details.',
+      pending:
+        'If you just completed payment, confirmation can take a moment. Check your email, or look up the order with your email and order number.',
       viewOrders: 'View my orders',
+      lookupOrder: 'Look up order',
       continueShopping: 'Continue shopping'
+    },
+    orderLookup: {
+      title: 'Order lookup',
+      subtitle: 'Enter the email used at checkout and your order number to view status.',
+      email: 'Email',
+      orderNumber: 'Order number',
+      submit: 'Find order',
+      searching: 'Searching…',
+      notFound: 'No order found for that email and order number.',
+      failed: 'Could not look up order',
+      status: 'Status',
+      total: 'Total',
+      items: 'Items',
+      shipping: 'Shipping to',
+      tracking: 'Tracking',
+      placedOn: 'Placed on'
     },
     auth: {
       loginTitle: 'Login',
@@ -433,6 +456,11 @@ export const storefrontTranslations = {
       subtotal: 'ქვეჯამი',
       shipping: 'მიწოდება',
       total: 'სულ',
+      email: 'ელფოსტა',
+      emailHint: 'შეკვეთის დადასტურება და მიწოდების განახლებები ამ მისამართზე გაიგზავნება.',
+      signInHint: 'გაქვთ ანგარიში?',
+      signInLink: 'შესვლა',
+      emailRequired: 'გთხოვთ შეიყვანოთ ელფოსტა.',
       loginRequired: 'შეკვეთამდე გთხოვთ შეხვიდეთ ანგარიშში.',
       cartEmpty: 'კალათა ცარიელია.',
       failed: 'შეკვეთის გაფორმება ვერ მოხერხდა',
@@ -450,11 +478,29 @@ export const storefrontTranslations = {
       confirmFailed: 'გადახდის დადასტურება სერვერზე ვერ მოხერხდა'
     },
     checkoutResult: {
-      title: 'გადახდის შედეგი',
-      success: 'გმადლობთ — გადახდა მიღებულია. შეკვეთას მალე გავუგზავნით.',
-      pending: 'თუ გადახდა დაასრულეთ, დადასტურებას შეიძლება რამდენიმე წუთი დასჭირდეს. შეამოწმეთ შეკვეთები.',
+      title: 'გმადლობთ შეკვეთისთვის',
+      success: 'გადახდა მიღებულია. დადასტურების წერილი მალე მოგივათ შეკვეთის დეტალებით.',
+      pending:
+        'თუ ახლახან დაასრულეთ გადახდა, დადასტურებას შეიძლება რამდენიმე წუთი დასჭირდეს. შეამოწმეთ ელფოსტა ან მოძებნეთ შეკვეთა ელფოსტითა და ნომრით.',
       viewOrders: 'ჩემი შეკვეთები',
+      lookupOrder: 'შეკვეთის მოძებნა',
       continueShopping: 'შოპინგის გაგრძელება'
+    },
+    orderLookup: {
+      title: 'შეკვეთის მოძებნა',
+      subtitle: 'შეიყვანეთ შეკვეთისას გამოყენებული ელფოსტა და შეკვეთის ნომერი სტატუსის სანახავად.',
+      email: 'ელფოსტა',
+      orderNumber: 'შეკვეთის ნომერი',
+      submit: 'შეკვეთის პოვნა',
+      searching: 'იძებნება…',
+      notFound: 'ამ ელფოსტითა და ნომრით შეკვეთა ვერ მოიძებნა.',
+      failed: 'შეკვეთის მოძებნა ვერ მოხერხდა',
+      status: 'სტატუსი',
+      total: 'სულ',
+      items: 'პროდუქტები',
+      shipping: 'მიწოდების მისამართი',
+      tracking: 'თვალთვალი',
+      placedOn: 'შეკვეთის თარიღი'
     },
     auth: {
       loginTitle: 'შესვლა',

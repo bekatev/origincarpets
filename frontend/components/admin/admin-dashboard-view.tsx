@@ -64,7 +64,7 @@ type AdminOrder = {
   parcelTrackingNumber: string | null;
   shipmentNotifiedAt: string | null;
   createdAt: string;
-  customer: { id: string; email: string; name: string | null };
+  customer: { id: string | null; email: string | null; name: string | null; isGuest?: boolean };
   itemsCount: number;
 };
 
@@ -741,7 +741,8 @@ function OrdersTab({
             <div className="min-w-0">
               <p className="font-display text-lg uppercase tracking-[0.08em]">{order.orderNumber}</p>
               <p className="mt-1 text-sm text-[var(--oc-muted)]">
-                {order.customer.name || order.customer.email}
+                {order.customer.name || order.customer.email || 'Guest'}
+                {order.customer.isGuest ? ' · Guest' : ''}
               </p>
               <p className="text-xs text-[var(--oc-muted)]">
                 {new Date(order.createdAt).toLocaleString()} ·{' '}

@@ -64,11 +64,18 @@ export class AdminService {
       parcelTrackingNumber: order.parcelTrackingNumber,
       shipmentNotifiedAt: order.shipmentNotifiedAt,
       createdAt: order.createdAt,
-      customer: {
-        id: order.user.id,
-        email: order.user.email,
-        name: [order.user.firstName, order.user.lastName].filter(Boolean).join(' ') || null
-      },
+      customer: order.user
+        ? {
+            id: order.user.id,
+            email: order.user.email,
+            name: [order.user.firstName, order.user.lastName].filter(Boolean).join(' ') || null
+          }
+        : {
+            id: null,
+            email: order.guestEmail,
+            name: null,
+            isGuest: true
+          },
       itemsCount: order.items.length
     }));
   }

@@ -25,6 +25,7 @@ services:
     environment:
       NODE_ENV: production
       FRONTEND_URL: https://origincarpets.com
+      IPAY_REDIRECT_URL: https://origincarpets.com/api/payments/ipay/callback
       NEXT_PUBLIC_API_URL: https://origincarpets.com/api
       NEXT_PUBLIC_SITE_URL: https://origincarpets.com
       INTERNAL_API_URL: http://127.0.0.1:4000/api

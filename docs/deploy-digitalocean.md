@@ -139,6 +139,7 @@ Watch progress: **Apps → origincarpets → Activity**.
 |---------|-----|
 | Build fails on `prisma migrate` | Check `DATABASE_URL` is `RUN_AND_BUILD_TIME` and DB is attached |
 | Checkout API errors | Confirm `NEXT_PUBLIC_API_URL` is `https://api.origincarpets.com/api` |
-| iPay redirect fails | `IPAY_REDIRECT_URL` must match api domain exactly |
+| iPay redirect fails | `IPAY_REDIRECT_URL` must be `https://origincarpets.com/api/payments/ipay/callback` |
+| iPay closes to gallerycarpets.ge | In businessonline.ge change merchant Website / shop URL to `https://origincarpets.com`. Also point gallerycarpets.ge DNS (or Cloudflare Redirect Rule) → origincarpets.com |
 | CORS errors | `FRONTEND_URL` on api must be `https://origincarpets.com` |
 | Images missing | Product images may still load from `origincarpets.com` URLs until migrated to `/uploads` |

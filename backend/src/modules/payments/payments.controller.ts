@@ -3,7 +3,7 @@ import type { Response } from 'express';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { JwtPayload } from '../auth/types/jwt-payload.type';
-import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
+import { CreatePaymentIntentDto, StartGuestIpayDto } from './dto/create-payment-intent.dto';
 import { PayPalCaptureOrderDto, PayPalCreateOrderDto } from './dto/paypal-order.dto';
 import { StartBankTransferDto } from './dto/start-bank-transfer.dto';
 import { PaymentsService } from './payments.service';
@@ -27,6 +27,11 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard)
   startIpay(@CurrentUser() user: JwtPayload, @Body() dto: CreatePaymentIntentDto) {
     return this.paymentsService.startIpayPayment(user.sub, dto.orderId);
+  }
+
+  @Post('ipay/start-guest')
+  startGuestIpay(@Body() dto: StartGuestIpayDto) {
+    return this.paymentsService.startGuestIpayPayment(dto.orderId, dto.guestAccessToken);
   }
 
   /** Customer browser return from iPay (redirect_url). Also processes query params if present. */

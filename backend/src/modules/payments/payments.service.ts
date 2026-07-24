@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger, UnauthorizedException } from '
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
+import { GuestCheckoutTokenService } from '../orders/guest-checkout-token.service';
 import { ShippingService } from '../shipping/shipping.service';
 import { IpayClient } from './ipay.client';
 import { PayPalClient } from './paypal.client';
@@ -15,6 +16,7 @@ export class PaymentsService {
     private readonly prisma: PrismaService,
     private readonly shippingService: ShippingService,
     private readonly mailService: MailService,
+    private readonly guestTokens: GuestCheckoutTokenService,
     private readonly config: ConfigService,
     private readonly ipay: IpayClient,
     private readonly paypal: PayPalClient
@@ -33,12 +35,14 @@ export class PaymentsService {
   }
 
   private frontendUrl() {
-    const raw = (this.config.get<string>('FRONTEND_URL') || 'https://origincarpets.com').replace(/\/$/, '');
-    // Legacy Gallery Carpets domain must never be used as a post-payment return.
-    if (/gallerycarpets\.ge/i.test(raw)) {
-      return 'https://origincarpets.com';
+    const raw = (this.config.get<string>('FRONTEND_URL') || '').replace(/\/$/, '');
+    // Local / tunnel only — everything else returns to the live shop domain.
+    if (/localhost|127\.0\.0\.1/i.test(raw)) {
+      return raw;
     }
-    return raw || 'https://origincarpets.com';
+    // Never trust FRONTEND_URL for post-iPay redirects if it still points at
+    // gallerycarpets.ge or any other non-production host.
+    return 'https://origincarpets.com';
   }
 
   private async loadPendingOrder(userId: string, orderId: string) {
@@ -57,6 +61,55 @@ export class PaymentsService {
     }
 
     return order;
+  }
+
+  private async loadPendingGuestOrder(orderId: string) {
+    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+
+    if (!order) {
+      throw new BadRequestException('Order not found');
+    }
+
+    if (order.userId || !order.guestEmail) {
+      throw new BadRequestException('Order is not a guest checkout order');
+    }
+
+    if (order.status !== 'PENDING') {
+      throw new BadRequestException('Only pending orders can be paid');
+    }
+
+    return order;
+  }
+
+  private async createIpayCheckoutForOrder(order: { id: string; total: unknown; currency: string }) {
+    if (!this.ipay.isConfigured()) {
+      throw new BadRequestException('Card payments (iPay) are not configured on server');
+    }
+
+    const amountGel = Math.round(Number(order.total) * this.gelPerUsd());
+
+    const checkout = await this.ipay.createCheckoutOrder({
+      shopOrderId: order.id,
+      amountGel
+    });
+
+    await this.prisma.payment.create({
+      data: {
+        orderId: order.id,
+        method: 'CARD',
+        status: 'PENDING',
+        amount: Number(order.total),
+        currency: order.currency,
+        provider: 'ipay',
+        providerPaymentId: checkout.trxIdentifier
+      }
+    });
+
+    return {
+      orderId: order.id,
+      paymentUrl: checkout.paymentUrl,
+      trxIdentifier: checkout.trxIdentifier
+    };
   }
 
   private async markOrderPaid(orderId: string, provider: string, providerPaymentId: string, transactionRef?: string) {
@@ -110,8 +163,14 @@ export class PaymentsService {
       return;
     }
 
+    const to = order.user?.email ?? order.guestEmail;
+    if (!to) {
+      this.logger.warn(`Skipping order confirmation email — order ${orderId} missing email`);
+      return;
+    }
+
     const customerName =
-      [order.user.firstName, order.user.lastName].filter(Boolean).join(' ') ||
+      [order.user?.firstName, order.user?.lastName].filter(Boolean).join(' ') ||
       order.shippingAddress.fullName ||
       'Customer';
 
@@ -119,7 +178,7 @@ export class PaymentsService {
       order.shippingAddress.deliveryCity?.country.nameEn ?? order.shippingAddress.countryCode;
 
     await this.mailService.sendOrderConfirmationEmail({
-      to: order.user.email,
+      to,
       customerName,
       orderNumber: order.orderNumber,
       currency: order.currency,
@@ -127,6 +186,7 @@ export class PaymentsService {
       shippingCost: Number(order.shippingCost),
       total: Number(order.total),
       deliveryMethod: order.deliveryMethod,
+      isGuest: !order.userId && Boolean(order.guestEmail),
       items: order.items.map((item) => ({
         title: item.titleSnapshot,
         quantity: item.quantity,
@@ -197,35 +257,14 @@ export class PaymentsService {
   }
 
   async startIpayPayment(userId: string, orderId: string) {
-    if (!this.ipay.isConfigured()) {
-      throw new BadRequestException('Card payments (iPay) are not configured on server');
-    }
-
     const order = await this.loadPendingOrder(userId, orderId);
-    const amountGel = Math.round(Number(order.total) * this.gelPerUsd());
+    return this.createIpayCheckoutForOrder(order);
+  }
 
-    const checkout = await this.ipay.createCheckoutOrder({
-      shopOrderId: order.id,
-      amountGel
-    });
-
-    await this.prisma.payment.create({
-      data: {
-        orderId: order.id,
-        method: 'CARD',
-        status: 'PENDING',
-        amount: Number(order.total),
-        currency: order.currency,
-        provider: 'ipay',
-        providerPaymentId: checkout.trxIdentifier
-      }
-    });
-
-    return {
-      orderId: order.id,
-      paymentUrl: checkout.paymentUrl,
-      trxIdentifier: checkout.trxIdentifier
-    };
+  async startGuestIpayPayment(orderId: string, guestAccessToken: string) {
+    this.guestTokens.verifyForPayment(guestAccessToken, orderId);
+    const order = await this.loadPendingGuestOrder(orderId);
+    return this.createIpayCheckoutForOrder(order);
   }
 
   async handleIpayCallback(body: Record<string, unknown>) {
@@ -302,7 +341,7 @@ export class PaymentsService {
   }
 
   ipayReturnRedirect() {
-    return `${this.frontendUrl()}/account/orders?payment=success`;
+    return `${this.frontendUrl()}/checkout/result?payment=success`;
   }
 
   async createPayPalOrder(userId: string, orderId: string) {

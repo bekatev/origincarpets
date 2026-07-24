@@ -10,6 +10,7 @@ export type StoredCartItem = {
 };
 
 const CART_STORAGE_PREFIX = 'carpet_cart_v1';
+export const GUEST_CART_OWNER = 'guest';
 /** @deprecated Shared key caused carts to leak between users on the same browser. */
 const LEGACY_CART_STORAGE_KEY = 'carpet_cart_v1';
 
@@ -20,13 +21,13 @@ type RemoteCartResponse = {
   }>;
 };
 
-export function cartStorageKey(userId: string): string {
-  return `${CART_STORAGE_PREFIX}:${userId}`;
+export function cartStorageKey(ownerId: string): string {
+  return `${CART_STORAGE_PREFIX}:${ownerId}`;
 }
 
-export function readCartFromStorage(userId: string): StoredCartItem[] {
+export function readCartFromStorage(ownerId: string): StoredCartItem[] {
   try {
-    const raw = localStorage.getItem(cartStorageKey(userId));
+    const raw = localStorage.getItem(cartStorageKey(ownerId));
     if (!raw) return [];
     const parsed = JSON.parse(raw) as StoredCartItem[];
     return Array.isArray(parsed) ? parsed : [];
@@ -35,16 +36,28 @@ export function readCartFromStorage(userId: string): StoredCartItem[] {
   }
 }
 
-export function writeCartToStorage(userId: string, items: StoredCartItem[]): void {
-  localStorage.setItem(cartStorageKey(userId), JSON.stringify(items));
+export function writeCartToStorage(ownerId: string, items: StoredCartItem[]): void {
+  localStorage.setItem(cartStorageKey(ownerId), JSON.stringify(items));
 }
 
-export function clearCartStorage(userId: string): void {
-  localStorage.removeItem(cartStorageKey(userId));
+export function clearCartStorage(ownerId: string): void {
+  localStorage.removeItem(cartStorageKey(ownerId));
 }
 
 export function clearLegacyCartStorage(): void {
   localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
+}
+
+/** Merge guest + user carts: union of products, keep higher quantity when both have the item. */
+export function mergeCartItems(a: StoredCartItem[], b: StoredCartItem[]): StoredCartItem[] {
+  const byId = new Map<string, StoredCartItem>();
+  for (const item of [...a, ...b]) {
+    const existing = byId.get(item.id);
+    if (!existing || item.quantity > existing.quantity) {
+      byId.set(item.id, { ...item });
+    }
+  }
+  return Array.from(byId.values());
 }
 
 function toCartItems(remote: RemoteCartResponse['items']): StoredCartItem[] {

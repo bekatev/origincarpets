@@ -29,6 +29,8 @@ type OrderConfirmationInput = {
     country: string;
     phone: string | null;
   };
+  /** Prefer order lookup for guests; My Orders for registered customers. */
+  isGuest?: boolean;
 };
 
 @Injectable()
@@ -222,7 +224,9 @@ export class MailService {
   }
 
   async sendOrderConfirmationEmail(input: OrderConfirmationInput): Promise<void> {
-    const ordersUrl = `${this.frontendUrl()}/orders`;
+    const lookupUrl = `${this.frontendUrl()}/order-lookup?order=${encodeURIComponent(input.orderNumber)}&email=${encodeURIComponent(input.to)}`;
+    const ordersUrl = input.isGuest ? lookupUrl : `${this.frontendUrl()}/orders`;
+    const ctaLabel = input.isGuest ? 'Look up your order' : 'View your order';
     const addressLines = [
       input.shippingAddress.fullName,
       input.shippingAddress.line1,
@@ -255,7 +259,9 @@ export class MailService {
       'Ship to:',
       ...addressLines,
       '',
-      `View your order: ${ordersUrl}`,
+      input.isGuest
+        ? `Look up your order anytime with your email and order number: ${lookupUrl}`
+        : `View your order: ${ordersUrl}`,
       '',
       'We will prepare your carpets carefully and follow up with shipping details.',
       '',
@@ -304,9 +310,14 @@ export class MailService {
         <p style="margin:0 0 18px;font-size:14px;line-height:1.6;color:#342827;">
           ${addressLines.map((line) => this.escapeHtml(line)).join('<br />')}
         </p>
+        ${
+          input.isGuest
+            ? `<p style="margin:0 0 18px;font-size:13px;color:#5c4a42;">Use your email and order number on our order lookup page anytime.</p>`
+            : ''
+        }
         <p style="margin:0;">We will prepare your carpets with care and share tracking details once the shipment is booked.</p>
       `,
-      ctaLabel: 'View your order',
+      ctaLabel,
       ctaUrl: ordersUrl
     });
 
@@ -318,11 +329,12 @@ export class MailService {
     order: {
       orderNumber: string;
       deliveryMethod: string | null;
-      subtotal: { toNumber(): number };
-      shippingCost: { toNumber(): number };
-      total: { toNumber(): number };
+      subtotal: { toNumber(): number } | number;
+      shippingCost: { toNumber(): number } | number;
+      total: { toNumber(): number } | number;
       currency: string;
-      user: { email: string; firstName: string | null; lastName: string | null };
+      guestEmail?: string | null;
+      user: { email: string; firstName: string | null; lastName: string | null } | null;
       shippingAddress: {
         fullName: string;
         phone: string | null;
@@ -337,7 +349,7 @@ export class MailService {
       items: Array<{
         titleSnapshot: string;
         quantity: number;
-        unitPrice: { toNumber(): number };
+        unitPrice: { toNumber(): number } | number;
         product: {
           sku: string;
           weightKg: { toNumber(): number } | null;
@@ -359,14 +371,17 @@ export class MailService {
     const { order, packageDimensions, billableWeightKg, estimatedMerchantCostUsd } = input;
     const address = order.shippingAddress;
     const countryName = address.deliveryCity?.country.nameEn ?? address.countryCode;
+    const customerEmail = order.user?.email ?? order.guestEmail ?? 'unknown';
     const customerName =
-      [order.user.firstName, order.user.lastName].filter(Boolean).join(' ') || order.user.email;
+      [order.user?.firstName, order.user?.lastName].filter(Boolean).join(' ') ||
+      address.fullName ||
+      customerEmail;
 
     const lines = [
       `New paid order — create UPS shipment manually`,
       ``,
       `Order: ${order.orderNumber}`,
-      `Customer: ${customerName} <${order.user.email}>`,
+      `Customer: ${customerName} <${customerEmail}>${order.guestEmail && !order.user ? ' (guest)' : ''}`,
       `Service: ${order.deliveryMethod ?? 'UPS_STANDARD'}`,
       ``,
       `Ship to:`,

@@ -7,11 +7,14 @@ import {
   clearCartStorage,
   clearLegacyCartStorage,
   fetchUserCart,
+  GUEST_CART_OWNER,
+  mergeCartItems,
   readCartFromStorage,
-  writeCartToStorage
+  writeCartToStorage,
+  type StoredCartItem
 } from './cart-sync';
 import { useAuth } from '@/components/providers/auth-provider';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 type CartProduct = {
   id: string;
@@ -37,7 +40,7 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-function normalizeCartItems(items: CartItem[]): CartItem[] {
+function normalizeCartItems(items: CartItem[] | StoredCartItem[]): CartItem[] {
   return items.map((item) => ({ ...item, quantity: 1 }));
 }
 
@@ -65,6 +68,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const { user, ready: authReady } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
+  const previousUserId = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     if (!authReady) return;
@@ -74,28 +78,54 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     async function loadCartForUser() {
       clearLegacyCartStorage();
 
+      const guestItems = normalizeCartItems(readCartFromStorage(GUEST_CART_OWNER));
+
       if (!user) {
-        setItems([]);
-        setIsHydrated(true);
+        if (!cancelled) {
+          setItems(guestItems);
+          setIsHydrated(true);
+        }
+        previousUserId.current = null;
         return;
       }
 
-      setItems(normalizeCartItems(readCartFromStorage(user.id)));
-      setIsHydrated(true);
+      // Logging in: merge any guest cart into the user cart once.
+      const wasGuest = previousUserId.current === null || previousUserId.current === undefined;
+      const localUserItems = normalizeCartItems(readCartFromStorage(user.id));
+      let next = wasGuest && guestItems.length
+        ? normalizeCartItems(mergeCartItems(localUserItems, guestItems))
+        : localUserItems;
+
+      if (!cancelled) {
+        setItems(next);
+        setIsHydrated(true);
+        writeCartToStorage(user.id, next);
+        if (guestItems.length) {
+          clearCartStorage(GUEST_CART_OWNER);
+        }
+      }
 
       const token = readStoredToken();
-      if (!token) return;
+      if (!token) {
+        previousUserId.current = user.id;
+        return;
+      }
 
       try {
         const remoteItems = await fetchUserCart(token);
-        if (!cancelled) {
-          const normalized = normalizeCartItems(remoteItems);
-          setItems(normalized);
-          writeCartToStorage(user.id, normalized);
-        }
+        if (cancelled) return;
+
+        const merged = normalizeCartItems(
+          mergeCartItems(remoteItems, wasGuest && guestItems.length ? guestItems : [])
+        );
+        setItems(merged);
+        writeCartToStorage(user.id, merged);
+        void syncCartToBackend(merged);
       } catch {
         // Keep the local cart that was shown immediately.
       }
+
+      previousUserId.current = user.id;
     }
 
     void loadCartForUser();
@@ -106,9 +136,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [authReady, user?.id]);
 
   useEffect(() => {
-    if (!isHydrated || !user) return;
+    if (!isHydrated) return;
 
-    writeCartToStorage(user.id, items);
+    const ownerId = user?.id ?? GUEST_CART_OWNER;
+    writeCartToStorage(ownerId, items);
+
+    if (!user) return;
 
     const timer = window.setTimeout(() => {
       void syncCartToBackend(items);
@@ -140,10 +173,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = useCallback(() => {
     setItems([]);
-    if (user) {
-      clearCartStorage(user.id);
-    }
-  }, [user]);
+    clearCartStorage(user?.id ?? GUEST_CART_OWNER);
+  }, [user?.id]);
 
   const value = useMemo<CartContextValue>(
     () => ({

@@ -21,12 +21,36 @@ export class IpayClient {
     this.apiUrl = config.get<string>('IPAY_API_URL', 'https://ipay.ge/opay/api/v1');
     this.clientId = config.get<string>('IPAY_CLIENT_ID', '');
     this.clientSecret = config.get<string>('IPAY_CLIENT_SECRET', '');
-    const configuredRedirect = config.get<string>('IPAY_REDIRECT_URL', '') || '';
-    // Never send the browser back to the legacy Gallery Carpets domain.
-    this.redirectUrl = /gallerycarpets\.ge/i.test(configuredRedirect)
-      ? 'https://origincarpets.com/api/payments/ipay/callback'
-      : configuredRedirect;
+    this.redirectUrl = this.resolveRedirectUrl(config.get<string>('IPAY_REDIRECT_URL', '') || '');
     this.enabled = Boolean(this.clientId && this.clientSecret && this.redirectUrl);
+    if (this.enabled) {
+      this.logger.log(`iPay browser return URL: ${this.redirectUrl}`);
+    }
+  }
+
+  /**
+   * iPay sends the customer to redirect_url after pay/cancel.
+   * Always use Origin Carpets in production — never gallerycarpets.ge
+   * (legacy merchant website still registered with BOG).
+   */
+  private resolveRedirectUrl(configured: string): string {
+    const productionCallback = 'https://origincarpets.com/api/payments/ipay/callback';
+
+    if (/localhost|127\.0\.0\.1/i.test(configured)) {
+      return configured;
+    }
+
+    if (/origincarpets\.com/i.test(configured) && !/gallerycarpets\.ge/i.test(configured)) {
+      return configured;
+    }
+
+    if (configured && configured !== productionCallback) {
+      this.logger.warn(
+        `Ignoring IPAY_REDIRECT_URL="${configured}" — forcing ${productionCallback}`
+      );
+    }
+
+    return productionCallback;
   }
 
   isConfigured() {
@@ -115,10 +139,10 @@ export class IpayClient {
 
   private redirectRejectedMessage() {
     if (/localhost|127\.0\.0\.1/i.test(this.redirectUrl)) {
-      return 'iPay does not accept localhost callback URLs. Set IPAY_REDIRECT_URL to your HTTPS production URL (e.g. https://origincarpets.com/api/payments/ipay/callback).';
+      return 'iPay does not accept localhost callback URLs. Set IPAY_REDIRECT_URL to https://origincarpets.com/api/payments/ipay/callback (and register that URL with BOG).';
     }
 
-    return 'iPay rejected the payment request. Check IPAY_REDIRECT_URL is a valid HTTPS URL registered for your merchant account.';
+    return 'iPay rejected the payment request. In businessonline.ge, set the shop website and callback URLs to https://origincarpets.com (not gallerycarpets.ge).';
   }
 
   async getOrderStatus(trxIdentifier: string) {

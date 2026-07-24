@@ -3,16 +3,21 @@
 import Link from 'next/link';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { RequireAuth } from '@/components/auth/require-auth';
-import { apiRequest } from '@/lib/api';
+import { apiRequest, postJson } from '@/lib/api';
 import { fetchAccountProfile } from '@/lib/account';
 import { readStoredToken } from '@/lib/auth';
+import { useAuth } from '@/components/providers/auth-provider';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { useCart } from '@/lib/cart';
 import { PaymentMethodPicker } from '@/components/checkout/payment-method-picker';
 import { ShippingMethodPicker } from '@/components/checkout/shipping-method-picker';
-import { fetchPaymentConfig, startIpayPayment, type PaymentConfig } from '@/lib/payments';
+import {
+  fetchPaymentConfig,
+  startGuestIpayPayment,
+  startIpayPayment,
+  type PaymentConfig
+} from '@/lib/payments';
 import { DeliveryComingSoon } from '@/components/storefront/delivery-coming-soon';
 import {
   fetchDeliveryCities,
@@ -30,8 +35,16 @@ import { PURCHASE_ENABLED } from '@/lib/storefront';
 
 const defaultPaymentConfig: PaymentConfig = { card: false };
 
+type CreatedOrder = {
+  id: string;
+  orderNumber: string;
+  status: string;
+  guestAccessToken?: string;
+};
+
 export default function CheckoutPage() {
-  const { items, subtotal } = useCart();
+  const { items, subtotal, clearCart } = useCart();
+  const { isAuthenticated, user } = useAuth();
   const { formatPrice } = useCurrency();
   const { dict, locale } = useI18n();
   const t = dict.checkout;
@@ -42,6 +55,7 @@ export default function CheckoutPage() {
   const [deliveryCityId, setDeliveryCityId] = useState('');
   const [cityName, setCityName] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethodKey | ''>('');
+  const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [region, setRegion] = useState('');
@@ -73,6 +87,9 @@ export default function CheckoutPage() {
         if (cancelled) return;
 
         setCountries(countryData);
+        if (profile?.email) {
+          setEmail(profile.email);
+        }
         const saved = profile?.defaultShippingAddress;
         const defaultCountry =
           saved?.deliveryCountryId ??
@@ -237,11 +254,7 @@ export default function CheckoutPage() {
     setError(null);
     setSuccess(null);
 
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      setError(t.loginRequired);
-      return;
-    }
+    const token = readStoredToken();
 
     if (!items.length) {
       setError(t.cartEmpty);
@@ -263,33 +276,60 @@ export default function CheckoutPage() {
       return;
     }
 
+    const checkoutEmail = (token ? user?.email ?? email : email).trim().toLowerCase();
+    if (!token && !checkoutEmail) {
+      setError(t.emailRequired);
+      return;
+    }
+
     setBusy(true);
 
+    const shippingPayload = {
+      items: items.map((item) => ({ productId: item.id, quantity: item.quantity })),
+      deliveryCountryId,
+      deliveryCityId,
+      deliveryMethod,
+      shippingAddress: {
+        fullName,
+        phone: phone || undefined,
+        city: internationalAddress ? cityName.trim() : undefined,
+        region: region || undefined,
+        postalCode: postalCode || undefined,
+        line1,
+        line2: line2 || undefined
+      }
+    };
+
     try {
-      const order = await apiRequest<{ id: string; orderNumber: string; status: string }>('/orders', token, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: items.map((item) => ({ productId: item.id, quantity: item.quantity })),
-          deliveryCountryId,
-          deliveryCityId,
-          deliveryMethod,
-          shippingAddress: {
-            fullName,
-            phone: phone || undefined,
-            city: internationalAddress ? cityName.trim() : undefined,
-            region: region || undefined,
-            postalCode: postalCode || undefined,
-            line1,
-            line2: line2 || undefined
-          },
-          saveAddress: saveAddress || undefined
-        })
-      });
+      let order: CreatedOrder;
+      let paymentUrl: string;
+
+      if (token) {
+        order = await apiRequest<CreatedOrder>('/orders', token, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...shippingPayload,
+            saveAddress: saveAddress || undefined
+          })
+        });
+        const ipay = await startIpayPayment(token, order.id);
+        paymentUrl = ipay.paymentUrl;
+      } else {
+        order = await postJson<CreatedOrder>('/orders/guest', {
+          email: checkoutEmail,
+          ...shippingPayload
+        });
+        if (!order.guestAccessToken) {
+          throw new Error(t.failed);
+        }
+        const ipay = await startGuestIpayPayment(order.id, order.guestAccessToken);
+        paymentUrl = ipay.paymentUrl;
+      }
 
       setSuccess(t.cardRedirecting);
-      const ipay = await startIpayPayment(token, order.id);
-      window.location.href = ipay.paymentUrl;
+      clearCart();
+      window.location.href = paymentUrl;
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : t.failed);
     } finally {
@@ -299,18 +339,16 @@ export default function CheckoutPage() {
 
   if (!PURCHASE_ENABLED) {
     return (
-      <RequireAuth>
-        <main className="oc-section">
-          <div className="oc-container max-w-2xl">
-            <DeliveryComingSoon />
-          </div>
-        </main>
-      </RequireAuth>
+      <main className="oc-section">
+        <div className="oc-container max-w-2xl">
+          <DeliveryComingSoon />
+        </div>
+      </main>
     );
   }
 
   return (
-    <RequireAuth>
+    <>
     {!items.length ? (
       <main className="oc-section">
         <div className="oc-container max-w-4xl">
@@ -334,7 +372,35 @@ export default function CheckoutPage() {
           <p className="text-sm text-[var(--oc-muted)]">{t.upsNote}</p>
           <p className="text-xs uppercase tracking-[0.14em] text-[var(--oc-brand)]">{t.worldwideComingSoon}</p>
 
+          {!isAuthenticated ? (
+            <p className="text-sm text-[var(--oc-muted)]">
+              {t.signInHint}{' '}
+              <Link href="/login?next=/checkout" className="oc-link font-medium">
+                {t.signInLink}
+              </Link>
+            </p>
+          ) : null}
+
           <form onSubmit={onCreateOrder} className="mt-2 space-y-4">
+            <div className="space-y-1">
+              <label className="block space-y-1">
+                <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--oc-muted)]">
+                  {t.email}
+                </span>
+                <input
+                  className="oc-input"
+                  type="email"
+                  autoComplete="email"
+                  placeholder={t.email}
+                  value={isAuthenticated ? user?.email ?? email : email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  readOnly={isAuthenticated}
+                />
+              </label>
+              <p className="text-xs text-[var(--oc-muted)]">{t.emailHint}</p>
+            </div>
+
             <div className="grid gap-3 md:grid-cols-2">
               {countries.length > 1 ? (
                 <label className="block space-y-1">
@@ -427,7 +493,7 @@ export default function CheckoutPage() {
             <input className="oc-input" placeholder={t.address1} value={line1} onChange={(e) => setLine1(e.target.value)} required />
             <input className="oc-input" placeholder={t.address2} value={line2} onChange={(e) => setLine2(e.target.value)} />
 
-            {!hasSavedAddress ? (
+            {!hasSavedAddress && isAuthenticated ? (
               <label className="flex items-start gap-3 text-sm text-[var(--oc-muted)]">
                 <input
                   type="checkbox"
@@ -502,6 +568,6 @@ export default function CheckoutPage() {
       </div>
     </main>
     )}
-    </RequireAuth>
+    </>
   );
 }

@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { RequireAuth } from '@/components/auth/require-auth';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { DeliveryComingSoon } from '@/components/storefront/delivery-coming-soon';
@@ -17,18 +16,15 @@ export default function CartPage() {
 
   if (!PURCHASE_ENABLED) {
     return (
-      <RequireAuth>
-        <main className="oc-section">
-          <div className="oc-container max-w-2xl">
-            <DeliveryComingSoon />
-          </div>
-        </main>
-      </RequireAuth>
+      <main className="oc-section">
+        <div className="oc-container max-w-2xl">
+          <DeliveryComingSoon />
+        </div>
+      </main>
     );
   }
 
   return (
-    <RequireAuth>
     <main className="oc-section">
       <div className="oc-container space-y-6">
         <header className="flex items-center justify-between">
@@ -104,6 +100,5 @@ export default function CartPage() {
         )}
       </div>
     </main>
-    </RequireAuth>
   );
 }

@@ -1,4 +1,4 @@
-import { API_URL, apiRequest } from '@/lib/api';
+import { API_URL, apiRequest, postJson } from '@/lib/api';
 
 export type PaymentConfig = {
   card: boolean;
@@ -23,4 +23,11 @@ export async function startIpayPayment(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ orderId })
   });
+}
+
+export async function startGuestIpayPayment(
+  orderId: string,
+  guestAccessToken: string
+): Promise<{ orderId: string; paymentUrl: string; trxIdentifier: string }> {
+  return postJson('/payments/ipay/start-guest', { orderId, guestAccessToken });
 }
