@@ -300,8 +300,8 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
           <div className="mt-6 space-y-2 text-sm text-white/90">
             <p>{dict.homeExtra.phone}</p>
             <p>
-              <a href="mailto:info@origincarpets.com" className="hover:text-white">
-                info@origincarpets.com
+              <a href="mailto:gallerycarpets19@gmail.com" className="hover:text-white">
+                gallerycarpets19@gmail.com
               </a>
             </p>
             <p>{dict.homeExtra.address}</p>

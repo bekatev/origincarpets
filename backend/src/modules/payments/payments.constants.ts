@@ -4,5 +4,5 @@ export const BANK_TRANSFER_DEFAULTS = {
   accountHolder: 'Origin Carpets',
   iban: '',
   swift: 'BAGAGE22',
-  contactEmail: 'info@origincarpets.com'
+  contactEmail: 'gallerycarpets19@gmail.com'
 } as const;

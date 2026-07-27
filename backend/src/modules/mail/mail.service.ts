@@ -160,7 +160,7 @@ export class MailService {
               <p style="margin:0 0 8px;">
                 <a href="${shopUrl}" style="color:#342827;">Shop the collection</a>
                 &nbsp;·&nbsp;
-                <a href="mailto:info@origincarpets.com" style="color:#342827;">info@origincarpets.com</a>
+                <a href="mailto:gallerycarpets19@gmail.com" style="color:#342827;">gallerycarpets19@gmail.com</a>
               </p>
               <p style="margin:0;">8/10 Erekle II street, Tbilisi, Georgia</p>
             </td>
@@ -202,7 +202,7 @@ export class MailService {
       `Shop: ${shopUrl}`,
       `Your orders: ${accountUrl}`,
       '',
-      'If you have any questions, reply to this email or write to info@origincarpets.com.',
+      'If you have any questions, reply to this email or write to gallerycarpets19@gmail.com.',
       '',
       '— Origin Carpets, Tbilisi'
     ].join('\n');
@@ -213,7 +213,7 @@ export class MailService {
       bodyHtml: `
         <p style="margin:0 0 14px;">Thank you for registering with Origin Carpets. Your account is ready.</p>
         <p style="margin:0 0 14px;">Explore our curated collection of Caucasian and Oriental carpets — antique and contemporary pieces chosen for craftsmanship, colour, and story.</p>
-        <p style="margin:0;">Questions? Write to us at <a href="mailto:info@origincarpets.com" style="color:#342827;">info@origincarpets.com</a>.</p>
+        <p style="margin:0;">Questions? Write to us at <a href="mailto:gallerycarpets19@gmail.com" style="color:#342827;">gallerycarpets19@gmail.com</a>.</p>
       `,
       ctaLabel: 'Explore the collection',
       ctaUrl: shopUrl

@@ -116,7 +116,7 @@ export function SiteFooter() {
                   </a>
                 </li>
                 <li>
-                  <a href="mailto:info@origincarpets.com" className="hover:text-[var(--oc-ink)]">
+                  <a href="mailto:gallerycarpets19@gmail.com" className="hover:text-[var(--oc-ink)]">
                     {dict.homeExtra.email}
                   </a>
                 </li>
