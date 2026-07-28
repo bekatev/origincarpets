@@ -96,6 +96,10 @@ export class CreateProductDto {
   isPublished?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  isSold?: boolean;
+
+  @IsOptional()
   @IsArray()
   @ArrayMaxSize(50)
   @IsString({ each: true })

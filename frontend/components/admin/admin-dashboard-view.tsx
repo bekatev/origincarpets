@@ -39,6 +39,7 @@ type Product = {
   compareAtPrice?: number | null;
   isActive: boolean;
   isPublished: boolean;
+  isSold?: boolean;
   images: string[];
   origin?: string | null;
   category: { id: string; name: string; slug: string };
@@ -66,6 +67,7 @@ type ProductFormState = {
   heightCm: string;
   imagesText: string;
   isPublished: boolean;
+  isSold: boolean;
 };
 
 const emptyProduct: ProductFormState = {
@@ -87,7 +89,8 @@ const emptyProduct: ProductFormState = {
   widthCm: '',
   heightCm: '',
   imagesText: '',
-  isPublished: true
+  isPublished: true,
+  isSold: false
 };
 
 type AdminOrder = {
@@ -319,7 +322,8 @@ export function AdminDashboardView() {
       widthCm: product.shipping?.widthCm?.toString() ?? '',
       heightCm: product.shipping?.heightCm?.toString() ?? '',
       imagesText: product.images.join('\n'),
-      isPublished: product.isPublished
+      isPublished: product.isPublished,
+      isSold: Boolean(product.isSold)
     };
   }
 
@@ -416,6 +420,7 @@ export function AdminDashboardView() {
         heightCm?: number;
         images: string[];
         isPublished: boolean;
+        isSold: boolean;
       } = {
         title: productForm.title.trim(),
         slug: productForm.slug.trim(),
@@ -433,7 +438,8 @@ export function AdminDashboardView() {
         widthCm: parseOptionalNumber(productForm.widthCm),
         heightCm: parseOptionalNumber(productForm.heightCm),
         images,
-        isPublished: productForm.isPublished
+        isPublished: productForm.isPublished,
+        isSold: productForm.isSold
       };
 
       // Updates must clear compare-at when sale is unchecked; creates only send it when on sale.
@@ -1261,6 +1267,18 @@ function ProductsTab({
             </Field>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
+            <label className="flex cursor-pointer items-center gap-3 border border-[var(--oc-line)] px-4 py-3 text-sm">
+              <input
+                type="checkbox"
+                checked={productForm.isSold}
+                onChange={(e) => setProductForm((p) => ({ ...p, isSold: e.target.checked }))}
+                className="h-4 w-4 accent-[var(--oc-ink)]"
+              />
+              <span>
+                <span className="font-medium text-[var(--oc-ink)]">{a.products.isSold}</span>
+                <span className="mt-0.5 block text-xs text-[var(--oc-muted)]">{a.products.isSoldHint}</span>
+              </span>
+            </label>
             <label
               className={cn(
                 'flex items-center gap-3 border border-[var(--oc-line)] px-4 py-3 text-sm',
@@ -1636,6 +1654,7 @@ function AdminProductCard({
     <p className="mt-1 text-xs text-[var(--oc-muted)]">
       {product.sku} · {product.category.name} ·{' '}
       <ProductPrice price={product.price} compareAtPrice={product.compareAtPrice} />
+      {product.isSold ? ` · ${a.products.isSold}` : ''}
       {product.images.length > 0 ? ` · ${product.images.length} img` : ''}
       {[product.attributes.size, product.attributes.material, product.attributes.color]
         .filter(Boolean)

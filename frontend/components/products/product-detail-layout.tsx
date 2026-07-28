@@ -6,14 +6,25 @@ import { ProductImageGallery } from '@/components/products/product-image-gallery
 import { useI18n } from '@/components/providers/i18n-provider';
 import { localizeProduct } from '@/lib/product-localization';
 import type { ProductItem } from '@/lib/products';
+import { ProductBadgeStack, saleDiscountPercent } from '@/lib/product-badges';
 
 export function ProductDetailLayout({ product }: { product: ProductItem }) {
-  const { locale } = useI18n();
+  const { dict, locale } = useI18n();
   const localized = useMemo(() => localizeProduct(product, locale), [product, locale]);
+  const sold = Boolean(product.isSold);
+  const discount = saleDiscountPercent(product.price, product.compareAtPrice);
 
   return (
     <div className="oc-container grid gap-12 md:grid-cols-2">
-      <ProductImageGallery images={localized.images} title={localized.title} />
+      <div className="relative">
+        <ProductImageGallery images={localized.images} title={localized.title} />
+        <ProductBadgeStack
+          isSold={sold}
+          discountPercent={discount}
+          soldLabel={dict.productDetail.sold}
+          className="left-3 top-3"
+        />
+      </div>
       <ProductDetailView product={product} />
     </div>
   );

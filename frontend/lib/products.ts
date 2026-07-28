@@ -58,6 +58,8 @@ export interface ProductItem {
   price: number;
   /** Original / was price when the product is on sale. */
   compareAtPrice?: number | null;
+  /** Unique piece already sold — visible but not purchasable. */
+  isSold?: boolean;
   origin?: string | null;
   images: string[];
   category: ProductCategory;

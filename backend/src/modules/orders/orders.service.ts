@@ -138,7 +138,12 @@ export class OrdersService {
 
     const productIds = Array.from(grouped.keys());
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds }, isActive: true, ...PUBLIC_SHIPPABLE_PRODUCT_WHERE }
+      where: {
+        id: { in: productIds },
+        isActive: true,
+        isSold: false,
+        ...PUBLIC_SHIPPABLE_PRODUCT_WHERE
+      }
     });
 
     if (products.length !== productIds.length) {

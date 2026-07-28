@@ -127,6 +127,19 @@ export class PaymentsService {
         where: { id: orderId },
         data: { status: 'PAID' }
       });
+
+      // Unique pieces — once paid, mark each line item sold so it stays visible but not purchasable.
+      const lineItems = await tx.orderItem.findMany({
+        where: { orderId },
+        select: { productId: true }
+      });
+      const productIds = [...new Set(lineItems.map((item) => item.productId).filter(Boolean))];
+      if (productIds.length) {
+        await tx.product.updateMany({
+          where: { id: { in: productIds } },
+          data: { isSold: true }
+        });
+      }
     });
 
     try {

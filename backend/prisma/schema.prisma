@@ -119,6 +119,8 @@ model Product {
   currency       String       @default("GEL")
   isActive       Boolean      @default(true)
   isFeatured     Boolean      @default(false)
+  /** Unique pieces: once sold, still visible but not purchasable. */
+  isSold         Boolean      @default(false)
   categoryId     String
   origin         String?
   material       String?
@@ -141,6 +143,7 @@ model Product {
 
   @@index([categoryId, isActive])
   @@index([isFeatured, isActive])
+  @@index([isSold, isActive])
   @@index([title])
 }
 

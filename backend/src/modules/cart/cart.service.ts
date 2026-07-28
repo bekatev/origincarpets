@@ -29,7 +29,9 @@ export class CartService {
       return { items: [], subtotal: 0 };
     }
 
-    const shippableItems = cart.items.filter((item) => hasCompleteShipping(item.product));
+    const shippableItems = cart.items.filter(
+      (item) => hasCompleteShipping(item.product) && !item.product.isSold
+    );
     return this.serializeCart(shippableItems);
   }
 
@@ -39,7 +41,12 @@ export class CartService {
 
     if (ids.length) {
       const count = await this.prisma.product.count({
-        where: { id: { in: ids }, isActive: true, ...PUBLIC_SHIPPABLE_PRODUCT_WHERE }
+        where: {
+          id: { in: ids },
+          isActive: true,
+          isSold: false,
+          ...PUBLIC_SHIPPABLE_PRODUCT_WHERE
+        }
       });
       if (count !== ids.length) {
         throw new BadRequestException('Some products are unavailable for purchase');

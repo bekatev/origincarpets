@@ -278,6 +278,7 @@ export class ProductsService {
           widthCm: dto.widthCm != null ? Math.round(dto.widthCm) : dto.widthCm,
           heightCm: dto.heightCm != null ? Math.round(dto.heightCm) : dto.heightCm,
           isActive: publication.isActive,
+          isSold: dto.isSold ?? false,
           ...(metadata !== undefined ? { metadata } : {}),
           images: imageUrls.length
             ? {
@@ -365,6 +366,7 @@ export class ProductsService {
               ...(dto.lengthCm !== undefined ? { lengthCm: Math.round(dto.lengthCm) } : {}),
               ...(dto.widthCm !== undefined ? { widthCm: Math.round(dto.widthCm) } : {}),
               ...(dto.heightCm !== undefined ? { heightCm: Math.round(dto.heightCm) } : {}),
+              ...(dto.isSold !== undefined ? { isSold: dto.isSold } : {}),
               isActive: publication.isActive
             }
           });
@@ -672,6 +674,7 @@ export class ProductsService {
       compareAtPrice: product.compareAtPrice != null ? Number(product.compareAtPrice) : null,
       isActive: product.isActive,
       isPublished: product.isActive,
+      isSold: product.isSold,
       category: { id: product.category.id, name: product.category.name, slug: product.category.slug },
       origin: product.origin,
       attributes: {

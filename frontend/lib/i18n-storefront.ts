@@ -64,7 +64,10 @@ export const storefrontTranslations = {
       sku: 'SKU',
       na: 'N/A',
       dimensionUnit: 'cm',
-      weightUnit: 'kg'
+      weightUnit: 'kg',
+      sold: 'Sold',
+      outOfStock: 'Out of stock',
+      textUsSimilar: 'Text us for a similar one'
     },
     cart: {
       title: 'Shopping Cart',
@@ -375,7 +378,10 @@ export const storefrontTranslations = {
       sku: 'SKU',
       na: '—',
       dimensionUnit: 'სმ',
-      weightUnit: 'კგ'
+      weightUnit: 'კგ',
+      sold: 'გაყიდულია',
+      outOfStock: 'მარაგი ამოწურულია',
+      textUsSimilar: 'მოგვწერეთ მსგავსისთვის'
     },
     cart: {
       title: 'საყიდლების კალათა',
