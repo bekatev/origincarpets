@@ -5,15 +5,23 @@ import { cn } from '@/lib/cn';
 
 const MESSENGER_URL = 'https://m.me/carpetsgallerytbilisi';
 
-export function SoldOutNotice({ className }: { className?: string }) {
+export function SoldOutNotice({
+  className,
+  showSoldLabel = true
+}: {
+  className?: string;
+  showSoldLabel?: boolean;
+}) {
   const { dict } = useI18n();
   const d = dict.productDetail;
 
   return (
     <div className={cn('space-y-2', className)}>
-      <span className="inline-flex bg-[var(--oc-sold)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white shadow-sm ring-1 ring-white/30">
-        {d.sold}
-      </span>
+      {showSoldLabel ? (
+        <span className="inline-flex bg-[var(--oc-sold)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white shadow-sm ring-1 ring-white/30">
+          {d.sold}
+        </span>
+      ) : null}
       <p className="text-sm leading-relaxed text-[var(--oc-muted)]">
         {d.outOfStock} —{' '}
         <a

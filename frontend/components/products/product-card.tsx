@@ -9,7 +9,7 @@ import { ProductPrice } from '@/components/products/product-price';
 import { SoldOutNotice } from '@/components/products/sold-out-notice';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { localizeProduct, localizedPlainDescription } from '@/lib/product-localization';
-import { ProductBadgeStack, saleDiscountPercent } from '@/lib/product-badges';
+import { ProductBadgeStack, ProductStatusChip, saleDiscountPercent } from '@/lib/product-badges';
 import { cn } from '@/lib/cn';
 
 export type ProductCardVariant = 'grid' | 'list';
@@ -51,27 +51,29 @@ export function ProductCard({
         <div className="flex flex-col sm:flex-row">
           <Link
             href={`/products/${product.slug}`}
-            className="relative block w-full shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oc-ink)] sm:w-[220px] md:w-[260px] lg:w-[280px]"
+            className="relative block w-full shrink-0 overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oc-ink)] sm:w-[220px] md:w-[260px] lg:w-[280px]"
             aria-label={`View ${localized.title}`}
           >
             <ProductCardFoldMedia
               images={product.images}
               alt={localized.title}
               priority={priority}
-              className="aspect-[4/3] sm:aspect-square sm:h-full"
-            />
-            <ProductBadgeStack
-              isSold={sold}
-              discountPercent={discount}
-              soldLabel={dict.productDetail.sold}
+              className="aspect-[4/3] min-h-[12rem] sm:aspect-auto sm:h-full sm:min-h-[220px]"
             />
           </Link>
 
           <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 sm:flex-row sm:items-stretch sm:justify-between sm:gap-6 sm:p-5">
             <div className="min-w-0 flex-1 space-y-2">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--oc-muted)]">
-                {localized.category.name}
-              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--oc-muted)]">
+                  {localized.category.name}
+                </p>
+                <ProductStatusChip
+                  isSold={sold}
+                  discountPercent={discount}
+                  soldLabel={dict.productDetail.sold}
+                />
+              </div>
               <h3 className="font-display text-xl leading-snug text-[var(--oc-ink)] md:text-2xl">
                 <Link href={`/products/${product.slug}`} className="hover:opacity-60">
                   {localized.title}
@@ -98,7 +100,7 @@ export function ProductCard({
                 <ProductPrice price={product.price} compareAtPrice={product.compareAtPrice} />
               </p>
               {sold ? (
-                <SoldOutNotice className="sm:text-right" />
+                <SoldOutNotice className="sm:text-right" showSoldLabel={false} />
               ) : cover ? (
                 <AddToCartButton
                   product={{
@@ -122,14 +124,20 @@ export function ProductCard({
     <article className={cn('group')}>
       <Link
         href={`/products/${product.slug}`}
-        className="relative block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--oc-ink)]"
+        className="block overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--oc-ink)]"
         aria-label={`View ${localized.title}`}
       >
-        <ProductCardFoldMedia images={product.images} alt={localized.title} priority={priority} />
-        <ProductBadgeStack
-          isSold={sold}
-          discountPercent={discount}
-          soldLabel={dict.productDetail.sold}
+        <ProductCardFoldMedia
+          images={product.images}
+          alt={localized.title}
+          priority={priority}
+          badge={
+            <ProductBadgeStack
+              isSold={sold}
+              discountPercent={discount}
+              soldLabel={dict.productDetail.sold}
+            />
+          }
         />
       </Link>
       <div className="mt-4 space-y-2">

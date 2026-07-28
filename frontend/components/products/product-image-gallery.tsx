@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 export function ProductImageGallery({
   images,
-  title
+  title,
+  badge
 }: {
   images: string[];
   title: string;
+  badge?: ReactNode;
 }) {
   const urls = images.filter(Boolean);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -15,7 +17,8 @@ export function ProductImageGallery({
 
   if (!urls.length) {
     return (
-      <div className="oc-surface flex min-h-[420px] items-center justify-center bg-[var(--oc-bg-secondary)] md:min-h-[520px]">
+      <div className="oc-surface relative flex min-h-[420px] items-center justify-center bg-[var(--oc-bg-secondary)] md:min-h-[520px]">
+        {badge}
         <p className="text-sm text-[var(--oc-muted)]">No image</p>
       </div>
     );
@@ -24,6 +27,7 @@ export function ProductImageGallery({
   return (
     <div className="space-y-4">
       <div className="oc-surface relative overflow-hidden">
+        {badge}
         <div className="relative flex min-h-[420px] w-full items-center justify-center bg-[var(--oc-bg-secondary)] md:min-h-[520px]">
           <img
             key={activeUrl}
@@ -35,7 +39,7 @@ export function ProductImageGallery({
           />
         </div>
         {urls.length > 1 && (
-          <p className="absolute bottom-3 right-3 rounded-full bg-black/50 px-3 py-1 text-xs uppercase tracking-wider text-white backdrop-blur-sm">
+          <p className="absolute bottom-3 right-3 z-10 rounded-full bg-black/50 px-3 py-1 text-xs uppercase tracking-wider text-white backdrop-blur-sm">
             {activeIndex + 1} / {urls.length}
           </p>
         )}

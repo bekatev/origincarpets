@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useMemo, useState, type MouseEvent, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
 type ProductCardFoldMediaProps = {
@@ -8,6 +8,8 @@ type ProductCardFoldMediaProps = {
   alt: string;
   priority?: boolean;
   className?: string;
+  /** Overlay badge (Sold / −%) pinned to the image frame. */
+  badge?: ReactNode;
 };
 
 function Chevron({ direction }: { direction: 'left' | 'right' }) {
@@ -43,7 +45,8 @@ export function ProductCardFoldMedia({
   images,
   alt,
   priority = false,
-  className = ''
+  className = '',
+  badge
 }: ProductCardFoldMediaProps) {
   const slides = useMemo(() => uniqueImages(images), [images]);
   const [index, setIndex] = useState(0);
@@ -67,7 +70,10 @@ export function ProductCardFoldMedia({
   if (!src) {
     return (
       <div
-        className={`relative aspect-square bg-[var(--oc-bg-secondary)] ${className}`}
+        className={cn(
+          'relative aspect-square min-h-[12rem] w-full overflow-hidden bg-[var(--oc-bg-secondary)]',
+          className
+        )}
         aria-label={alt}
       />
     );
@@ -76,13 +82,17 @@ export function ProductCardFoldMedia({
   return (
     <div
       className={cn(
-        'product-reveal group/media relative aspect-square overflow-hidden bg-[var(--oc-bg-secondary)]',
+        'product-reveal group/media relative aspect-square min-h-[12rem] w-full overflow-hidden bg-[var(--oc-bg-secondary)]',
         browsing && 'product-reveal--browsing',
         className
       )}
       onMouseLeave={() => setBrowsing(false)}
     >
-      <div className="absolute inset-0 overflow-hidden p-2 sm:p-3">
+      {badge ? (
+        <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">{badge}</div>
+      ) : null}
+
+      <div className="absolute inset-0 z-0 overflow-hidden p-2 sm:p-3">
         {/* Native img — legacy product files are served by nginx at the site root, not via /_next/image */}
         <img
           key={src}
@@ -95,7 +105,10 @@ export function ProductCardFoldMedia({
       </div>
 
       {/* Hover panel: same full carpet + tiny zoom (not bg-cover crop). */}
-      <div className="product-reveal__panel absolute inset-0 overflow-hidden bg-[var(--oc-bg-secondary)]" aria-hidden>
+      <div
+        className="product-reveal__panel absolute inset-0 z-[1] overflow-hidden bg-[var(--oc-bg-secondary)]"
+        aria-hidden
+      >
         <div className="product-reveal__panel-inner h-full w-full p-2 sm:p-3">
           <img src={src} alt="" className="h-full w-full object-contain" />
         </div>
@@ -107,7 +120,7 @@ export function ProductCardFoldMedia({
             type="button"
             onClick={go(-1)}
             aria-label="Previous image"
-            className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--oc-line)] bg-[var(--oc-paper)]/90 text-[var(--oc-ink)] opacity-90 shadow-sm backdrop-blur-sm transition duration-300 hover:bg-[var(--oc-paper)] md:opacity-0 md:group-hover/media:opacity-100 focus-visible:opacity-100"
+            className="absolute left-2 top-1/2 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--oc-line)] bg-[var(--oc-paper)]/90 text-[var(--oc-ink)] opacity-90 shadow-sm backdrop-blur-sm transition duration-300 hover:bg-[var(--oc-paper)] md:opacity-0 md:group-hover/media:opacity-100 focus-visible:opacity-100"
           >
             <Chevron direction="left" />
           </button>
@@ -115,11 +128,11 @@ export function ProductCardFoldMedia({
             type="button"
             onClick={go(1)}
             aria-label="Next image"
-            className="absolute right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--oc-line)] bg-[var(--oc-paper)]/90 text-[var(--oc-ink)] opacity-90 shadow-sm backdrop-blur-sm transition duration-300 hover:bg-[var(--oc-paper)] md:opacity-0 md:group-hover/media:opacity-100 focus-visible:opacity-100"
+            className="absolute right-2 top-1/2 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--oc-line)] bg-[var(--oc-paper)]/90 text-[var(--oc-ink)] opacity-90 shadow-sm backdrop-blur-sm transition duration-300 hover:bg-[var(--oc-paper)] md:opacity-0 md:group-hover/media:opacity-100 focus-visible:opacity-100"
           >
             <Chevron direction="right" />
           </button>
-          <div className="pointer-events-none absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1 opacity-0 transition duration-300 group-hover/media:opacity-100">
+          <div className="pointer-events-none absolute bottom-2 left-1/2 z-30 flex -translate-x-1/2 gap-1 opacity-0 transition duration-300 group-hover/media:opacity-100">
             {slides.map((_, i) => (
               <span
                 key={i}

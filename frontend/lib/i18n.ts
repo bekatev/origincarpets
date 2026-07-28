@@ -37,7 +37,7 @@ export const dictionaries = {
       shop: 'Shop',
       about: 'About Us',
       carpets: 'Carpets',
-      origin: 'Carpet and Flatware Technologies',
+      origin: 'Carpet Technologies',
       guides: 'Guides & Policies',
       contact: 'Contact Us',
       social: 'Social Media',
@@ -71,7 +71,7 @@ export const dictionaries = {
         'Located at the crossroads of Eurasia, Tbilisi is on the Great Silk Road and has always been considered a hub of trade and education. It is to Tbilisi where all sorts of carpets and rugs were imported from Asia, as well as other precious things. As well as trading, Georgia made quality bags, carpets and rugs. In particular, Tusheti, Kakheti, Alwan and Akhaltsikhe were famous for precious high-quality products, skilled weavers, and the quality of local sheep and wool.',
       historyP3:
         'Our gallery collection includes both old and new Georgian, Dagestani, Armenian, Azeri, Persian, Turkish and Central Asian rugs and carpets.',
-      categoriesTitle: 'Carpet and Flatware Technologies',
+      categoriesTitle: 'Carpet Technologies',
       carpetTitle: 'Carpet',
       carpetBody:
         'Weaving technology of carpet is very popular. Carpet is woven on a special loom. First weave the base (made of wool, cotton or silk) and then start weaving the ornaments with wool or silk thread. Typical carpet weaving is when knitting a knot with a thread and then cutting; the pile originates from here. There are carpets which are wool on wool, wool on cotton or silk on silk. Quality of the carpet depends on density of weaving, natural vegetable colors and quality of threads.',

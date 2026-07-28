@@ -16,15 +16,17 @@ export function ProductDetailLayout({ product }: { product: ProductItem }) {
 
   return (
     <div className="oc-container grid gap-12 md:grid-cols-2">
-      <div className="relative">
-        <ProductImageGallery images={localized.images} title={localized.title} />
-        <ProductBadgeStack
-          isSold={sold}
-          discountPercent={discount}
-          soldLabel={dict.productDetail.sold}
-          className="left-3 top-3"
-        />
-      </div>
+      <ProductImageGallery
+        images={localized.images}
+        title={localized.title}
+        badge={
+          <ProductBadgeStack
+            isSold={sold}
+            discountPercent={discount}
+            soldLabel={dict.productDetail.sold}
+          />
+        }
+      />
       <ProductDetailView product={product} />
     </div>
   );

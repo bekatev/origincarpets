@@ -17,12 +17,18 @@ export function FeaturedProductCard({ product, priority = false }: { product: Pr
 
   return (
     <article className="group">
-      <Link href={`/products/${product.slug}`} className="relative block">
-        <ProductCardFoldMedia images={product.images} alt={localized.title} priority={priority} />
-        <ProductBadgeStack
-          isSold={sold}
-          discountPercent={discount}
-          soldLabel={dict.productDetail.sold}
+      <Link href={`/products/${product.slug}`} className="block">
+        <ProductCardFoldMedia
+          images={product.images}
+          alt={localized.title}
+          priority={priority}
+          badge={
+            <ProductBadgeStack
+              isSold={sold}
+              discountPercent={discount}
+              soldLabel={dict.productDetail.sold}
+            />
+          }
         />
         <div className="mt-4 bg-[var(--oc-paper)] px-3 py-3.5 sm:px-4">
           <h3 className="font-display text-[1.05rem] leading-snug text-[var(--oc-ink)] transition group-hover:opacity-55">
