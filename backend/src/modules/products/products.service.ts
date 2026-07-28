@@ -183,11 +183,13 @@ export class ProductsService {
     const sortAlpha = (values: Set<string>) => [...values].sort((a, b) => a.localeCompare(b));
 
     return {
-      categories: categories.map((category) => ({
-        id: category.id,
-        name: category.name,
-        slug: category.slug
-      })),
+      categories: categories
+        .filter((category) => category.slug !== 'sale')
+        .map((category) => ({
+          id: category.id,
+          name: category.name,
+          slug: category.slug
+        })),
       materials: sortAlpha(materials),
       sizes: sortAlpha(sizes),
       origins: sortAlpha(origins),
@@ -513,25 +515,13 @@ export class ProductsService {
     }
 
     // Filters accept comma-separated values (multi-select checkboxes on the storefront).
-    // `sale` also matches products with a compare-at (was) price, so sale items can keep
-    // their type category (Carpet, Kilim, …) while still appearing under Sale.
-    const categories = splitFilterValues(query.category);
+    const categories = splitFilterValues(query.category).filter((slug) => slug !== 'sale');
     if (categories.length) {
-      const saleSelected = categories.includes('sale');
-      const otherCategories = categories.filter((slug) => slug !== 'sale');
-      const categoryOr: Prisma.ProductWhereInput[] = [];
-      if (otherCategories.length) {
-        categoryOr.push({ category: { slug: { in: otherCategories } } });
-      }
-      if (saleSelected) {
-        categoryOr.push({ category: { slug: 'sale' } });
-        categoryOr.push({ compareAtPrice: { not: null } });
-      }
-      if (categoryOr.length === 1) {
-        and.push(categoryOr[0]);
-      } else if (categoryOr.length > 1) {
-        and.push({ OR: categoryOr });
-      }
+      and.push({ category: { slug: { in: categories } } });
+    }
+
+    if (isTruthyFilterFlag(query.sale)) {
+      and.push({ compareAtPrice: { not: null } });
     }
 
     const materials = splitFilterValues(query.material);

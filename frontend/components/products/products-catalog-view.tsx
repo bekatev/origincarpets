@@ -50,6 +50,7 @@ const SEARCH_PRESERVED_PARAMS = [
   'color',
   'period',
   'age',
+  'sale',
   'georgian',
   'minPrice',
   'maxPrice'

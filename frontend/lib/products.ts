@@ -35,6 +35,8 @@ export interface ProductListFilters {
   period?: string;
   age?: string;
   georgian?: string;
+  /** Truthy (`1`) → only products currently on sale. */
+  sale?: string;
   minPrice?: string;
   maxPrice?: string;
   limit?: string;
@@ -140,6 +142,7 @@ const FILTER_PARAM_KEYS: Array<keyof ProductListFilters> = [
   'period',
   'age',
   'georgian',
+  'sale',
   'minPrice',
   'maxPrice',
   'limit',
@@ -177,7 +180,9 @@ export async function fetchProducts(filters: ProductListFilters): Promise<Produc
 
 export async function fetchCategories(): Promise<ProductCategory[]> {
   return (
-    (await apiFetch<ProductCategory[]>('/products/categories'))?.sort((a, b) => a.name.localeCompare(b.name)) ?? []
+    (await apiFetch<ProductCategory[]>('/products/categories'))
+      ?.filter((category) => category.slug !== 'sale')
+      .sort((a, b) => a.name.localeCompare(b.name)) ?? []
   );
 }
 
@@ -199,8 +204,9 @@ export async function fetchProductFilters(): Promise<ProductFilterOptions> {
   ]);
 
   if (fromApi) {
+    const apiCategories = (fromApi.categories ?? []).filter((category) => category.slug !== 'sale');
     return {
-      categories: fromApi.categories?.length ? fromApi.categories : categories,
+      categories: apiCategories.length ? apiCategories : categories,
       materials: fromApi.materials ?? [],
       sizes: fromApi.sizes ?? [],
       origins: fromApi.origins ?? [],

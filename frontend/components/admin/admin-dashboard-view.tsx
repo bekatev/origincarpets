@@ -55,8 +55,6 @@ type ProductFormState = {
   compareAtPrice: string;
   onSale: boolean;
   categoryId: string;
-  /** Restored when “On sale” is unchecked after auto-selecting SALE. */
-  categoryIdBeforeSale: string;
   size: string;
   color: string;
   material: string;
@@ -79,7 +77,6 @@ const emptyProduct: ProductFormState = {
   compareAtPrice: '',
   onSale: false,
   categoryId: '',
-  categoryIdBeforeSale: '',
   size: '',
   color: '',
   material: '',
@@ -312,7 +309,6 @@ export function AdminDashboardView() {
       compareAtPrice: onSale && product.compareAtPrice != null ? product.compareAtPrice.toString() : '',
       onSale,
       categoryId: product.category.id,
-      categoryIdBeforeSale: '',
       size: product.attributes.size ?? '',
       color: product.attributes.color ?? '',
       material: product.attributes.material ?? '',
@@ -1181,25 +1177,11 @@ function ProductsTab({
                 checked={productForm.onSale}
                 onChange={(e) => {
                   const checked = e.target.checked;
-                  setProductForm((p) => {
-                    if (checked) {
-                      const saleCategory = categories.find((c) => c.slug === 'sale');
-                      return {
-                        ...p,
-                        onSale: true,
-                        categoryIdBeforeSale:
-                          p.categoryId && p.categoryId !== saleCategory?.id ? p.categoryId : p.categoryIdBeforeSale,
-                        categoryId: saleCategory?.id ?? p.categoryId
-                      };
-                    }
-                    return {
-                      ...p,
-                      onSale: false,
-                      compareAtPrice: '',
-                      categoryId: p.categoryIdBeforeSale || p.categoryId,
-                      categoryIdBeforeSale: ''
-                    };
-                  });
+                  setProductForm((p) =>
+                    checked
+                      ? { ...p, onSale: true }
+                      : { ...p, onSale: false, compareAtPrice: '' }
+                  );
                 }}
                 className="h-4 w-4 accent-[var(--oc-ink)]"
               />
@@ -1253,7 +1235,9 @@ function ProductsTab({
             <Field label={a.products.category}>
               <select className="oc-input" value={productForm.categoryId} onChange={(e) => setProductForm((p) => ({ ...p, categoryId: e.target.value }))} required>
                 <option value="">{a.products.selectCategory}</option>
-                {categories.map((c) => (
+                {categories
+                  .filter((c) => c.slug !== 'sale')
+                  .map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
@@ -1518,7 +1502,9 @@ function ProductsTab({
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <select className="oc-input" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
               <option value="">{a.products.filterCategory}: {a.products.filterAll}</option>
-              {categories.map((c) => (
+              {categories
+                .filter((c) => c.slug !== 'sale')
+                .map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>

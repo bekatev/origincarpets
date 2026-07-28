@@ -38,6 +38,11 @@ export class ListProductsDto {
   @IsString()
   georgian?: string;
 
+  /** When truthy (`1` / `true` / `yes`), only products with a compare-at (was) price. */
+  @IsOptional()
+  @IsString()
+  sale?: string;
+
   @IsOptional()
   @Type(() => Number)
   @IsInt()

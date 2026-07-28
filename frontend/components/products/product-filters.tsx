@@ -201,6 +201,7 @@ export function ProductFilters({
       title: f.period,
       options: facets.periods.map((v) => ({ value: v, label: translateFacetLabel('period', v, locale) }))
     },
+    { name: 'sale', title: f.sale, options: [{ value: '1', label: f.saleOnly }] },
     { name: 'georgian', title: f.georgian, options: [{ value: '1', label: f.georgianOnly }] }
   ];
 
@@ -224,6 +225,7 @@ export function ProductFilters({
       current.color ||
       current.period ||
       current.age ||
+      current.sale ||
       current.georgian ||
       current.minPrice ||
       current.maxPrice
@@ -249,6 +251,7 @@ export function ProductFilters({
                   color: '',
                   period: '',
                   age: '',
+                  sale: '',
                   georgian: '',
                   minPrice: '',
                   maxPrice: ''
