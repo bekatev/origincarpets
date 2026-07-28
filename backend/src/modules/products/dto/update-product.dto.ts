@@ -7,7 +7,8 @@ import {
   IsOptional,
   IsString,
   Min,
-  MinLength
+  MinLength,
+  ValidateIf
 } from 'class-validator';
 
 /** Admin updates must accept existing catalog data (short descriptions, large rugs, etc.). */
@@ -36,6 +37,14 @@ export class UpdateProductDto {
   @IsNumber()
   @Min(0)
   price?: number;
+
+  /** Original / was price when on sale. Pass `null` to clear. */
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  compareAtPrice?: number | null;
 
   @IsOptional()
   @IsString()

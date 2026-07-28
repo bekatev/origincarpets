@@ -242,6 +242,7 @@ export class ProductsService {
 
   async createProduct(dto: CreateProductDto) {
     await this.ensureCategoryExists(dto.categoryId);
+    this.assertSalePricing(dto.price, dto.compareAtPrice);
     const colorAttribute = dto.color ? await this.getOrCreateColorAttribute() : null;
 
     const shipping = mergeShippingFields(null, dto);
@@ -265,6 +266,7 @@ export class ProductsService {
           sku: dto.sku,
           description: dto.description,
           price: dto.price,
+          compareAtPrice: dto.compareAtPrice ?? null,
           categoryId: dto.categoryId,
           sizeLabel: dto.size,
           material: dto.material,
@@ -305,6 +307,15 @@ export class ProductsService {
       await this.ensureCategoryExists(dto.categoryId);
     }
 
+    const nextPrice = dto.price !== undefined ? dto.price : Number(existing.price);
+    const nextCompareAt =
+      dto.compareAtPrice !== undefined
+        ? dto.compareAtPrice
+        : existing.compareAtPrice != null
+          ? Number(existing.compareAtPrice)
+          : null;
+    this.assertSalePricing(nextPrice, nextCompareAt);
+
     const shipping = mergeShippingFields(existing, {
       weightKg: dto.weightKg,
       lengthCm: dto.lengthCm != null ? Math.round(dto.lengthCm) : dto.lengthCm,
@@ -342,6 +353,7 @@ export class ProductsService {
               ...(dto.sku !== undefined ? { sku: dto.sku } : {}),
               ...(dto.description !== undefined ? { description: dto.description } : {}),
               ...(dto.price !== undefined ? { price: dto.price } : {}),
+              ...(dto.compareAtPrice !== undefined ? { compareAtPrice: dto.compareAtPrice } : {}),
               ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
               ...(dto.size !== undefined ? { sizeLabel: dto.size } : {}),
               ...(dto.material !== undefined ? { material: dto.material } : {}),
@@ -501,9 +513,25 @@ export class ProductsService {
     }
 
     // Filters accept comma-separated values (multi-select checkboxes on the storefront).
+    // `sale` also matches products with a compare-at (was) price, so sale items can keep
+    // their type category (Carpet, Kilim, …) while still appearing under Sale.
     const categories = splitFilterValues(query.category);
     if (categories.length) {
-      and.push({ category: { slug: { in: categories } } });
+      const saleSelected = categories.includes('sale');
+      const otherCategories = categories.filter((slug) => slug !== 'sale');
+      const categoryOr: Prisma.ProductWhereInput[] = [];
+      if (otherCategories.length) {
+        categoryOr.push({ category: { slug: { in: otherCategories } } });
+      }
+      if (saleSelected) {
+        categoryOr.push({ category: { slug: 'sale' } });
+        categoryOr.push({ compareAtPrice: { not: null } });
+      }
+      if (categoryOr.length === 1) {
+        and.push(categoryOr[0]);
+      } else if (categoryOr.length > 1) {
+        and.push({ OR: categoryOr });
+      }
     }
 
     const materials = splitFilterValues(query.material);
@@ -617,6 +645,13 @@ export class ProductsService {
     if (!product) throw new NotFoundException('Product not found');
   }
 
+  private assertSalePricing(price: number, compareAtPrice?: number | null) {
+    if (compareAtPrice == null) return;
+    if (!(compareAtPrice > price)) {
+      throw new BadRequestException('Original (was) price must be greater than the sale price');
+    }
+  }
+
   private async ensureCategoryExists(id: string) {
     const category = await this.prisma.category.findUnique({ where: { id }, select: { id: true } });
     if (!category) throw new BadRequestException('Invalid categoryId');
@@ -644,6 +679,7 @@ export class ProductsService {
         description: localized.description ?? { en: product.description }
       },
       price: Number(product.price),
+      compareAtPrice: product.compareAtPrice != null ? Number(product.compareAtPrice) : null,
       isActive: product.isActive,
       isPublished: product.isActive,
       category: { id: product.category.id, name: product.category.name, slug: product.category.slug },

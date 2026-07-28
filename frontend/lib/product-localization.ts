@@ -44,7 +44,8 @@ const ATTRIBUTE_TRANSLATIONS: Record<string, Record<string, string>> = {
     DJIDJIM: 'ჯიჯიმი',
     SUZANI: 'სუზანი',
     MAFRASH: 'მაფრაში',
-    SADDLEBAG: 'ხელთათმანი'
+    SADDLEBAG: 'ხელთათმანი',
+    SALE: 'აქცია'
   },
   age: {
     'Tribal handmade': 'ტრიბალური ხელნაქსოვი',

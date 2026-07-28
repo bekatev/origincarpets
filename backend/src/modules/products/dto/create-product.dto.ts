@@ -32,6 +32,13 @@ export class CreateProductDto {
   @Min(0)
   price!: number;
 
+  /** Original / was price when the product is on sale. Must be greater than `price`. */
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  compareAtPrice?: number;
+
   @IsString()
   categoryId!: string;
 

@@ -54,6 +54,8 @@ export interface ProductItem {
   description: string;
   localizations?: ProductLocalizations;
   price: number;
+  /** Original / was price when the product is on sale. */
+  compareAtPrice?: number | null;
   origin?: string | null;
   images: string[];
   category: ProductCategory;

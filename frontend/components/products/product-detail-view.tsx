@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
-import { FormattedPrice } from '@/components/products/formatted-price';
+import { ProductPrice } from '@/components/products/product-price';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { localizeProduct } from '@/lib/product-localization';
 import type { ProductItem } from '@/lib/products';
@@ -34,7 +34,7 @@ export function ProductDetailView({ product }: { product: ProductItem }) {
       <p className="oc-eyebrow">{localized.category.name}</p>
       <h1 className="oc-heading-sm">{localized.title}</h1>
       <p className="text-lg text-[var(--oc-ink)]">
-        <FormattedPrice amount={product.price} />
+        <ProductPrice price={product.price} compareAtPrice={product.compareAtPrice} />
       </p>
 
       <dl className="grid grid-cols-2 gap-6 border-t border-[var(--oc-line)] pt-8 text-sm">

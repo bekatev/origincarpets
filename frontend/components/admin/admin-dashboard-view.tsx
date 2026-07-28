@@ -11,6 +11,7 @@ import { cn } from '@/lib/cn';
 import { API_ORIGIN, apiRequest, uploadImage } from '@/lib/api';
 import type { Dictionary } from '@/lib/i18n';
 import { FormattedPrice } from '@/components/products/formatted-price';
+import { ProductPrice } from '@/components/products/product-price';
 
 type AdminTab = 'overview' | 'orders' | 'customers' | 'categories' | 'products';
 
@@ -35,6 +36,7 @@ type Product = {
   title: string;
   description: string;
   price: number;
+  compareAtPrice?: number | null;
   isActive: boolean;
   isPublished: boolean;
   images: string[];
@@ -44,7 +46,52 @@ type Product = {
   shipping?: ProductShipping;
 };
 
-type AdminOverview = { orders: number; revenue: number; products: number; customers: number };
+type ProductFormState = {
+  title: string;
+  slug: string;
+  sku: string;
+  description: string;
+  price: string;
+  compareAtPrice: string;
+  onSale: boolean;
+  categoryId: string;
+  /** Restored when “On sale” is unchecked after auto-selecting SALE. */
+  categoryIdBeforeSale: string;
+  size: string;
+  color: string;
+  material: string;
+  origin: string;
+  age: string;
+  weightKg: string;
+  lengthCm: string;
+  widthCm: string;
+  heightCm: string;
+  imagesText: string;
+  isPublished: boolean;
+};
+
+const emptyProduct: ProductFormState = {
+  title: '',
+  slug: '',
+  sku: '',
+  description: '',
+  price: '',
+  compareAtPrice: '',
+  onSale: false,
+  categoryId: '',
+  categoryIdBeforeSale: '',
+  size: '',
+  color: '',
+  material: '',
+  origin: '',
+  age: '',
+  weightKg: '',
+  lengthCm: '',
+  widthCm: '',
+  heightCm: '',
+  imagesText: '',
+  isPublished: true
+};
 
 type AdminOrder = {
   id: string;
@@ -77,45 +124,7 @@ type Customer = {
   spentTotal: number;
 };
 
-type ProductFormState = {
-  title: string;
-  slug: string;
-  sku: string;
-  description: string;
-  price: string;
-  categoryId: string;
-  size: string;
-  color: string;
-  material: string;
-  origin: string;
-  age: string;
-  weightKg: string;
-  lengthCm: string;
-  widthCm: string;
-  heightCm: string;
-  imagesText: string;
-  isPublished: boolean;
-};
-
-const emptyProduct: ProductFormState = {
-  title: '',
-  slug: '',
-  sku: '',
-  description: '',
-  price: '',
-  categoryId: '',
-  size: '',
-  color: '',
-  material: '',
-  origin: '',
-  age: '',
-  weightKg: '',
-  lengthCm: '',
-  widthCm: '',
-  heightCm: '',
-  imagesText: '',
-  isPublished: true
-};
+type AdminOverview = { orders: number; revenue: number; products: number; customers: number };
 
 function resolveAdminImageSrc(url: string) {
   const trimmed = url.trim();
@@ -292,28 +301,36 @@ export function AdminDashboardView() {
     }
   }
 
+  function productToFormState(product: Product): ProductFormState {
+    const onSale = product.compareAtPrice != null && Number(product.compareAtPrice) > 0;
+    return {
+      title: product.title,
+      slug: product.slug,
+      sku: product.sku,
+      description: product.description,
+      price: product.price.toString(),
+      compareAtPrice: onSale && product.compareAtPrice != null ? product.compareAtPrice.toString() : '',
+      onSale,
+      categoryId: product.category.id,
+      categoryIdBeforeSale: '',
+      size: product.attributes.size ?? '',
+      color: product.attributes.color ?? '',
+      material: product.attributes.material ?? '',
+      origin: product.origin ?? '',
+      age: product.attributes.age ?? '',
+      weightKg: product.shipping?.weightKg?.toString() ?? '',
+      lengthCm: product.shipping?.lengthCm?.toString() ?? '',
+      widthCm: product.shipping?.widthCm?.toString() ?? '',
+      heightCm: product.shipping?.heightCm?.toString() ?? '',
+      imagesText: product.images.join('\n'),
+      isPublished: product.isPublished
+    };
+  }
+
   function applySavedProductToForm(product: Product) {
     const next = normalizeProduct(product);
     setEditingProductId(next.id);
-    setProductForm({
-      title: next.title,
-      slug: next.slug,
-      sku: next.sku,
-      description: next.description,
-      price: next.price.toString(),
-      categoryId: next.category.id,
-      size: next.attributes.size ?? '',
-      color: next.attributes.color ?? '',
-      material: next.attributes.material ?? '',
-      origin: next.origin ?? '',
-      age: next.attributes.age ?? '',
-      weightKg: next.shipping?.weightKg?.toString() ?? '',
-      lengthCm: next.shipping?.lengthCm?.toString() ?? '',
-      widthCm: next.shipping?.widthCm?.toString() ?? '',
-      heightCm: next.shipping?.heightCm?.toString() ?? '',
-      imagesText: next.images.join('\n'),
-      isPublished: next.isPublished
-    });
+    setProductForm(productToFormState(next));
     setProducts((prev) => {
       const exists = prev.some((p) => p.id === next.id);
       return exists ? prev.map((p) => (p.id === next.id ? next : p)) : [next, ...prev];
@@ -363,12 +380,52 @@ export function AdminDashboardView() {
             .filter(Boolean)
         )
       ];
-      const payload = {
+      const salePrice = Number(productForm.price);
+      const compareAtPrice = productForm.onSale ? Number(productForm.compareAtPrice) : null;
+
+      if (!productForm.title.trim() || !productForm.slug.trim() || !productForm.sku.trim()) {
+        throw new Error('Title, slug, and SKU are required');
+      }
+      if (!Number.isFinite(salePrice) || salePrice < 0) {
+        throw new Error('Price must be a valid number');
+      }
+      if (productForm.onSale) {
+        if (!Number.isFinite(compareAtPrice) || compareAtPrice == null || compareAtPrice < 0) {
+          throw new Error(a.products.onSaleRequiresPrices);
+        }
+        if (!(compareAtPrice > salePrice)) {
+          throw new Error(a.products.onSaleInvalidPrices);
+        }
+      }
+      if (!productForm.categoryId) {
+        throw new Error('Category is required');
+      }
+
+      const payload: {
+        title: string;
+        slug: string;
+        sku: string;
+        description: string;
+        price: number;
+        compareAtPrice?: number | null;
+        categoryId: string;
+        size?: string;
+        color?: string;
+        material?: string;
+        origin: string;
+        age: string;
+        weightKg?: number;
+        lengthCm?: number;
+        widthCm?: number;
+        heightCm?: number;
+        images: string[];
+        isPublished: boolean;
+      } = {
         title: productForm.title.trim(),
         slug: productForm.slug.trim(),
         sku: productForm.sku.trim(),
         description: productForm.description.trim() || productForm.title.trim(),
-        price: Number(productForm.price),
+        price: salePrice,
         categoryId: productForm.categoryId,
         size: productForm.size.trim() || undefined,
         color: productForm.color.trim() || undefined,
@@ -383,14 +440,11 @@ export function AdminDashboardView() {
         isPublished: productForm.isPublished
       };
 
-      if (!payload.title || !payload.slug || !payload.sku) {
-        throw new Error('Title, slug, and SKU are required');
-      }
-      if (!Number.isFinite(payload.price) || payload.price < 0) {
-        throw new Error('Price must be a valid number');
-      }
-      if (!payload.categoryId) {
-        throw new Error('Category is required');
+      // Updates must clear compare-at when sale is unchecked; creates only send it when on sale.
+      if (editingId) {
+        payload.compareAtPrice = compareAtPrice;
+      } else if (compareAtPrice != null) {
+        payload.compareAtPrice = compareAtPrice;
       }
 
       const saved = await apiRequest<Product>(
@@ -575,25 +629,7 @@ export function AdminDashboardView() {
 
   function startEdit(product: Product) {
     setEditingProductId(product.id);
-    setProductForm({
-      title: product.title,
-      slug: product.slug,
-      sku: product.sku,
-      description: product.description,
-      price: product.price.toString(),
-      categoryId: product.category.id,
-      size: product.attributes.size ?? '',
-      color: product.attributes.color ?? '',
-      material: product.attributes.material ?? '',
-      origin: product.origin ?? '',
-      age: product.attributes.age ?? '',
-      weightKg: product.shipping?.weightKg?.toString() ?? '',
-      lengthCm: product.shipping?.lengthCm?.toString() ?? '',
-      widthCm: product.shipping?.widthCm?.toString() ?? '',
-      heightCm: product.shipping?.heightCm?.toString() ?? '',
-      imagesText: product.images.join('\n'),
-      isPublished: product.isPublished
-    });
+    setProductForm(productToFormState(product));
     setTab('products');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -1138,10 +1174,82 @@ function ProductsTab({
           <Field label={a.products.description}>
             <textarea className="oc-input min-h-28" value={productForm.description} onChange={(e) => setProductForm((p) => ({ ...p, description: e.target.value }))} required />
           </Field>
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="flex cursor-pointer items-center gap-3 border border-[var(--oc-line)] px-4 py-3 text-sm">
+              <input
+                type="checkbox"
+                checked={productForm.onSale}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setProductForm((p) => {
+                    if (checked) {
+                      const saleCategory = categories.find((c) => c.slug === 'sale');
+                      return {
+                        ...p,
+                        onSale: true,
+                        categoryIdBeforeSale:
+                          p.categoryId && p.categoryId !== saleCategory?.id ? p.categoryId : p.categoryIdBeforeSale,
+                        categoryId: saleCategory?.id ?? p.categoryId
+                      };
+                    }
+                    return {
+                      ...p,
+                      onSale: false,
+                      compareAtPrice: '',
+                      categoryId: p.categoryIdBeforeSale || p.categoryId,
+                      categoryIdBeforeSale: ''
+                    };
+                  });
+                }}
+                className="h-4 w-4 accent-[var(--oc-ink)]"
+              />
+              <span>
+                <span className="font-medium text-[var(--oc-ink)]">{a.products.onSale}</span>
+                <span className="mt-0.5 block text-xs text-[var(--oc-muted)]">{a.products.onSaleHint}</span>
+              </span>
+            </label>
+          </div>
+          {productForm.onSale ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label={a.products.compareAtPrice}>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  className="oc-input"
+                  value={productForm.compareAtPrice}
+                  onChange={(e) => setProductForm((p) => ({ ...p, compareAtPrice: e.target.value }))}
+                  required
+                />
+              </Field>
+              <Field label={a.products.salePrice}>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  className="oc-input"
+                  value={productForm.price}
+                  onChange={(e) => setProductForm((p) => ({ ...p, price: e.target.value }))}
+                  required
+                />
+              </Field>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Field label={a.products.price}>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  className="oc-input"
+                  value={productForm.price}
+                  onChange={(e) => setProductForm((p) => ({ ...p, price: e.target.value }))}
+                  required
+                />
+              </Field>
+            </div>
+          )}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Field label={a.products.price}>
-              <input type="number" min={0} step="0.01" className="oc-input" value={productForm.price} onChange={(e) => setProductForm((p) => ({ ...p, price: e.target.value }))} required />
-            </Field>
             <Field label={a.products.category}>
               <select className="oc-input" value={productForm.categoryId} onChange={(e) => setProductForm((p) => ({ ...p, categoryId: e.target.value }))} required>
                 <option value="">{a.products.selectCategory}</option>
@@ -1540,7 +1648,8 @@ function AdminProductCard({
 }) {
   const meta = (
     <p className="mt-1 text-xs text-[var(--oc-muted)]">
-      {product.sku} · {product.category.name} · <FormattedPrice amount={product.price} />
+      {product.sku} · {product.category.name} ·{' '}
+      <ProductPrice price={product.price} compareAtPrice={product.compareAtPrice} />
       {product.images.length > 0 ? ` · ${product.images.length} img` : ''}
       {[product.attributes.size, product.attributes.material, product.attributes.color]
         .filter(Boolean)

@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import type { ProductItem } from '@/lib/products';
 import { ProductCardFoldMedia } from '@/components/products/product-card-fold-media';
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
-import { FormattedPrice } from '@/components/products/formatted-price';
+import { ProductPrice } from '@/components/products/product-price';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { localizeProduct, localizedPlainDescription } from '@/lib/product-localization';
 import { cn } from '@/lib/cn';
@@ -86,7 +86,7 @@ export function ProductCard({
 
             <div className="flex shrink-0 flex-col items-start justify-between gap-3 border-t border-[var(--oc-line)] pt-4 sm:w-[160px] sm:items-end sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
               <p className="font-display text-xl text-[var(--oc-ink)]">
-                <FormattedPrice amount={product.price} />
+                <ProductPrice price={product.price} compareAtPrice={product.compareAtPrice} />
               </p>
               {cover ? (
                 <AddToCartButton
@@ -124,7 +124,7 @@ export function ProductCard({
           </Link>
         </h3>
         <p className="text-sm text-[var(--oc-ink)]">
-          <FormattedPrice amount={product.price} />
+          <ProductPrice price={product.price} compareAtPrice={product.compareAtPrice} />
         </p>
         {cover ? (
           <AddToCartButton
