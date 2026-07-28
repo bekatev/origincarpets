@@ -22,7 +22,8 @@ export const dictionaries = {
       menu: 'Menu'
     },
     topbar: {
-      shipping: 'Worldwide delivery'
+      shipping: 'Worldwide delivery',
+      sale: 'Up to 50% off on selected items'
     },
     chat: {
       open: 'Chat with us',
@@ -119,7 +120,8 @@ export const dictionaries = {
       menu: 'მენიუ'
     },
     topbar: {
-      shipping: 'მსოფლიო მიწოდება'
+      shipping: 'მსოფლიო მიწოდება',
+      sale: 'არჩეულ ნივთებზე 50%-მდე ფასდაკლება'
     },
     chat: {
       open: 'მოგვწერეთ',
