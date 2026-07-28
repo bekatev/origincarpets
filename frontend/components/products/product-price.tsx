@@ -22,7 +22,7 @@ export function ProductPrice({
 
   return (
     <span className={cn('inline-flex flex-wrap items-baseline gap-x-2 gap-y-0.5', className)}>
-      <FormattedPrice amount={price} />
+      <FormattedPrice amount={price} className="font-semibold text-[var(--oc-sale)]" />
       <span className={cn('text-[0.85em] text-[var(--oc-muted)] line-through', compareClassName)}>
         <FormattedPrice amount={compareAtPrice} />
       </span>

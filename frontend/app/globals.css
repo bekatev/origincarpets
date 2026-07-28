@@ -15,6 +15,8 @@
   --oc-accent: #4a3c34;
   --oc-brand-soft: #6e5848;
   --oc-brand-hover: #4a3c34;
+  --oc-sale: #b42318;
+  --oc-sale-hover: #8f1a12;
   --oc-shadow: none;
   --oc-shadow-lift: 0 24px 48px -32px rgba(52, 40, 39, 0.18);
   --oc-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -32,6 +34,8 @@ html.dark {
   --oc-brand: #c5ae8e;
   --oc-accent: #9aab88;
   --oc-brand-soft: #b89f7c;
+  --oc-sale: #ef4444;
+  --oc-sale-hover: #dc2626;
 }
 
 html {
@@ -41,6 +45,28 @@ html {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .oc-sale-banner {
+    animation: none !important;
+  }
+}
+
+@keyframes oc-sale-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 8px 24px -10px rgba(180, 35, 24, 0.75);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 12px 32px -8px rgba(180, 35, 24, 0.95);
+  }
+}
+
+@layer components {
+  .oc-sale-banner {
+    animation: oc-sale-pulse 2.4s ease-in-out infinite;
   }
 }
 

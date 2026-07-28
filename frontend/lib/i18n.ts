@@ -23,7 +23,7 @@ export const dictionaries = {
     },
     topbar: {
       shipping: 'Worldwide delivery',
-      sale: 'Up to 50% off on selected items'
+      sale: 'Sale — up to 50% off'
     },
     chat: {
       open: 'Chat with us',
@@ -37,7 +37,7 @@ export const dictionaries = {
       shop: 'Shop',
       about: 'About Us',
       carpets: 'Carpets',
-      origin: 'Carpet Origin',
+      origin: 'Carpet and Flatware Technologies',
       guides: 'Guides & Policies',
       contact: 'Contact Us',
       social: 'Social Media',
@@ -121,7 +121,7 @@ export const dictionaries = {
     },
     topbar: {
       shipping: 'მსოფლიო მიწოდება',
-      sale: 'არჩეულ ნივთებზე 50%-მდე ფასდაკლება'
+      sale: 'აქცია — 50%-მდე ფასდაკლება'
     },
     chat: {
       open: 'მოგვწერეთ',
@@ -135,7 +135,7 @@ export const dictionaries = {
       shop: 'მაღაზია',
       about: 'ჩვენ შესახებ',
       carpets: 'ხალიჩები',
-      origin: 'ხალიჩის წარმომავლობა',
+      origin: 'ხალიჩის სახეობა',
       guides: 'სახელმძღვანელოები და წესები',
       contact: 'კონტაქტი',
       social: 'სოციალური მედია',

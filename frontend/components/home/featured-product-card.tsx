@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { ProductCardFoldMedia } from '@/components/products/product-card-fold-media';
-import { FormattedPrice } from '@/components/products/formatted-price';
+import { ProductPrice } from '@/components/products/product-price';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { localizeProduct } from '@/lib/product-localization';
 import type { ProductItem } from '@/lib/products';
@@ -21,7 +21,7 @@ export function FeaturedProductCard({ product, priority = false }: { product: Pr
             {localized.title}
           </h3>
           <p className="mt-1 text-[13px] tracking-wide text-[var(--oc-muted)]">
-            <FormattedPrice amount={product.price} />
+            <ProductPrice price={product.price} compareAtPrice={product.compareAtPrice} />
           </p>
         </div>
       </Link>
