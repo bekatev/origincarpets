@@ -32,8 +32,10 @@ export function FeaturedProductCard({ product, priority = false }: { product: Pr
             <ProductPrice price={product.price} compareAtPrice={product.compareAtPrice} />
           </p>
           {sold ? (
-            <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--oc-ink)]">
-              {dict.productDetail.sold}
+            <p className="mt-2">
+              <span className="inline-flex bg-[var(--oc-sold)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+                {dict.productDetail.sold}
+              </span>
             </p>
           ) : null}
         </div>
