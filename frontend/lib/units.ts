@@ -24,14 +24,23 @@ export function formatLengthFromCm(cm: number): string {
   return inches === 0 ? `${feet}'` : `${feet}'${inches}"`;
 }
 
-export function formatWeightFromKg(kg: number, system: MeasurementSystem): string {
-  if (system === 'imperial') {
-    const lbs = Math.round(kg * 2.20462 * 10) / 10;
-    return `${lbs} lb`;
-  }
-
+function formatMetricWeightKg(kg: number): string {
   const rounded = Number.isInteger(kg) ? String(kg) : String(Math.round(kg * 100) / 100);
   return `${rounded} kg`;
+}
+
+function formatImperialWeightLb(kg: number): string {
+  const lbs = Math.round(kg * 2.20462 * 10) / 10;
+  return `${lbs} lb`;
+}
+
+export function formatWeightFromKg(kg: number, system: MeasurementSystem): string {
+  return system === 'imperial' ? formatImperialWeightLb(kg) : formatMetricWeightKg(kg);
+}
+
+/** Always show metric + imperial, e.g. "12.5 kg (27.6 lb)". */
+export function formatWeightBothFromKg(kg: number): string {
+  return `${formatMetricWeightKg(kg)} (${formatImperialWeightLb(kg)})`;
 }
 
 export function formatDimensionsFromCm(
@@ -45,4 +54,15 @@ export function formatDimensionsFromCm(
   }
 
   return `${lengthCm} × ${widthCm} ${metricUnitLabel}`;
+}
+
+/** Always show cm + ft/in, e.g. "250 × 180 cm (8'2\" × 5'11\")". */
+export function formatDimensionsBothFromCm(
+  lengthCm: number,
+  widthCm: number,
+  metricUnitLabel = 'cm'
+): string {
+  const metric = `${lengthCm} × ${widthCm} ${metricUnitLabel}`;
+  const imperial = `${formatLengthFromCm(lengthCm)} × ${formatLengthFromCm(widthCm)}`;
+  return `${metric} (${imperial})`;
 }
