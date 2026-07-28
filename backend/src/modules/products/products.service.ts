@@ -509,6 +509,7 @@ export class ProductsService {
       and.push({
         OR: [
           { title: { contains: query.search, mode: 'insensitive' } },
+          { sku: { contains: query.search, mode: 'insensitive' } },
           { description: { contains: query.search, mode: 'insensitive' } },
           { material: { contains: query.search, mode: 'insensitive' } },
           { origin: { contains: query.search, mode: 'insensitive' } }
