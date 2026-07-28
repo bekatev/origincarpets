@@ -17,6 +17,8 @@
   --oc-brand-hover: #4a3c34;
   --oc-sale: #b42318;
   --oc-sale-hover: #8f1a12;
+  --oc-sold: #1d4ed8;
+  --oc-sold-hover: #1e40af;
   --oc-shadow: none;
   --oc-shadow-lift: 0 24px 48px -32px rgba(52, 40, 39, 0.18);
   --oc-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -36,6 +38,8 @@ html.dark {
   --oc-brand-soft: #b89f7c;
   --oc-sale: #ef4444;
   --oc-sale-hover: #dc2626;
+  --oc-sold: #60a5fa;
+  --oc-sold-hover: #3b82f6;
 }
 
 html {

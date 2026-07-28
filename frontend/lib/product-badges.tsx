@@ -20,7 +20,7 @@ export function ProductBadgeStack({
     return (
       <span
         className={cn(
-          'pointer-events-none absolute left-2 top-2 z-10 bg-[var(--oc-ink)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--oc-paper)] shadow-sm',
+          'pointer-events-none absolute left-2 top-2 z-10 bg-[var(--oc-sold)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white shadow-[0_6px_16px_-6px_rgba(29,78,216,0.85)] ring-1 ring-white/40',
           className
         )}
       >

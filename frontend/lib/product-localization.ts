@@ -40,9 +40,9 @@ const ATTRIBUTE_TRANSLATIONS: Record<string, Record<string, string>> = {
   },
   category: {
     CARPET: 'ხალიჩა',
-    KILIM: 'ქილიმი',
-    DJIDJIM: 'ჯიჯიმი',
-    SUZANI: 'სუზანი',
+    KILIM: 'ფარდაგი',
+    DJIDJIM: 'ჯეჯიმი',
+    SUZANI: 'სუზანე',
     MAFRASH: 'მაფრაში',
     SADDLEBAG: 'ხურჯინი',
     SALE: 'აქცია',

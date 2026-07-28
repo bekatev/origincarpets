@@ -47,7 +47,7 @@ export function ProductDetailView({ product }: { product: ProductItem }) {
           </span>
         ) : null}
         {sold ? (
-          <span className="bg-[var(--oc-ink)] px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--oc-paper)]">
+          <span className="bg-[var(--oc-sold)] px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white ring-1 ring-white/30">
             {d.sold}
           </span>
         ) : null}

@@ -257,19 +257,24 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
           </div>
           <TextPanel motif motifSize="sm" motifPlacement="top-left">
             <div className="space-y-10">
-              <div>
-                <h3 className="font-display text-2xl text-[var(--oc-ink)] sm:text-3xl">
-                  {dict.home.carpetTitle}
-                </h3>
-                <p className="oc-body mt-4">{dict.home.carpetBody}</p>
-              </div>
-              <div className="h-px w-16 bg-[var(--oc-line)]" />
-              <div>
-                <h3 className="font-display text-2xl text-[var(--oc-ink)] sm:text-3xl">
-                  {dict.home.kilimTitle}
-                </h3>
-                <p className="oc-body mt-4">{dict.home.kilimBody}</p>
-              </div>
+              <p className="oc-eyebrow">{dict.home.categoriesTitle}</p>
+              {(
+                [
+                  ['carpetTitle', 'carpetBody'],
+                  ['kilimTitle', 'kilimBody'],
+                  ['djidjimTitle', 'djidjimBody'],
+                  ['suzaniTitle', 'suzaniBody'],
+                  ['soumakTitle', 'soumakBody']
+                ] as const
+              ).map(([titleKey, bodyKey], index) => (
+                <div key={titleKey}>
+                  {index > 0 ? <div className="mb-10 h-px w-16 bg-[var(--oc-line)]" /> : null}
+                  <h3 className="font-display text-2xl text-[var(--oc-ink)] sm:text-3xl">
+                    {dict.home[titleKey]}
+                  </h3>
+                  <p className="oc-body mt-4">{dict.home[bodyKey]}</p>
+                </div>
+              ))}
             </div>
           </TextPanel>
         </ParallaxContent>

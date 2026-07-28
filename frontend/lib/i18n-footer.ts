@@ -18,7 +18,7 @@ export const footerTranslations = {
       mafrash: 'Mafrash',
       saddlebag: 'Saddlebag'
     },
-    carpetOrigin: 'Carpet and Flatware Technologies',
+    carpetOrigin: 'Carpet Origin',
     origins: {
       georgia: 'Georgia',
       azerbaijan: 'Azerbaijan',
@@ -48,14 +48,14 @@ export const footerTranslations = {
     carpets: 'ხალიჩები',
     carpetTypes: {
       carpet: 'ხალიჩა',
-      kilim: 'ქილიმი',
+      kilim: 'ფარდაგი',
       soumak: 'სუმახი',
-      djidjim: 'ჯიჯიმი',
-      suzani: 'სუზანი',
+      djidjim: 'ჯეჯიმი',
+      suzani: 'სუზანე',
       mafrash: 'მაფრაში',
       saddlebag: 'ჩანთა'
     },
-    carpetOrigin: '',
+    carpetOrigin: 'ხალიჩის წარმომავლობა',
     origins: {
       georgia: 'საქართველო',
       azerbaijan: 'აზერბაიჯანი',

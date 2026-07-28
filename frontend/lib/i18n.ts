@@ -71,13 +71,22 @@ export const dictionaries = {
         'Located at the crossroads of Eurasia, Tbilisi is on the Great Silk Road and has always been considered a hub of trade and education. It is to Tbilisi where all sorts of carpets and rugs were imported from Asia, as well as other precious things. As well as trading, Georgia made quality bags, carpets and rugs. In particular, Tusheti, Kakheti, Alwan and Akhaltsikhe were famous for precious high-quality products, skilled weavers, and the quality of local sheep and wool.',
       historyP3:
         'Our gallery collection includes both old and new Georgian, Dagestani, Armenian, Azeri, Persian, Turkish and Central Asian rugs and carpets.',
-      categoriesTitle: 'Carpet Categories',
+      categoriesTitle: 'Carpet and Flatware Technologies',
       carpetTitle: 'Carpet',
       carpetBody:
         'Weaving technology of carpet is very popular. Carpet is woven on a special loom. First weave the base (made of wool, cotton or silk) and then start weaving the ornaments with wool or silk thread. Typical carpet weaving is when knitting a knot with a thread and then cutting; the pile originates from here. There are carpets which are wool on wool, wool on cotton or silk on silk. Quality of the carpet depends on density of weaving, natural vegetable colors and quality of threads.',
       kilimTitle: 'Kilim',
       kilimBody:
         'Kilim, compared to carpets, is a thinner flatweave without pile. First they weave the base and then they start making ornaments by knots. Unlike carpets, weavers do not cut knots. In kilims there are natural vegetable dyes and also insects used to dye, for example dirty pink. This is popular Koshineli.',
+      djidjimTitle: 'Djidjim',
+      djidjimBody:
+        'Djidjim (jejim) is a flatweave technique where coloured supplementary wefts float across the surface to form an embroidery-like pattern over the ground weave. Lighter than a pile carpet, it is prized for graphic ornament and soft textile character.',
+      suzaniTitle: 'Suzani',
+      suzaniBody:
+        'Suzani is a traditional Central Asian embroidered textile — floral and medallion motifs worked by hand onto cloth. Often used as wall hangings, covers, or decorative pieces rather than heavy floor rugs.',
+      soumakTitle: 'Soumak',
+      soumakBody:
+        'Soumak is woven by wrapping coloured wefts around the warp, creating a flat but textured, corded surface — denser and more dimensional than a kilim, without a cut pile.',
       contactTitle: 'Contact Us',
       policyReturn: 'Return and Refund policy',
       policyPrivacy: 'Customer privacy policy',
@@ -135,7 +144,7 @@ export const dictionaries = {
       shop: 'მაღაზია',
       about: 'ჩვენ შესახებ',
       carpets: 'ხალიჩები',
-      origin: 'ხალიჩის სახეობა',
+      origin: 'ხალიჩის ტექნოლოგია',
       guides: 'სახელმძღვანელოები და წესები',
       contact: 'კონტაქტი',
       social: 'სოციალური მედია',
@@ -169,13 +178,22 @@ export const dictionaries = {
         'ევრაზიის გზაჯვარედინზე მდებარე თბილისი საუკუნეების განმავლობაში მნიშვნელოვანი სავაჭრო ცენტრი იყო. აქ შემოდიოდა აზიიდან ხალიჩები და სხვა ძვირფასი ნივთები. საქართველოშიც იქსოვებოდა მაღალი ხარისხის ხალიჩები — განსაკუთრებით თუშეთში, კახეთში, ალვანსა და ახალციხეში.',
       historyP3:
         'ჩვენს გალერეაში წარმოდგენილია ძველი და ახალი ქართული, დაღესტნური, სომხური, აზერბაიჯანული, სპარსული, თურქული და ცენტრალური აზიის ხალიჩები.',
-      categoriesTitle: 'ხალიჩების კატეგორიები',
+      categoriesTitle: 'ხალიჩის ტექნოლოგია',
       carpetTitle: 'ხალიჩა',
       carpetBody:
         'ხალიჩის ქსოვა ერთ-ერთი ყველაზე გავრცელებული ტექნიკაა. ქსოვა სპეციალურ საქსოვზე ხდება: ჯერ იქსოვება საფუძველი (მატყლი, ბამბა ან აბრეშუმი), შემდეგ კი ორნამენტი. კლასიკურ ხალიჩში კვანძის შეკვრისა და ჭრის შედეგად ჩნდება ბუსუსი. ხარისხი გამოიხატება ქსოვის სიმჭიდვოში, ბუნებრივ საღებავებსა და ძაფის ხარისხში.',
-      kilimTitle: 'ქილიმი',
+      kilimTitle: 'ფარდაგი',
       kilimBody:
-        'ქილიმი ხალიჩზე უფრო თხელი, ბრტყელი ქსოვილია ბუსუსის გარეშე. ორნამენტი კვანძებით იქმნება, მაგრამ კვანძები არ იჭრება. ხშირად გამოიყენება ბუნებრივი მცენარეული საღებავები.',
+        'ფარდაგი ხალიჩზე უფრო თხელი, ბრტყელი ქსოვილია ბუსუსის გარეშე. ორნამენტი კვანძებით იქმნება, მაგრამ კვანძები არ იჭრება. ხშირად გამოიყენება ბუნებრივი მცენარეული საღებავები.',
+      djidjimTitle: 'ჯეჯიმი',
+      djidjimBody:
+        'ჯეჯიმი ბრტყელი ქსოვის ტექნიკაა, სადაც ფერადი დამატებითი ძაფები ზედაპირზე ცურავს და ქმნის ნაქარგივით ორნამენტს ძირითადი ქსოვილის თავზე. უფრო მსუბუქია ვიდრე ბუსუსიანი ხალიჩა და გამოირჩევა გრაფიკული ნახატით.',
+      suzaniTitle: 'სუზანე',
+      suzaniBody:
+        'სუზანე ცენტრალური აზიის ტრადიციული ნაქარგი ტექსტილია — ყვავილოვანი და მედალიონის მოტივები ხელით იკერება ქსოვილზე. ხშირად გამოიყენება კედლის დეკორად, გადასაფარებლად ან დეკორატიულ ნაწარმად.',
+      soumakTitle: 'სუმახი',
+      soumakBody:
+        'სუმახი იქსოვება ფერადი ძაფების საფუძველზე შემოვლით — გამოდის ბრტყელი, მაგრამ ტექსტურირებული ზედაპირი. ფარდაგზე უფრო მკვრივი და რელიეფურია, ბუსუსის გარეშე.',
       contactTitle: 'კონტაქტი',
       policyReturn: 'დაბრუნებისა და ანაზღაურების პოლიტიკა',
       policyPrivacy: 'მომხმარებლის კონფიდენციალურობის პოლიტიკა',
