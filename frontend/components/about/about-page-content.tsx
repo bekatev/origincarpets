@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { CarpetBackdrop } from '@/components/home/carpet-backdrop';
 import { DecorationDivider } from '@/components/home/decoration-divider';
@@ -8,13 +8,78 @@ import { useI18n } from '@/components/providers/i18n-provider';
 import {
   aboutMediaItems,
   facebookEmbedSrc,
-  type AboutMediaItem
+  type AboutMediaItem,
+  type MediaOrientation
 } from '@/lib/about-media';
 import { cn } from '@/lib/cn';
 import { stockImages } from '@/lib/stock-images';
 
+/** Native Facebook plugin sizes — must match iframe attrs + embed URL exactly. */
 const PORTRAIT = { width: 320, height: 568 };
 const LANDSCAPE = { width: 720, height: 405 };
+
+/**
+ * Scales the Facebook plugin with CSS transform so the video never stretches.
+ * Stretching an iframe with width/height 100% is what caused the distortion.
+ */
+function FacebookEmbed({
+  href,
+  orientation,
+  title
+}: {
+  href: string;
+  orientation: MediaOrientation;
+  title: string;
+}) {
+  const size = orientation === 'landscape' ? LANDSCAPE : PORTRAIT;
+  const shellRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = shellRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const available = el.clientWidth;
+      if (available <= 0) return;
+      setScale(Math.min(1, available / size.width));
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [size.width]);
+
+  return (
+    <div
+      ref={shellRef}
+      className="relative mx-auto w-full overflow-hidden bg-black"
+      style={{
+        maxWidth: size.width,
+        height: Math.round(size.height * scale)
+      }}
+    >
+      <iframe
+        title={title}
+        src={facebookEmbedSrc(href, size)}
+        width={size.width}
+        height={size.height}
+        className="absolute left-0 top-0 border-0"
+        style={{
+          width: size.width,
+          height: size.height,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left'
+        }}
+        allowFullScreen
+        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+        loading="lazy"
+        scrolling="no"
+      />
+    </div>
+  );
+}
 
 function MediaFrame({
   item,
@@ -45,19 +110,16 @@ function MediaFrame({
       whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-8% 0px' }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: Math.min(index * 0.04, 0.2) }}
-      className={cn(
-        'group relative',
-        isLandscape ? 'col-span-full' : 'col-span-1'
-      )}
+      className="group relative w-full"
     >
       <div
         className={cn(
           'relative overflow-hidden bg-[var(--oc-ink)] shadow-[var(--oc-shadow-lift)] ring-1 ring-[var(--oc-ink)]/10 transition duration-500 ease-[var(--oc-ease)]',
-          'hover:-translate-y-1 hover:shadow-[0_28px_60px_-28px_rgba(52,40,39,0.45)]',
-          isLandscape ? 'mx-auto max-w-4xl' : 'mx-auto max-w-[320px]'
+          'hover:-translate-y-0.5 hover:shadow-[0_28px_60px_-28px_rgba(52,40,39,0.45)]',
+          isLandscape ? 'mx-auto w-full max-w-[720px]' : 'mx-auto w-full max-w-[320px]'
         )}
       >
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between p-3 sm:p-3.5">
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between p-3">
           <span className="rounded-sm bg-[var(--oc-bg)]/90 px-2 py-1 font-display text-[11px] tracking-[0.14em] text-[var(--oc-ink)] backdrop-blur-sm">
             {n}
           </span>
@@ -67,24 +129,7 @@ function MediaFrame({
         </div>
 
         {item.kind === 'facebook' ? (
-          <div
-            className={cn(
-              'relative w-full overflow-hidden bg-black',
-              isLandscape ? 'aspect-video' : 'aspect-[9/16]'
-            )}
-          >
-            <iframe
-              title={`${label} ${n}`}
-              src={facebookEmbedSrc(
-                item.href,
-                isLandscape ? LANDSCAPE : PORTRAIT
-              )}
-              className="absolute inset-0 h-full w-full border-0"
-              allowFullScreen
-              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-              loading="lazy"
-            />
-          </div>
+          <FacebookEmbed href={item.href} orientation={item.orientation} title={`${label} ${n}`} />
         ) : (
           <a
             href={item.href}
@@ -122,7 +167,7 @@ function MediaFrame({
               href={item.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex translate-y-1 items-center justify-between gap-3 bg-gradient-to-t from-[var(--oc-ink)]/90 via-[var(--oc-ink)]/55 to-transparent px-3.5 pb-3.5 pt-10 text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--oc-bg)] opacity-0 transition duration-500 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 max-sm:pointer-events-none max-sm:hidden"
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-20 hidden translate-y-1 items-center justify-between gap-3 bg-gradient-to-t from-[var(--oc-ink)]/90 via-[var(--oc-ink)]/55 to-transparent px-3.5 pb-3.5 pt-10 text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--oc-bg)] opacity-0 transition duration-500 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 sm:flex"
             >
               <span>{openLabel}</span>
               <span aria-hidden>↗</span>
@@ -154,9 +199,6 @@ export function AboutPageContent() {
   });
   const heroY = useTransform(scrollYProgress, [0, 1], [0, reduceMotion ? 0 : 80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.85], [1, reduceMotion ? 1 : 0.35]);
-
-  const portraitCount = aboutMediaItems.filter((i) => i.orientation === 'portrait').length;
-  const landscapeCount = aboutMediaItems.filter((i) => i.orientation === 'landscape').length;
 
   return (
     <main>
@@ -207,12 +249,6 @@ export function AboutPageContent() {
               <span className="rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-white/90 backdrop-blur-md">
                 {aboutMediaItems.length} {copy.statsAppearances}
               </span>
-              <span className="rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-white/90 backdrop-blur-md">
-                {portraitCount} {copy.statsReels}
-              </span>
-              <span className="rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-white/90 backdrop-blur-md">
-                {landscapeCount} {copy.statsTv}
-              </span>
             </motion.div>
           </div>
         </motion.div>
@@ -232,17 +268,14 @@ export function AboutPageContent() {
           parallax={false}
         />
         <div className="oc-container relative">
-          <div className="mb-7 flex flex-col gap-2 sm:mb-9 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="oc-eyebrow">{copy.galleryEyebrow}</p>
-              <h2 className="mt-2 font-display text-2xl text-[var(--oc-ink)] sm:text-3xl">
-                {copy.galleryTitle}
-              </h2>
-            </div>
-            <p className="max-w-sm text-sm text-[var(--oc-muted)]">{copy.galleryHint}</p>
+          <div className="mb-8 text-center sm:mb-10">
+            <p className="oc-eyebrow">{copy.galleryEyebrow}</p>
+            <h2 className="mt-2 font-display text-2xl text-[var(--oc-ink)] sm:text-3xl">
+              {copy.galleryTitle}
+            </h2>
           </div>
 
-          <div className="grid grid-cols-1 items-start gap-5 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
+          <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 sm:gap-12">
             {aboutMediaItems.map((item, index) => (
               <MediaFrame
                 key={item.id}

@@ -16,19 +16,22 @@ export type AboutMediaItem =
       titleKa: string;
     };
 
-/** Press / TV appearances — order matches the About Us page. */
+/**
+ * Press / TV appearances.
+ * Orientation follows the source video aspect (FB metadata reports these reels as 16:9).
+ */
 export const aboutMediaItems: AboutMediaItem[] = [
   {
     id: 'fb-902013140345923',
     kind: 'facebook',
     href: 'https://www.facebook.com/reel/902013140345923',
-    orientation: 'portrait'
+    orientation: 'landscape'
   },
   {
     id: 'fb-1197005265506733',
     kind: 'facebook',
     href: 'https://www.facebook.com/reel/1197005265506733',
-    orientation: 'portrait'
+    orientation: 'landscape'
   },
   {
     id: 'ajaratv-startaperebi-31000',
@@ -42,37 +45,37 @@ export const aboutMediaItems: AboutMediaItem[] = [
     id: 'fb-1224067171665274',
     kind: 'facebook',
     href: 'https://www.facebook.com/reel/1224067171665274',
-    orientation: 'portrait'
+    orientation: 'landscape'
   },
   {
     id: 'fb-1474832170938227',
     kind: 'facebook',
     href: 'https://www.facebook.com/reel/1474832170938227',
-    orientation: 'portrait'
+    orientation: 'landscape'
   },
   {
     id: 'fb-831077022858028',
     kind: 'facebook',
     href: 'https://www.facebook.com/reel/831077022858028',
-    orientation: 'portrait'
+    orientation: 'landscape'
   },
   {
     id: 'fb-2004527460351651',
     kind: 'facebook',
     href: 'https://www.facebook.com/reel/2004527460351651',
-    orientation: 'portrait'
+    orientation: 'landscape'
   },
   {
     id: 'fb-536046951370128',
     kind: 'facebook',
     href: 'https://www.facebook.com/reel/536046951370128',
-    orientation: 'portrait'
+    orientation: 'landscape'
   }
 ];
 
 export function facebookEmbedSrc(
   href: string,
-  size: { width: number; height: number } = { width: 320, height: 568 }
+  size: { width: number; height: number } = { width: 640, height: 360 }
 ): string {
   const params = new URLSearchParams({
     href,

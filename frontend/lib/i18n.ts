@@ -119,17 +119,17 @@ export const dictionaries = {
       title:
         'Our founder, Manana Arkania, on national and international TVs, speaking about Georgian carpet traditions',
       lead: 'A curated reel of interviews and features — watch her share Georgian carpet traditions on air.',
-      facebookEmbedLabel: 'Reel',
+      facebookEmbedLabel: 'Video',
       openOnFacebook: 'Watch on Facebook',
       tvEyebrow: 'TV',
       tvBody: 'Full AdjaraTV episode featuring Manana Arkania on Georgian–Caucasian carpet traditions.',
       watchOnAdjara: 'Watch episode',
       statsAppearances: 'appearances',
-      statsReels: 'reels',
+      statsReels: 'videos',
       statsTv: 'TV feature',
       galleryEyebrow: 'On camera',
       galleryTitle: 'Selected features',
-      galleryHint: 'Portrait reels sit in the grid; wider TV pieces open full-width.'
+      galleryHint: 'Videos play in their original orientation.'
     },
     footerLinks: footerTranslations.en,
     ...storefrontTranslations.en,
@@ -246,17 +246,17 @@ export const dictionaries = {
       title:
         'ჩვენი დამფუძნებელი მანანა არქანია ეროვნულ და საერთაშორისო ტელევიზიებში ქართული ხალიჩის ტრადიციებზე საუბრობს',
       lead: 'შერჩეული ინტერვიუები და სიუჟეტები — ნახეთ, როგორ საუბრობს ის ქართული ხალიჩის ტრადიციებზე.',
-      facebookEmbedLabel: 'რილი',
+      facebookEmbedLabel: 'ვიდეო',
       openOnFacebook: 'ნახეთ Facebook-ზე',
       tvEyebrow: 'TV',
       tvBody: 'აჭარა TV-ის სრული ეპიზოდი — მანანა არქანია ქართულ-კავკასიურ ხალიჩის ტრადიციებზე.',
       watchOnAdjara: 'ეპიზოდის ნახვა',
       statsAppearances: 'გამოჩენა',
-      statsReels: 'რილი',
+      statsReels: 'ვიდეო',
       statsTv: 'ტელესიუჟეტი',
       galleryEyebrow: 'კადრში',
       galleryTitle: 'რჩეული მასალები',
-      galleryHint: 'ვერტიკალური რილები ბადეშია; ჰორიზონტალური ტელესიუჟეტები სრულ სიგანეზე იხსნება.'
+      galleryHint: 'ვიდეოები ნაჩვენებია ორიგინალური ორიენტაციით.'
     },
     footerLinks: footerTranslations.ka,
     ...storefrontTranslations.ka,
