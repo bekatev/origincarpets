@@ -1,13 +1,17 @@
+export type MediaOrientation = 'portrait' | 'landscape';
+
 export type AboutMediaItem =
   | {
       id: string;
       kind: 'facebook';
       href: string;
+      orientation: MediaOrientation;
     }
   | {
       id: string;
       kind: 'ajaratv';
       href: string;
+      orientation: 'landscape';
       titleEn: string;
       titleKa: string;
     };
@@ -17,53 +21,64 @@ export const aboutMediaItems: AboutMediaItem[] = [
   {
     id: 'fb-902013140345923',
     kind: 'facebook',
-    href: 'https://www.facebook.com/reel/902013140345923'
+    href: 'https://www.facebook.com/reel/902013140345923',
+    orientation: 'portrait'
   },
   {
     id: 'fb-1197005265506733',
     kind: 'facebook',
-    href: 'https://www.facebook.com/reel/1197005265506733'
+    href: 'https://www.facebook.com/reel/1197005265506733',
+    orientation: 'portrait'
   },
   {
     id: 'ajaratv-startaperebi-31000',
     kind: 'ajaratv',
+    orientation: 'landscape',
     href: 'https://ajaratv.ge/show/133-startaperebi/31000',
-    titleEn: 'AdjaraTV — Startaperebi · Manana Arkania',
-    titleKa: 'აჭარა TV — სტარტაპერები · მანანა არქანია'
+    titleEn: 'AdjaraTV — Startaperebi',
+    titleKa: 'აჭარა TV — სტარტაპერები'
   },
   {
     id: 'fb-1224067171665274',
     kind: 'facebook',
-    href: 'https://www.facebook.com/reel/1224067171665274'
+    href: 'https://www.facebook.com/reel/1224067171665274',
+    orientation: 'portrait'
   },
   {
     id: 'fb-1474832170938227',
     kind: 'facebook',
-    href: 'https://www.facebook.com/reel/1474832170938227'
+    href: 'https://www.facebook.com/reel/1474832170938227',
+    orientation: 'portrait'
   },
   {
     id: 'fb-831077022858028',
     kind: 'facebook',
-    href: 'https://www.facebook.com/reel/831077022858028'
+    href: 'https://www.facebook.com/reel/831077022858028',
+    orientation: 'portrait'
   },
   {
     id: 'fb-2004527460351651',
     kind: 'facebook',
-    href: 'https://www.facebook.com/reel/2004527460351651'
+    href: 'https://www.facebook.com/reel/2004527460351651',
+    orientation: 'portrait'
   },
   {
     id: 'fb-536046951370128',
     kind: 'facebook',
-    href: 'https://www.facebook.com/reel/536046951370128'
+    href: 'https://www.facebook.com/reel/536046951370128',
+    orientation: 'portrait'
   }
 ];
 
-export function facebookEmbedSrc(href: string): string {
+export function facebookEmbedSrc(
+  href: string,
+  size: { width: number; height: number } = { width: 320, height: 568 }
+): string {
   const params = new URLSearchParams({
     href,
     show_text: 'false',
-    width: '380',
-    height: '680',
+    width: String(size.width),
+    height: String(size.height),
     t: '0'
   });
   return `https://www.facebook.com/plugins/video.php?${params.toString()}`;
