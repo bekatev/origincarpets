@@ -111,6 +111,20 @@ export const dictionaries = {
         'The film also tells the longer story — how carpet traditions travelled — and how colours were made from plants, roots, and insects before chemical dyes existed.',
       expertiseP3: ''
     },
+    aboutPage: {
+      metaTitle: 'About Us — Manana Arkania on TV',
+      metaDescription:
+        'Our founder, Manana Arkania, on national and international TVs, speaking about Georgian carpet traditions.',
+      eyebrow: 'Press & television',
+      title:
+        'Our founder, Manana Arkania, on national and international TVs, speaking about Georgian carpet traditions',
+      lead: 'Watch selected interviews and features from Facebook and AdjaraTV.',
+      facebookEmbedLabel: 'Facebook reel',
+      openOnFacebook: 'Open on Facebook',
+      tvEyebrow: 'Television',
+      tvBody: 'Full episode on AdjaraTV — Manana Arkania on Georgian–Caucasian carpet traditions.',
+      watchOnAdjara: 'Watch on AdjaraTV'
+    },
     footerLinks: footerTranslations.en,
     ...storefrontTranslations.en,
     ...adminTranslations.en
@@ -217,6 +231,20 @@ export const dictionaries = {
       expertiseP2:
         'ფილმშია ასევე ხალიჩის ისტორია — როგორ მოგზაურობდა ტრადიცია — და როგორ მზადდებოდა ფერები მცენარეებით, ფესვებითა და მწერებით, სანამ ქიმიური საღებავები გამოჩნდებოდა.',
       expertiseP3: ''
+    },
+    aboutPage: {
+      metaTitle: 'ჩვენ შესახებ — მანანა არქანია ტელევიზიაში',
+      metaDescription:
+        'ჩვენი დამფუძნებელი მანანა არქანია ეროვნულ და საერთაშორისო ტელევიზიებში ქართული ხალიჩის ტრადიციებზე საუბრობს.',
+      eyebrow: 'პრესა და ტელევიზია',
+      title:
+        'ჩვენი დამფუძნებელი მანანა არქანია ეროვნულ და საერთაშორისო ტელევიზიებში ქართული ხალიჩის ტრადიციებზე საუბრობს',
+      lead: 'ნახეთ შერჩეული ინტერვიუები და სიუჟეტები Facebook-დან და აჭარა TV-დან.',
+      facebookEmbedLabel: 'Facebook რილი',
+      openOnFacebook: 'გახსენით Facebook-ზე',
+      tvEyebrow: 'ტელევიზია',
+      tvBody: 'სრული ეპიზოდი აჭარა TV-ზე — მანანა არქანია ქართულ-კავკასიურ ხალიჩის ტრადიციებზე.',
+      watchOnAdjara: 'ნახეთ აჭარა TV-ზე'
     },
     footerLinks: footerTranslations.ka,
     ...storefrontTranslations.ka,

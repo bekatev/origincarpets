@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import type { Route } from 'next';
 import type { ReactNode } from 'react';
 import { BrandLogo } from '@/components/brand/brand-logo';
 import { CarpetBackdrop } from '@/components/home/carpet-backdrop';
@@ -158,46 +159,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
 
       <DecorationDivider />
 
-      {/* Expertise — reading carpets (video + copy) */}
-      <section id="expertise" className="relative oc-section overflow-hidden scroll-mt-28">
-        <CarpetBackdrop
-          src={stockImages.carpets.column}
-          tone="paper"
-          strength={0.28}
-          rotate={90}
-          zoom={1.06}
-          intensity={95}
-        />
-        <ParallaxContent intensity={28} className="oc-container">
-          <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-14 xl:gap-16">
-            <div className="mx-auto w-full max-w-[280px] sm:max-w-[320px] lg:col-span-4 lg:mx-0 lg:max-w-none">
-              <div className="overflow-hidden bg-[var(--oc-paper)] shadow-[var(--oc-shadow-lift)]">
-                <video
-                  className="aspect-[9/16] h-auto w-full object-cover"
-                  controls
-                  playsInline
-                  preload="metadata"
-                  poster={stockImages.historyVideoPoster}
-                >
-                  <source src={stockImages.historyVideo} type="video/mp4" />
-                </video>
-              </div>
-            </div>
-            <TextPanel motif motifSize="md" motifPlacement="bottom-right" className="lg:col-span-8">
-              <p className="oc-eyebrow">{dict.home.expertiseEyebrow}</p>
-              <h2 className="oc-heading-sm mt-4">{dict.home.expertiseTitle}</h2>
-              <p className="oc-body mt-5 text-[var(--oc-ink)]/90 sm:text-base">{dict.home.expertiseLead}</p>
-              <div className="mt-8 space-y-5">
-                <p className="oc-body">{dict.home.expertiseP1}</p>
-                <p className="oc-body">{dict.home.expertiseP2}</p>
-                {dict.home.expertiseP3 ? <p className="oc-body">{dict.home.expertiseP3}</p> : null}
-              </div>
-            </TextPanel>
-          </div>
-        </ParallaxContent>
-      </section>
-
-      <DecorationDivider />
+      {/* Expertise section hidden — content moved toward About Us page */}
 
       {/* About */}
       <section id="about-us" className="relative oc-section overflow-hidden scroll-mt-28">
@@ -315,7 +277,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             id="guides-policies"
             className="mt-14 flex flex-wrap justify-center gap-x-8 gap-y-3 text-[11px] uppercase tracking-[0.18em] text-white/75"
           >
-            <Link href="/#about-us" className="hover:text-white">
+            <Link href={'/about' as Route} className="hover:text-white">
               {dict.nav.about}
             </Link>
             <Link href="/products" className="hover:text-white">

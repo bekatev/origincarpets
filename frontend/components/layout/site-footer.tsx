@@ -31,7 +31,7 @@ export function SiteFooter() {
             <p className="oc-eyebrow mb-5">{f.aboutUs}</p>
             <ul className="space-y-3 text-sm text-[var(--oc-ink)]">
               <li>
-                <Link href="/#about-us" className="hover:opacity-50">
+                <Link href={'/about' as Route} className="hover:opacity-50">
                   {f.aboutLinks.company}
                 </Link>
               </li>
