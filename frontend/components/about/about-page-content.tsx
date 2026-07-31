@@ -236,14 +236,6 @@ export function AboutPageContent() {
             >
               {copy.title}
             </motion.h1>
-            <motion.p
-              initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.12 }}
-              className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-white/75 sm:text-[15px]"
-            >
-              {copy.lead}
-            </motion.p>
           </div>
         </motion.div>
       </section>
