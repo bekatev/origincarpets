@@ -12,6 +12,7 @@ export type AboutMediaItem =
       kind: 'ajaratv';
       href: string;
       orientation: 'landscape';
+      poster: string;
       titleEn: string;
       titleKa: string;
     };
@@ -38,6 +39,7 @@ export const aboutMediaItems: AboutMediaItem[] = [
     kind: 'ajaratv',
     orientation: 'landscape',
     href: 'https://ajaratv.ge/show/133-startaperebi/31000',
+    poster: '/stock/video/ajaratv-startaperebi-manana.jpg',
     titleEn: 'AdjaraTV — Startaperebi',
     titleKa: 'აჭარა TV — სტარტაპერები'
   },

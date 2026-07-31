@@ -15,6 +15,8 @@ export const stockImages = {
   /** Gallery history film for the Expertise section */
   historyVideo: '/stock/video/gallery-history.mp4',
   historyVideoPoster: '/stock/video/gallery-history-poster.jpg',
+  /** Still from AdjaraTV Startaperebi episode with Manana Arkania */
+  ajaratvStartaperebi: '/stock/video/ajaratv-startaperebi-manana.jpg',
   interiors: {
     wallHanging: '/stock/interiors/wall-hanging.jpg',
     livingRed: '/stock/interiors/living-red.jpg',

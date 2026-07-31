@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { CarpetBackdrop } from '@/components/home/carpet-backdrop';
@@ -137,13 +138,17 @@ function MediaFrame({
             rel="noopener noreferrer"
             className="relative block aspect-video w-full overflow-hidden"
           >
-            <div
-              className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-[1.04]"
-              style={{ backgroundImage: `url(${stockImages.about})` }}
+            <Image
+              src={item.poster}
+              alt={locale === 'ka' ? item.titleKa : item.titleEn}
+              fill
+              className="object-cover object-center transition duration-700 group-hover:scale-[1.03]"
+              sizes="(max-width: 768px) 100vw, 720px"
+              priority={index < 3}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[var(--oc-ink)] via-[var(--oc-ink)]/55 to-[var(--oc-ink)]/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[var(--oc-ink)]/90 via-[var(--oc-ink)]/45 to-[var(--oc-ink)]/15" />
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center text-[var(--oc-bg)] sm:px-10">
-              <span className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--oc-bg)]/40 bg-[var(--oc-bg)]/10 backdrop-blur-md transition group-hover:scale-110 group-hover:bg-[var(--oc-bg)]/20">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--oc-bg)]/45 bg-[var(--oc-ink)]/35 backdrop-blur-md transition group-hover:scale-110 group-hover:bg-[var(--oc-ink)]/50">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                   <path d="M8 5.14v13.72L19 12 8 5.14z" />
                 </svg>
@@ -152,9 +157,9 @@ function MediaFrame({
                 <p className="font-display text-2xl leading-tight sm:text-3xl">
                   {locale === 'ka' ? item.titleKa : item.titleEn}
                 </p>
-                <p className="mx-auto mt-2 max-w-md text-sm text-[var(--oc-bg)]/75">{tvBody}</p>
+                <p className="mx-auto mt-2 max-w-md text-sm text-[var(--oc-bg)]/80">{tvBody}</p>
               </div>
-              <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--oc-bg)]/90">
+              <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--oc-bg)]/95">
                 {watchLabel} →
               </span>
             </div>
@@ -239,17 +244,6 @@ export function AboutPageContent() {
             >
               {copy.lead}
             </motion.p>
-
-            <motion.div
-              initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.18 }}
-              className="mt-8 flex flex-wrap items-center justify-center gap-2.5"
-            >
-              <span className="rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-white/90 backdrop-blur-md">
-                {aboutMediaItems.length} {copy.statsAppearances}
-              </span>
-            </motion.div>
           </div>
         </motion.div>
       </section>
