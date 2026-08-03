@@ -69,14 +69,14 @@ export const storefrontTranslations = {
       outOfStock: 'Out of stock',
       textUsSimilar: 'Text us for a similar one',
       zoomOpen: 'Open zoomed carpet image',
-      zoomHint: 'Hover to inspect detail',
+      zoomHint: 'Click to zoom',
       zoomClose: 'Close',
       zoomPrev: 'Previous image',
       zoomNext: 'Next image',
       zoomIn: 'Zoom in',
       zoomOut: 'Zoom out',
       zoomReset: 'Reset',
-      zoomInspectHint: 'Hover over the carpet to magnify that area'
+      zoomInspectHint: 'Scroll or pinch to zoom · drag to pan · click a spot for detail'
     },
     cart: {
       title: 'Shopping Cart',
@@ -392,14 +392,14 @@ export const storefrontTranslations = {
       outOfStock: 'მარაგი ამოწურულია',
       textUsSimilar: 'მოგვწერეთ მსგავსისთვის',
       zoomOpen: 'გადიდებული ხალიჩის სურათის გახსნა',
-      zoomHint: 'დეტალისთვის გადაატარეთ',
+      zoomHint: 'დაკლიკეთ გადიდებისთვის',
       zoomClose: 'დახურვა',
       zoomPrev: 'წინა სურათი',
       zoomNext: 'შემდეგი სურათი',
       zoomIn: 'გადიდება',
       zoomOut: 'დაპატარავება',
       zoomReset: 'გადატვირთვა',
-      zoomInspectHint: 'გადაატარეთ ხალიჩაზე იმ ადგილის გადიდებისთვის'
+      zoomInspectHint: 'ზუმი სქროლით ან pinch-ით · გადაადგილება drag-ით · დეტალისთვის დააკლიკეთ'
     },
     cart: {
       title: 'საყიდლების კალათა',
