@@ -16,8 +16,8 @@ const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
 const ZOOM_STEP = 0.35;
 
-/** Always white — carpets need contrast in light and dark theme. */
-const FRAME_BG = '#ffffff';
+/** Very light beige — soft contrast for carpets in light and dark theme. */
+const FRAME_BG = '#f4ebe0';
 
 export function ProductImageGallery({
   images,
