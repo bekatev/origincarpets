@@ -5,19 +5,27 @@ import {
   useEffect,
   useRef,
   useState,
-  type ReactNode,
-  type WheelEvent as ReactWheelEvent
+  type ReactNode
 } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { cn } from '@/lib/cn';
 
+/** Fit = 1. High ceiling so weave / knots can be inspected. */
 const MIN_ZOOM = 1;
-const MAX_ZOOM = 4;
-const ZOOM_STEP = 0.35;
+const MAX_ZOOM = 10;
+const WHEEL_ZOOM_FACTOR = 0.0022;
+const PINCH_ZOOM_FACTOR = 0.012;
+const CLICK_ZOOM = 3;
 
 /** Very light beige — soft contrast for carpets in light and dark theme. */
 const FRAME_BG = '#f4ebe0';
+
+const ZOOM_PRESETS = [1, 2, 4, 8] as const;
+
+function clamp(n: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, n));
+}
 
 export function ProductImageGallery({
   images,
@@ -74,7 +82,7 @@ export function ProductImageGallery({
             className="h-auto max-h-[70vh] w-full object-contain transition duration-500 ease-luxury group-hover:scale-[1.01]"
             draggable={false}
           />
-          <span className="pointer-events-none absolute bottom-3 left-3 z-10 inline-flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-white backdrop-blur-sm opacity-90 transition group-hover:opacity-100">
+          <span className="pointer-events-none absolute bottom-3 left-3 z-10 inline-flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-white opacity-90 backdrop-blur-sm transition group-hover:opacity-100">
             <ZoomIcon />
             {d.zoomHint}
           </span>
@@ -121,7 +129,9 @@ export function ProductImageGallery({
           prev: d.zoomPrev,
           next: d.zoomNext,
           zoomIn: d.zoomIn,
-          zoomOut: d.zoomOut
+          zoomOut: d.zoomOut,
+          reset: d.zoomReset,
+          hint: d.zoomInspectHint
         }}
       />
     </div>
@@ -149,17 +159,57 @@ function Lightbox({
     next: string;
     zoomIn: string;
     zoomOut: string;
+    reset: string;
+    hint: string;
   };
 }) {
+  const stageRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
+  const [pinching, setPinching] = useState(false);
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchRef = useRef<{ distance: number; zoom: number } | null>(null);
   const dragRef = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
+  const movedRef = useRef(false);
+  const zoomRef = useRef(zoom);
+  const offsetRef = useRef(offset);
   const url = urls[index];
+
+  zoomRef.current = zoom;
+  offsetRef.current = offset;
 
   const resetView = useCallback(() => {
     setZoom(1);
     setOffset({ x: 0, y: 0 });
+  }, []);
+
+  /** Zoom toward a point in the stage (client coords). Keeps that spot under the cursor. */
+  const zoomToward = useCallback((clientX: number, clientY: number, nextZoom: number) => {
+    const stage = stageRef.current;
+    if (!stage) {
+      setZoom(nextZoom);
+      return;
+    }
+    const z = clamp(nextZoom, MIN_ZOOM, MAX_ZOOM);
+    const prev = zoomRef.current;
+    if (z === prev) return;
+
+    const rect = stage.getBoundingClientRect();
+    const cx = clientX - rect.left - rect.width / 2;
+    const cy = clientY - rect.top - rect.height / 2;
+    const { x: ox, y: oy } = offsetRef.current;
+    const ratio = z / prev;
+
+    setZoom(z);
+    if (z <= MIN_ZOOM) {
+      setOffset({ x: 0, y: 0 });
+      return;
+    }
+    setOffset({
+      x: cx - (cx - ox) * ratio,
+      y: cy - (cy - oy) * ratio
+    });
   }, []);
 
   useEffect(() => {
@@ -186,97 +236,225 @@ function Lightbox({
       if (e.key === 'ArrowRight' && urls.length > 1) {
         onIndexChange((index + 1) % urls.length);
       }
-      if (e.key === '+' || e.key === '=') setZoom((z) => Math.min(MAX_ZOOM, z + ZOOM_STEP));
-      if (e.key === '-' || e.key === '_') setZoom((z) => Math.max(MIN_ZOOM, z - ZOOM_STEP));
+      if (e.key === '+' || e.key === '=') {
+        const stage = stageRef.current?.getBoundingClientRect();
+        if (stage) {
+          zoomToward(stage.left + stage.width / 2, stage.top + stage.height / 2, zoomRef.current * 1.35);
+        }
+      }
+      if (e.key === '-' || e.key === '_') {
+        const stage = stageRef.current?.getBoundingClientRect();
+        if (stage) {
+          zoomToward(stage.left + stage.width / 2, stage.top + stage.height / 2, zoomRef.current / 1.35);
+        }
+      }
       if (e.key === '0') resetView();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, index, urls.length, onClose, onIndexChange, resetView]);
+  }, [open, index, urls.length, onClose, onIndexChange, resetView, zoomToward]);
 
-  const onWheel = (e: ReactWheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
-    setZoom((z) => {
-      const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z + delta));
-      if (next <= MIN_ZOOM) setOffset({ x: 0, y: 0 });
-      return next;
-    });
-  };
+  // Native wheel listener — need passive:false to prevent page scroll while zooming.
+  useEffect(() => {
+    if (!open) return;
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const factor = Math.exp(-e.deltaY * WHEEL_ZOOM_FACTOR);
+      zoomToward(e.clientX, e.clientY, zoomRef.current * factor);
+    };
+
+    stage.addEventListener('wheel', onWheel, { passive: false });
+    return () => stage.removeEventListener('wheel', onWheel);
+  }, [open, zoomToward]);
 
   const onPointerDown = (e: React.PointerEvent) => {
-    if (zoom <= MIN_ZOOM) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    movedRef.current = false;
+
+    if (pointersRef.current.size === 2) {
+      const pts = [...pointersRef.current.values()];
+      const dx = pts[0].x - pts[1].x;
+      const dy = pts[0].y - pts[1].y;
+      pinchRef.current = { distance: Math.hypot(dx, dy), zoom: zoomRef.current };
+      dragRef.current = null;
+      setDragging(false);
+      setPinching(true);
+      return;
+    }
+
+    dragRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      ox: offsetRef.current.x,
+      oy: offsetRef.current.y
+    };
     setDragging(true);
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
+    if (!pointersRef.current.has(e.pointerId)) return;
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pointersRef.current.size === 2 && pinchRef.current) {
+      const pts = [...pointersRef.current.values()];
+      const dx = pts[0].x - pts[1].x;
+      const dy = pts[0].y - pts[1].y;
+      const distance = Math.hypot(dx, dy);
+      const midX = (pts[0].x + pts[1].x) / 2;
+      const midY = (pts[0].y + pts[1].y) / 2;
+      const ratio = distance / Math.max(pinchRef.current.distance, 1);
+      const next = pinchRef.current.zoom * Math.pow(ratio, 1 + PINCH_ZOOM_FACTOR);
+      zoomToward(midX, midY, next);
+      movedRef.current = true;
+      return;
+    }
+
     const drag = dragRef.current;
     if (!drag) return;
-    setOffset({
-      x: drag.ox + (e.clientX - drag.x),
-      y: drag.oy + (e.clientY - drag.y)
-    });
+    const dx = e.clientX - drag.x;
+    const dy = e.clientY - drag.y;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) movedRef.current = true;
+
+    // Always allow pan (even at 1x a bit) — when zoomed it's essential.
+    if (zoomRef.current > MIN_ZOOM) {
+      setOffset({ x: drag.ox + dx, y: drag.oy + dy });
+    }
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
-    dragRef.current = null;
-    setDragging(false);
+    pointersRef.current.delete(e.pointerId);
+    if (pointersRef.current.size < 2) {
+      pinchRef.current = null;
+      setPinching(false);
+    }
+    if (pointersRef.current.size === 0) {
+      dragRef.current = null;
+      setDragging(false);
+    }
     try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     } catch {
       /* ignore */
     }
   };
 
-  const toggleZoom = () => {
-    if (zoom > MIN_ZOOM) {
-      resetView();
-    } else {
-      setZoom(2);
+  const onStageClick = (e: React.MouseEvent) => {
+    if (movedRef.current) return;
+    if ((e.target as HTMLElement).closest('[data-lightbox-chrome]')) return;
+
+    // Click zooms into that exact spot for detail inspection.
+    if (zoomRef.current <= 1.05) {
+      zoomToward(e.clientX, e.clientY, CLICK_ZOOM);
+      return;
     }
+    if (zoomRef.current < 6) {
+      zoomToward(e.clientX, e.clientY, Math.min(MAX_ZOOM, zoomRef.current * 1.8));
+      return;
+    }
+    resetView();
   };
+
+  const setPreset = (value: number) => {
+    const stage = stageRef.current?.getBoundingClientRect();
+    if (!stage || value <= MIN_ZOOM) {
+      resetView();
+      return;
+    }
+    zoomToward(stage.left + stage.width / 2, stage.top + stage.height / 2, value);
+  };
+
+  const zoomPercent = Math.round(zoom * 100);
 
   return (
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-[80] flex flex-col bg-black/88 backdrop-blur-sm"
+          className="fixed inset-0 z-[80] flex flex-col bg-black/92"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.22 }}
           role="dialog"
           aria-modal="true"
           aria-label={title}
         >
-          <div className="flex items-center justify-between gap-3 px-4 py-3 text-white sm:px-6">
-            <p className="truncate text-[11px] font-medium uppercase tracking-[0.2em] text-white/70">
-              {title}
-              {urls.length > 1 ? ` · ${index + 1} / ${urls.length}` : ''}
-            </p>
-            <div className="flex items-center gap-2">
+          <div
+            data-lightbox-chrome
+            className="relative z-20 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-3 py-2.5 text-white sm:px-5"
+          >
+            <div className="min-w-0">
+              <p className="truncate text-[11px] font-medium uppercase tracking-[0.2em] text-white/70">
+                {title}
+                {urls.length > 1 ? ` · ${index + 1} / ${urls.length}` : ''}
+              </p>
+              <p className="mt-0.5 hidden text-[10px] tracking-wide text-white/45 sm:block">{labels.hint}</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {ZOOM_PRESETS.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  data-lightbox-chrome
+                  onClick={() => setPreset(preset)}
+                  className={cn(
+                    'rounded-full border px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] transition',
+                    Math.abs(zoom - preset) < 0.15
+                      ? 'border-white bg-white text-black'
+                      : 'border-white/25 text-white/85 hover:bg-white/10'
+                  )}
+                >
+                  {preset === 1 ? 'Fit' : `${preset}×`}
+                </button>
+              ))}
+
+              <span className="mx-1 hidden min-w-[3.25rem] text-center text-[11px] tabular-nums text-white/70 sm:inline">
+                {zoomPercent}%
+              </span>
+
               <button
                 type="button"
-                onClick={() => setZoom((z) => Math.max(MIN_ZOOM, z - ZOOM_STEP))}
-                className="oc-nav-link rounded-full border border-white/25 px-3 py-1.5 text-white hover:bg-white/10"
+                data-lightbox-chrome
+                onClick={() => {
+                  const stage = stageRef.current?.getBoundingClientRect();
+                  if (!stage) return;
+                  zoomToward(stage.left + stage.width / 2, stage.top + stage.height / 2, zoom / 1.4);
+                }}
+                className="rounded-full border border-white/25 px-3 py-1 text-white hover:bg-white/10"
                 aria-label={labels.zoomOut}
               >
                 −
               </button>
               <button
                 type="button"
-                onClick={() => setZoom((z) => Math.min(MAX_ZOOM, z + ZOOM_STEP))}
-                className="oc-nav-link rounded-full border border-white/25 px-3 py-1.5 text-white hover:bg-white/10"
+                data-lightbox-chrome
+                onClick={() => {
+                  const stage = stageRef.current?.getBoundingClientRect();
+                  if (!stage) return;
+                  zoomToward(stage.left + stage.width / 2, stage.top + stage.height / 2, zoom * 1.4);
+                }}
+                className="rounded-full border border-white/25 px-3 py-1 text-white hover:bg-white/10"
                 aria-label={labels.zoomIn}
               >
                 +
               </button>
               <button
                 type="button"
+                data-lightbox-chrome
+                onClick={resetView}
+                className="hidden rounded-full border border-white/25 px-3 py-1 text-[10px] uppercase tracking-[0.14em] text-white hover:bg-white/10 sm:inline"
+              >
+                {labels.reset}
+              </button>
+              <button
+                type="button"
+                data-lightbox-chrome
                 onClick={onClose}
-                className="oc-nav-link rounded-full border border-white/25 px-3 py-1.5 text-white hover:bg-white/10"
+                className="rounded-full border border-white/25 px-3 py-1 text-[10px] uppercase tracking-[0.14em] text-white hover:bg-white/10"
                 aria-label={labels.close}
               >
                 {labels.close}
@@ -284,21 +462,23 @@ function Lightbox({
             </div>
           </div>
 
-          <div className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-4 sm:px-6">
+          <div className="relative min-h-0 flex-1">
             {urls.length > 1 ? (
               <>
                 <button
                   type="button"
+                  data-lightbox-chrome
                   onClick={() => onIndexChange((index - 1 + urls.length) % urls.length)}
-                  className="absolute left-2 z-10 rounded-full border border-white/25 bg-black/40 px-3 py-3 text-white backdrop-blur-sm hover:bg-black/60 sm:left-4"
+                  className="absolute left-2 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/25 bg-black/50 px-3 py-3 text-white backdrop-blur-sm hover:bg-black/70 sm:left-4"
                   aria-label={labels.prev}
                 >
                   ←
                 </button>
                 <button
                   type="button"
+                  data-lightbox-chrome
                   onClick={() => onIndexChange((index + 1) % urls.length)}
-                  className="absolute right-2 z-10 rounded-full border border-white/25 bg-black/40 px-3 py-3 text-white backdrop-blur-sm hover:bg-black/60 sm:right-4"
+                  className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/25 bg-black/50 px-3 py-3 text-white backdrop-blur-sm hover:bg-black/70 sm:right-4"
                   aria-label={labels.next}
                 >
                   →
@@ -307,35 +487,65 @@ function Lightbox({
             ) : null}
 
             <div
-              className="relative flex h-full max-h-[calc(100vh-5.5rem)] w-full max-w-6xl items-center justify-center overflow-hidden bg-transparent"
-              onWheel={onWheel}
-              onClick={(e) => {
-                if (e.target === e.currentTarget) onClose();
-              }}
+              ref={stageRef}
+              className="absolute inset-0 touch-none overflow-hidden bg-transparent"
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              onPointerCancel={onPointerUp}
+              onClick={onStageClick}
             >
-              <motion.img
-                key={url}
-                src={url}
-                alt={`${title} — image ${index + 1} of ${urls.length}`}
-                drag={false}
-                onDoubleClick={toggleZoom}
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                onPointerCancel={onPointerUp}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className={cn(
-                  'max-h-full max-w-full select-none object-contain',
-                  zoom > MIN_ZOOM ? 'cursor-grab active:cursor-grabbing' : 'cursor-zoom-in'
-                )}
+              <div
+                className="flex h-full w-full items-center justify-center"
                 style={{
                   transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${zoom})`,
                   transformOrigin: 'center center',
-                  transition: dragging ? 'none' : 'transform 0.2s ease'
+                  transition: dragging || pinching ? 'none' : 'transform 0.12s ease-out',
+                  willChange: 'transform'
                 }}
-                draggable={false}
-              />
+              >
+                {/* Full-resolution source — browser shows native pixels when zoomed. */}
+                <img
+                  key={url}
+                  src={url}
+                  alt={`${title} — image ${index + 1} of ${urls.length}`}
+                  className={cn(
+                    'max-h-[calc(100vh-4.5rem)] max-w-[min(100vw,1400px)] select-none object-contain',
+                    zoom > MIN_ZOOM ? 'cursor-grab' : 'cursor-zoom-in',
+                    dragging && 'cursor-grabbing'
+                  )}
+                  draggable={false}
+                  decoding="async"
+                />
+              </div>
+            </div>
+
+            <div
+              data-lightbox-chrome
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/70 to-transparent px-4 pb-4 pt-10 sm:px-6"
+            >
+              <div className="pointer-events-auto mx-auto flex max-w-md items-center gap-3">
+                <span className="w-10 text-[10px] uppercase tracking-wider text-white/60">1×</span>
+                <input
+                  type="range"
+                  min={MIN_ZOOM}
+                  max={MAX_ZOOM}
+                  step={0.05}
+                  value={zoom}
+                  aria-label={labels.zoomIn}
+                  onChange={(e) => {
+                    const stage = stageRef.current?.getBoundingClientRect();
+                    const next = Number(e.target.value);
+                    if (!stage || next <= MIN_ZOOM) {
+                      resetView();
+                      return;
+                    }
+                    zoomToward(stage.left + stage.width / 2, stage.top + stage.height / 2, next);
+                  }}
+                  className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/25 accent-white"
+                />
+                <span className="w-12 text-right text-[10px] uppercase tracking-wider text-white/60">10×</span>
+              </div>
             </div>
           </div>
         </motion.div>

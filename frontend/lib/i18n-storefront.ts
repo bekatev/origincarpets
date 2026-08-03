@@ -74,7 +74,9 @@ export const storefrontTranslations = {
       zoomPrev: 'Previous image',
       zoomNext: 'Next image',
       zoomIn: 'Zoom in',
-      zoomOut: 'Zoom out'
+      zoomOut: 'Zoom out',
+      zoomReset: 'Reset',
+      zoomInspectHint: 'Scroll or pinch to zoom · drag to pan · click a spot for detail'
     },
     cart: {
       title: 'Shopping Cart',
@@ -395,7 +397,9 @@ export const storefrontTranslations = {
       zoomPrev: 'წინა სურათი',
       zoomNext: 'შემდეგი სურათი',
       zoomIn: 'გადიდება',
-      zoomOut: 'დაპატარავება'
+      zoomOut: 'დაპატარავება',
+      zoomReset: 'გადატვირთვა',
+      zoomInspectHint: 'ზუმი სქროლით ან pinch-ით · გადაადგილება drag-ით · დეტალისთვის დააკლიკეთ'
     },
     cart: {
       title: 'საყიდლების კალათა',
