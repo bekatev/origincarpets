@@ -307,8 +307,7 @@ function Lightbox({
             ) : null}
 
             <div
-              className="relative flex h-full max-h-[calc(100vh-5.5rem)] w-full max-w-6xl items-center justify-center overflow-hidden"
-              style={{ backgroundColor: FRAME_BG }}
+              className="relative flex h-full max-h-[calc(100vh-5.5rem)] w-full max-w-6xl items-center justify-center overflow-hidden bg-transparent"
               onWheel={onWheel}
               onClick={(e) => {
                 if (e.target === e.currentTarget) onClose();
