@@ -67,7 +67,14 @@ export const storefrontTranslations = {
       weightUnit: 'kg',
       sold: 'Sold',
       outOfStock: 'Out of stock',
-      textUsSimilar: 'Text us for a similar one'
+      textUsSimilar: 'Text us for a similar one',
+      zoomOpen: 'Open zoomed carpet image',
+      zoomHint: 'Click to zoom',
+      zoomClose: 'Close',
+      zoomPrev: 'Previous image',
+      zoomNext: 'Next image',
+      zoomIn: 'Zoom in',
+      zoomOut: 'Zoom out'
     },
     cart: {
       title: 'Shopping Cart',
@@ -381,7 +388,14 @@ export const storefrontTranslations = {
       weightUnit: 'კგ',
       sold: 'გაყიდულია',
       outOfStock: 'მარაგი ამოწურულია',
-      textUsSimilar: 'მოგვწერეთ მსგავსისთვის'
+      textUsSimilar: 'მოგვწერეთ მსგავსისთვის',
+      zoomOpen: 'გადიდებული ხალიჩის სურათის გახსნა',
+      zoomHint: 'დაკლიკეთ გადიდებისთვის',
+      zoomClose: 'დახურვა',
+      zoomPrev: 'წინა სურათი',
+      zoomNext: 'შემდეგი სურათი',
+      zoomIn: 'გადიდება',
+      zoomOut: 'დაპატარავება'
     },
     cart: {
       title: 'საყიდლების კალათა',

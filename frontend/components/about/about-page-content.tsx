@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { CarpetBackdrop } from '@/components/home/carpet-backdrop';
 import { DecorationDivider } from '@/components/home/decoration-divider';
@@ -15,13 +15,13 @@ import {
 import { cn } from '@/lib/cn';
 import { stockImages } from '@/lib/stock-images';
 
-/** Native Facebook plugin sizes — must match iframe attrs + embed URL exactly. */
 const PORTRAIT = { width: 320, height: 568 };
 const LANDSCAPE = { width: 720, height: 405 };
 
 /**
- * Scales the Facebook plugin with CSS transform so the video never stretches.
- * Stretching an iframe with width/height 100% is what caused the distortion.
+ * Facebook player must stay clickable (play + scrub).
+ * No overlays on the iframe. Landscape uses a matching 16:9 box
+ * (no CSS transform — transforms break hit-testing on the seek bar).
  */
 function FacebookEmbed({
   href,
@@ -32,51 +32,36 @@ function FacebookEmbed({
   orientation: MediaOrientation;
   title: string;
 }) {
-  const size = orientation === 'landscape' ? LANDSCAPE : PORTRAIT;
-  const shellRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
+  const isLandscape = orientation === 'landscape';
+  const size = isLandscape ? LANDSCAPE : PORTRAIT;
 
-  useEffect(() => {
-    const el = shellRef.current;
-    if (!el) return;
-
-    const update = () => {
-      const available = el.clientWidth;
-      if (available <= 0) return;
-      setScale(Math.min(1, available / size.width));
-    };
-
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [size.width]);
+  if (isLandscape) {
+    return (
+      <div className="relative aspect-video w-full overflow-hidden bg-black">
+        <iframe
+          title={title}
+          src={facebookEmbedSrc(href, size)}
+          className="absolute inset-0 h-full w-full border-0"
+          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share; fullscreen"
+          allowFullScreen
+          loading="lazy"
+        />
+      </div>
+    );
+  }
 
   return (
     <div
-      ref={shellRef}
       className="relative mx-auto w-full overflow-hidden bg-black"
-      style={{
-        maxWidth: size.width,
-        height: Math.round(size.height * scale)
-      }}
+      style={{ maxWidth: size.width, aspectRatio: `${size.width} / ${size.height}` }}
     >
       <iframe
         title={title}
         src={facebookEmbedSrc(href, size)}
-        width={size.width}
-        height={size.height}
-        className="absolute left-0 top-0 border-0"
-        style={{
-          width: size.width,
-          height: size.height,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left'
-        }}
+        className="absolute inset-0 h-full w-full border-0"
+        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share; fullscreen"
         allowFullScreen
-        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
         loading="lazy"
-        scrolling="no"
       />
     </div>
   );
@@ -111,16 +96,15 @@ function MediaFrame({
       whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-8% 0px' }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: Math.min(index * 0.04, 0.2) }}
-      className="group relative w-full"
+      className="relative w-full"
     >
       <div
         className={cn(
-          'relative overflow-hidden bg-[var(--oc-ink)] shadow-[var(--oc-shadow-lift)] ring-1 ring-[var(--oc-ink)]/10 transition duration-500 ease-[var(--oc-ease)]',
-          'hover:-translate-y-0.5 hover:shadow-[0_28px_60px_-28px_rgba(52,40,39,0.45)]',
+          'relative overflow-hidden bg-[var(--oc-ink)] shadow-[var(--oc-shadow-lift)] ring-1 ring-[var(--oc-ink)]/10',
           isLandscape ? 'mx-auto w-full max-w-[720px]' : 'mx-auto w-full max-w-[320px]'
         )}
       >
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between p-3">
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between p-3">
           <span className="rounded-sm bg-[var(--oc-bg)]/90 px-2 py-1 font-display text-[11px] tracking-[0.14em] text-[var(--oc-ink)] backdrop-blur-sm">
             {n}
           </span>
@@ -130,7 +114,19 @@ function MediaFrame({
         </div>
 
         {item.kind === 'facebook' ? (
-          <FacebookEmbed href={item.href} orientation={item.orientation} title={`${label} ${n}`} />
+          <>
+            <FacebookEmbed href={item.href} orientation={item.orientation} title={`${label} ${n}`} />
+            <div className="border-t border-white/10 bg-[var(--oc-ink)] px-3.5 py-2.5 text-center">
+              <a
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--oc-bg)]/85 hover:text-[var(--oc-bg)]"
+              >
+                {openLabel} ↗
+              </a>
+            </div>
+          </>
         ) : (
           <a
             href={item.href}
@@ -142,13 +138,13 @@ function MediaFrame({
               src={item.poster}
               alt={locale === 'ka' ? item.titleKa : item.titleEn}
               fill
-              className="object-cover object-center transition duration-700 group-hover:scale-[1.03]"
+              className="object-cover object-center transition duration-700 hover:scale-[1.03]"
               sizes="(max-width: 768px) 100vw, 720px"
               priority={index < 3}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[var(--oc-ink)]/90 via-[var(--oc-ink)]/45 to-[var(--oc-ink)]/15" />
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center text-[var(--oc-bg)] sm:px-10">
-              <span className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--oc-bg)]/45 bg-[var(--oc-ink)]/35 backdrop-blur-md transition group-hover:scale-110 group-hover:bg-[var(--oc-ink)]/50">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--oc-bg)]/45 bg-[var(--oc-ink)]/35 backdrop-blur-md">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                   <path d="M8 5.14v13.72L19 12 8 5.14z" />
                 </svg>
@@ -165,29 +161,6 @@ function MediaFrame({
             </div>
           </a>
         )}
-
-        {item.kind === 'facebook' ? (
-          <>
-            <a
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="pointer-events-none absolute inset-x-0 bottom-0 z-20 hidden translate-y-1 items-center justify-between gap-3 bg-gradient-to-t from-[var(--oc-ink)]/90 via-[var(--oc-ink)]/55 to-transparent px-3.5 pb-3.5 pt-10 text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--oc-bg)] opacity-0 transition duration-500 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 sm:flex"
-            >
-              <span>{openLabel}</span>
-              <span aria-hidden>↗</span>
-            </a>
-            <a
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between border-t border-white/10 bg-[var(--oc-ink)] px-3.5 py-2.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--oc-bg)]/85 sm:hidden"
-            >
-              <span>{openLabel}</span>
-              <span aria-hidden>↗</span>
-            </a>
-          </>
-        ) : null}
       </div>
     </motion.article>
   );
