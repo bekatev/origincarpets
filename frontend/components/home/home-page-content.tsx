@@ -51,7 +51,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
         <ParallaxMedia intensity={130}>
           <Image
             src={stockImages.hero}
-            alt="Colorful handmade Caucasian carpet detail"
+            alt="Stacks of handmade Caucasian and Oriental carpets in the Origin Carpets gallery"
             fill
             priority
             className="object-cover object-center"

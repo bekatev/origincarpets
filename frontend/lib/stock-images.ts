@@ -4,8 +4,8 @@
  */
 
 export const stockImages = {
-  /** Homepage hero — bright diamond-field carpet */
-  hero: '/stock/editorial/field-crimson.png',
+  /** Homepage hero — stacked gallery carpets */
+  hero: '/stock/editorial/hero-stacks.png',
   collection: '/brand/collection-gallery.png',
   about: '/brand/history-bazaar.png',
   gallery: '/brand/gallery-interior.png',
@@ -26,7 +26,6 @@ export const stockImages = {
     jewel: '/stock/editorial/detail-jewel.png',
     layered: '/stock/editorial/layered-pair.png',
     lattice: '/stock/editorial/field-lattice.png',
-    crimson: '/stock/editorial/field-crimson.png',
     weave: '/stock/editorial/weave-fold.png',
     border: '/stock/editorial/border-rust.png',
     navy: '/stock/editorial/rug-navy-stars.png',
