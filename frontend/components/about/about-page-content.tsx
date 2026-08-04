@@ -186,7 +186,6 @@ export function AboutPageContent() {
           src={stockImages.carpets.jewel}
           tone="ink"
           strength={0.62}
-          zoom={1.18}
           intensity={70}
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[var(--oc-ink)]/25 via-transparent to-[var(--oc-bg)]" />
@@ -221,8 +220,6 @@ export function AboutPageContent() {
           src={stockImages.carpets.column}
           tone="paper"
           strength={0.42}
-          rotate={90}
-          zoom={1.05}
           intensity={50}
           parallax={false}
         />

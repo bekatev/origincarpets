@@ -91,8 +91,6 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
               src={stockImages.carpets.lattice}
               tone="paper"
               strength={0.28}
-              rotate={90}
-              zoom={1.04}
               intensity={100}
             />
             <ParallaxContent intensity={28} className="oc-container">
@@ -123,7 +121,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
 
       {/* Editorial */}
       <section id="collection" className="relative oc-section overflow-hidden scroll-mt-28">
-        <CarpetBackdrop src={stockImages.carpets.layered} tone="paper" strength={0.28} zoom={1.1} intensity={110} />
+        <CarpetBackdrop src={stockImages.carpets.layered} tone="paper" strength={0.28} intensity={110} />
         <ParallaxContent intensity={32} className="oc-container">
           <div className="mx-auto max-w-3xl text-center lg:mx-0 lg:max-w-2xl lg:text-left">
             <TextPanel className="inline-block px-8 py-5 sm:px-10 sm:py-6">
@@ -163,7 +161,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
 
       {/* About */}
       <section id="about-us" className="relative oc-section overflow-hidden scroll-mt-28">
-        <CarpetBackdrop src={stockImages.carpets.jewel} tone="paper" strength={0.28} zoom={1.2} intensity={105} />
+        <CarpetBackdrop src={stockImages.carpets.jewel} tone="paper" strength={0.28} intensity={105} />
         <ParallaxContent
           intensity={28}
           className="oc-container grid items-center gap-10 lg:grid-cols-2 lg:gap-16"
@@ -201,7 +199,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
 
       {/* Carpet / Kilim */}
       <section id="carpet-origin" className="relative oc-section overflow-hidden scroll-mt-28">
-        <CarpetBackdrop src={stockImages.carpets.heroCarpet} tone="paper" strength={0.28} zoom={1.1} intensity={100} />
+        <CarpetBackdrop src={stockImages.carpets.heroCarpet} tone="paper" strength={0.28} intensity={100} />
         <ParallaxContent
           intensity={28}
           className="oc-container grid items-center gap-14 lg:grid-cols-2 lg:gap-20"

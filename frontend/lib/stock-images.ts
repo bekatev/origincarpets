@@ -5,11 +5,11 @@
 
 export const stockImages = {
   /** Homepage hero — stacked gallery carpets */
-  hero: '/stock/editorial/hero-stacks.png',
-  collection: '/brand/collection-gallery.png',
+  hero: '/stock/editorial/_IG_1626.JPG',
+  collection: '/brand/collection-gallery.jpg',
   about: '/brand/history-bazaar.png',
-  gallery: '/brand/gallery-interior.png',
-  og: '/brand/hero-exterior.png',
+  gallery: '/brand/gallery-interior.jpg',
+  og: '/brand/hero-exterior.jpg',
   decorationMotif: '/brand/decoration-ornament.png',
   decorationLine: '/brand/decoration-line.png',
   interiors: {
@@ -18,11 +18,11 @@ export const stockImages = {
     roomsCollage: '/stock/interiors/rooms-collage.jpg'
   },
   carpets: {
-    jewel: '/stock/editorial/detail-jewel.png',
-    layered: '/stock/editorial/layered-pair.png',
-    lattice: '/stock/editorial/field-lattice.png',
-    lions: '/stock/editorial/rug-lions.png',
-    column: '/stock/editorial/column-runner.png',
-    heroCarpet: '/stock/editorial/hero-carpet.png'
+    jewel: '/stock/editorial/_IG_1639.JPG',
+    layered: '/stock/editorial/_IG_1630.JPG',
+    lattice: '/stock/editorial/_IG_1628.JPG',
+    lions: '/stock/editorial/_IG_1626.JPG',
+    column: '/stock/editorial/_IG_1640.JPG',
+    heroCarpet: '/stock/editorial/_IG_1633.JPG'
   }
 } as const;
