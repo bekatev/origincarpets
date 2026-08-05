@@ -26,9 +26,9 @@ export type GalleryPhoto = {
 export const featuredGuests: FeaturedGuest[] = [
   {
     id: 'sharon-stone',
-    src: '/guests/sharon-stone.jpg',
-    width: 342,
-    height: 640,
+    src: '/guests/eweerweee.jpg',
+    width: 540,
+    height: 530,
     nameEn: 'Sharon Stone',
     nameKa: 'შერონ სთოუნი',
     roleEn: 'Hollywood actress',
@@ -61,14 +61,6 @@ export const guestGallery: GalleryPhoto[] = [
     altKa: 'შერონ სთოუნი Origin Carpets-ის ღია პრეზენტაციაზე'
   },
   {
-    id: 'guest-seated',
-    src: '/guests/guest-seated.jpg',
-    width: 720,
-    height: 960,
-    altEn: 'Sharon Stone with guests in the Origin Carpets gallery',
-    altKa: 'შერონ სთოუნი სტუმრებთან ერთად Origin Carpets-ის გალერეაში'
-  },
-  {
     id: 'guest-kilim-bag',
     src: '/guests/guest-kilim-bag.jpg',
     width: 331,
@@ -77,12 +69,12 @@ export const guestGallery: GalleryPhoto[] = [
     altKa: 'შერონ სთოუნი გალერეასთან კილიმის ჩანთით'
   },
   {
-    id: 'guest-viewing',
-    src: '/guests/guest-viewing.jpg',
-    width: 540,
-    height: 530,
-    altEn: 'Sharon Stone viewing a carpet in the gallery',
-    altKa: 'შერონ სთოუნი გალერეაში ხალიჩას უყურებს'
+    id: 'guest-portrait',
+    src: '/guests/sharon-stone.jpg',
+    width: 342,
+    height: 640,
+    altEn: 'Sharon Stone portrait at Origin Carpets',
+    altKa: 'შერონ სთოუნის პორტრეტი Origin Carpets-ში'
   },
   {
     id: 'guest-kerry-street',
@@ -99,14 +91,6 @@ export const guestGallery: GalleryPhoto[] = [
     height: 1024,
     altEn: 'Guests visiting Origin Carpets gallery',
     altKa: 'სტუმრები Origin Carpets-ის გალერეაში'
-  },
-  {
-    id: 'guest-group',
-    src: '/guests/guest-group.jpg',
-    width: 1600,
-    height: 1200,
-    altEn: 'Visitors with Origin Carpets team in the gallery',
-    altKa: 'ვიზიტორები Origin Carpets-ის გუნდთან ერთად'
   },
 ];
 

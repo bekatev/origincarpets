@@ -253,7 +253,7 @@ function FeaturedGuestBlock({
 }) {
   const reduceMotion = useReducedMotion();
   const reverse = index % 2 === 1;
-  const isPortrait = guest.id === 'sharon-stone';
+  const isPortrait = guest.height > guest.width * 1.15;
   const name = locale === 'ka' ? guest.nameKa : guest.nameEn;
   const role = locale === 'ka' ? guest.roleKa : guest.roleEn;
   const caption = locale === 'ka' ? guest.captionKa : guest.captionEn;
@@ -470,20 +470,28 @@ export function AboutPageContent() {
 
       <DecorationDivider />
 
-      {/* 3. Guest archive — high-res editorial backdrop (not the small brand interior) */}
+      {/* 3. Guest archive — clean aspect-aware grid */}
       <AboutSection backdrop={stockImages.guestBookBackdrop} strength={0.18}>
         <SectionIntro eyebrow={copy.guestGalleryEyebrow} title={copy.guestGalleryTitle} />
 
-        <div className="mx-auto max-w-5xl columns-2 gap-3 sm:gap-4 md:columns-3">
-          {guestGallery.map((photo, i) => (
-            <ContainedPhoto
-              key={photo.id}
-              photo={photo}
-              locale={locale}
-              className="mb-3 break-inside-avoid sm:mb-4"
-              priority={i < 3}
-            />
-          ))}
+        <div className="mx-auto grid max-w-5xl grid-cols-2 items-start gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5">
+          {guestGallery.map((photo, i) => {
+            const isLandscape = photo.width >= photo.height;
+            return (
+              <ContainedPhoto
+                key={photo.id}
+                photo={photo}
+                locale={locale}
+                className={cn(isLandscape && 'col-span-2 lg:col-span-2')}
+                sizes={
+                  isLandscape
+                    ? '(max-width: 1024px) 100vw, 66vw'
+                    : '(max-width: 1024px) 50vw, 33vw'
+                }
+                priority={i < 3}
+              />
+            );
+          })}
         </div>
       </AboutSection>
 
