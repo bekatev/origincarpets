@@ -15,11 +15,20 @@ export type AboutMediaItem =
       poster: string;
       titleEn: string;
       titleKa: string;
+    }
+  | {
+      id: string;
+      kind: 'local';
+      src: string;
+      orientation: MediaOrientation;
+      titleEn: string;
+      titleKa: string;
     };
 
 /**
  * Press / TV appearances.
  * Orientation follows the source video aspect (FB metadata reports these reels as 16:9).
+ * Local staff broadcast stays last in the list.
  */
 export const aboutMediaItems: AboutMediaItem[] = [
   {
@@ -72,6 +81,14 @@ export const aboutMediaItems: AboutMediaItem[] = [
     kind: 'facebook',
     href: 'https://www.facebook.com/reel/536046951370128',
     orientation: 'landscape'
+  },
+  {
+    id: 'staff-broadcast',
+    kind: 'local',
+    src: '/staff/staff-broadcast.mp4',
+    orientation: 'landscape',
+    titleEn: 'Origin Carpets on television',
+    titleKa: 'Origin Carpets ტელევიზიაში'
   }
 ];
 

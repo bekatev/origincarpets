@@ -22,7 +22,8 @@ export const stockImages = {
     layered: '/stock/editorial/_IG_1630.JPG',
     lattice: '/stock/editorial/_IG_1628.JPG',
     lions: '/stock/editorial/_IG_1626.JPG',
-    column: '/stock/editorial/_IG_1640.JPG',
-    heroCarpet: '/stock/editorial/_IG_1633.JPG'
+    heroCarpet: '/stock/editorial/_IG_1633.JPG',
+    /** About Us — Selected features section */
+    aboutFeatures: '/stock/editorial/_IG_1637.JPG'
   }
 } as const;

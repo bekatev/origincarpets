@@ -1,11 +1,18 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { CarpetBackdrop } from '@/components/home/carpet-backdrop';
 import { DecorationDivider } from '@/components/home/decoration-divider';
 import { useI18n } from '@/components/providers/i18n-provider';
+import {
+  featuredGuests,
+  guestGallery,
+  staffPhotos,
+  type FeaturedGuest,
+  type GalleryPhoto
+} from '@/lib/about-gallery';
 import {
   aboutMediaItems,
   facebookEmbedSrc,
@@ -17,11 +24,13 @@ import { stockImages } from '@/lib/stock-images';
 
 const PORTRAIT = { width: 320, height: 568 };
 const LANDSCAPE = { width: 720, height: 405 };
+/** Soft frame behind contained photos — matches product gallery beige. */
+const PHOTO_FRAME = '#f4ebe0';
 
 /**
- * Facebook player must stay clickable (play + scrub).
- * No overlays on the iframe. Landscape uses a matching 16:9 box
- * (no CSS transform — transforms break hit-testing on the seek bar).
+ * Facebook’s plugin often paints unused light chrome under the video.
+ * We size the iframe taller than the crop box and clip the bottom —
+ * no CSS transform (transforms break seek-bar hit-testing).
  */
 function FacebookEmbed({
   href,
@@ -34,35 +43,76 @@ function FacebookEmbed({
 }) {
   const isLandscape = orientation === 'landscape';
   const size = isLandscape ? LANDSCAPE : PORTRAIT;
-
-  if (isLandscape) {
-    return (
-      <div className="relative aspect-video w-full overflow-hidden bg-black">
-        <iframe
-          title={title}
-          src={facebookEmbedSrc(href, size)}
-          className="absolute inset-0 h-full w-full border-0"
-          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share; fullscreen"
-          allowFullScreen
-          loading="lazy"
-        />
-      </div>
-    );
-  }
+  /** Extra height so FB’s bottom chrome falls outside the visible crop. */
+  const iframeHeightPct = isLandscape ? '124%' : '114%';
+  const embedSize = {
+    width: size.width,
+    height: Math.round(size.height * (isLandscape ? 1.24 : 1.14))
+  };
 
   return (
     <div
-      className="relative mx-auto w-full overflow-hidden bg-black"
-      style={{ maxWidth: size.width, aspectRatio: `${size.width} / ${size.height}` }}
+      className="relative w-full overflow-hidden bg-black"
+      style={
+        isLandscape
+          ? { aspectRatio: '16 / 9' }
+          : { maxWidth: size.width, aspectRatio: `${size.width} / ${size.height}`, marginInline: 'auto' }
+      }
     >
       <iframe
         title={title}
-        src={facebookEmbedSrc(href, size)}
-        className="absolute inset-0 h-full w-full border-0"
+        src={facebookEmbedSrc(href, embedSize)}
+        className="absolute left-0 top-0 w-full border-0"
+        style={{ height: iframeHeightPct }}
         allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share; fullscreen"
         allowFullScreen
         loading="lazy"
       />
+    </div>
+  );
+}
+
+function mediaKindLabel(
+  item: AboutMediaItem,
+  labels: { video: string; tv: string; local: string }
+): string {
+  if (item.kind === 'ajaratv') return labels.tv;
+  if (item.kind === 'local') return labels.local;
+  return labels.video;
+}
+
+/** Solid cream panel + near-black type in light mode (readable on carpet). */
+function SectionIntro({
+  eyebrow,
+  title,
+  lead,
+  className
+}: {
+  eyebrow: string;
+  title: string;
+  lead?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        'mx-auto mb-10 max-w-2xl px-5 py-6 text-center sm:mb-12 sm:px-8 sm:py-7',
+        'bg-[#f7f0e6] shadow-[var(--oc-shadow-lift)] ring-1 ring-[#2a1c18]/12',
+        'dark:bg-[var(--oc-paper)] dark:ring-[var(--oc-ink)]/10',
+        className
+      )}
+    >
+      <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#6b4f42] dark:text-[var(--oc-muted)]">
+        {eyebrow}
+      </p>
+      <h2 className="mt-2 font-display text-2xl text-[#1c1210] sm:text-3xl lg:text-[2.15rem] dark:text-[var(--oc-ink)]">
+        {title}
+      </h2>
+      {lead ? (
+        <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-[#3d2a22] sm:text-[15px] dark:text-[var(--oc-muted)]">
+          {lead}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -75,6 +125,7 @@ function MediaFrame({
   tvEyebrow,
   tvBody,
   watchLabel,
+  localLabel,
   locale
 }: {
   item: AboutMediaItem;
@@ -84,11 +135,17 @@ function MediaFrame({
   tvEyebrow: string;
   tvBody: string;
   watchLabel: string;
+  localLabel: string;
   locale: string;
 }) {
   const reduceMotion = useReducedMotion();
   const n = String(index + 1).padStart(2, '0');
   const isLandscape = item.orientation === 'landscape';
+  const kindLabel = mediaKindLabel(item, {
+    video: label,
+    tv: tvEyebrow,
+    local: localLabel
+  });
 
   return (
     <motion.article
@@ -100,33 +157,44 @@ function MediaFrame({
     >
       <div
         className={cn(
-          'relative overflow-hidden bg-[var(--oc-ink)] shadow-[var(--oc-shadow-lift)] ring-1 ring-[var(--oc-ink)]/10',
+          'relative overflow-hidden bg-black shadow-[var(--oc-shadow-lift)] ring-1 ring-[var(--oc-ink)]/15',
           isLandscape ? 'mx-auto w-full max-w-[720px]' : 'mx-auto w-full max-w-[320px]'
         )}
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between p-3">
-          <span className="rounded-sm bg-[var(--oc-bg)]/90 px-2 py-1 font-display text-[11px] tracking-[0.14em] text-[var(--oc-ink)] backdrop-blur-sm">
+          <span className="rounded-sm bg-[#f7f0e6]/95 px-2 py-1 font-display text-[11px] tracking-[0.14em] text-[#1c1210] backdrop-blur-sm">
             {n}
           </span>
-          <span className="rounded-sm bg-[var(--oc-ink)]/70 px-2 py-1 text-[9px] font-medium uppercase tracking-[0.2em] text-[var(--oc-bg)] backdrop-blur-sm">
-            {item.kind === 'ajaratv' ? tvEyebrow : label}
+          <span className="rounded-sm bg-black/65 px-2 py-1 text-[9px] font-medium uppercase tracking-[0.2em] text-white backdrop-blur-sm">
+            {kindLabel}
           </span>
         </div>
 
         {item.kind === 'facebook' ? (
-          <>
-            <FacebookEmbed href={item.href} orientation={item.orientation} title={`${label} ${n}`} />
-            <div className="border-t border-white/10 bg-[var(--oc-ink)] px-3.5 py-2.5 text-center">
-              <a
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--oc-bg)]/85 hover:text-[var(--oc-bg)]"
-              >
-                {openLabel} ↗
-              </a>
-            </div>
-          </>
+          <a
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="sr-only"
+          >
+            {openLabel}
+          </a>
+        ) : null}
+
+        {item.kind === 'facebook' ? (
+          <FacebookEmbed href={item.href} orientation={item.orientation} title={`${label} ${n}`} />
+        ) : item.kind === 'local' ? (
+          <div className="relative aspect-video w-full overflow-hidden bg-black">
+            <video
+              controls
+              playsInline
+              preload="metadata"
+              className="absolute inset-0 h-full w-full object-cover"
+              aria-label={locale === 'ka' ? item.titleKa : item.titleEn}
+            >
+              <source src={item.src} type="video/mp4" />
+            </video>
+          </div>
         ) : (
           <a
             href={item.href}
@@ -166,6 +234,146 @@ function MediaFrame({
   );
 }
 
+function FeaturedGuestBlock({
+  guest,
+  index,
+  locale
+}: {
+  guest: FeaturedGuest;
+  index: number;
+  locale: string;
+}) {
+  const reduceMotion = useReducedMotion();
+  const reverse = index % 2 === 1;
+  const isPortrait = guest.id === 'sharon-stone';
+  const name = locale === 'ka' ? guest.nameKa : guest.nameEn;
+  const role = locale === 'ka' ? guest.roleKa : guest.roleEn;
+  const caption = locale === 'ka' ? guest.captionKa : guest.captionEn;
+
+  return (
+    <motion.article
+      initial={reduceMotion ? false : { opacity: 0, y: 36 }}
+      whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-10% 0px' }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      className={cn(
+        'grid items-center gap-6 lg:gap-12',
+        isPortrait
+          ? 'lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]'
+          : 'lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]',
+        reverse && 'lg:[&>*:first-child]:order-2'
+      )}
+    >
+      <div
+        className={cn(
+          'relative overflow-hidden shadow-[var(--oc-shadow-lift)] ring-1 ring-[#2a1c18]/12 dark:ring-[var(--oc-ink)]/10',
+          isPortrait ? 'mx-auto w-full max-w-[320px] lg:mx-0' : 'w-full'
+        )}
+        style={{ backgroundColor: PHOTO_FRAME }}
+      >
+        <Image
+          src={guest.src}
+          alt={name}
+          width={guest.width}
+          height={guest.height}
+          className="h-auto w-full"
+          sizes={isPortrait ? '(max-width: 1024px) 320px, 360px' : '(max-width: 1024px) 100vw, 640px'}
+          priority={index === 0}
+        />
+      </div>
+
+      <div
+        className={cn(
+          'max-w-xl bg-[#f7f0e6] px-6 py-7 shadow-[var(--oc-shadow-lift)] ring-1 ring-[#2a1c18]/12 sm:px-8 sm:py-8',
+          'dark:bg-[var(--oc-paper)] dark:ring-[var(--oc-ink)]/10',
+          reverse ? 'lg:ml-auto' : ''
+        )}
+      >
+        <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#6b4f42] dark:text-[var(--oc-muted)]">
+          {role}
+        </p>
+        <h3 className="mt-3 font-display text-3xl tracking-[-0.02em] text-[#1c1210] sm:text-4xl dark:text-[var(--oc-ink)]">
+          {name}
+        </h3>
+        <div className="mt-5 h-px w-16 bg-[#1c1210]/25 dark:bg-[var(--oc-ink)]/25" />
+        <p className="mt-5 font-display text-xl leading-relaxed text-[#2a1c18] sm:text-2xl dark:text-[var(--oc-ink)]">
+          {caption}
+        </p>
+      </div>
+    </motion.article>
+  );
+}
+
+/** Full image, no crop — frame hugs the photo (never stretches empty). */
+function ContainedPhoto({
+  photo,
+  locale,
+  className,
+  priority
+}: {
+  photo: GalleryPhoto;
+  locale: string;
+  className?: string;
+  priority?: boolean;
+}) {
+  const reduceMotion = useReducedMotion();
+  const alt = locale === 'ka' ? photo.altKa : photo.altEn;
+
+  return (
+    <motion.figure
+      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+      whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className={cn(
+        'overflow-hidden bg-[#f4ebe0] shadow-[var(--oc-shadow-lift)] ring-1 ring-[#2a1c18]/10 dark:ring-[var(--oc-ink)]/10',
+        /* critical: do not stretch in CSS grid rows */
+        'h-fit self-start',
+        className
+      )}
+    >
+      {/* Native img — avoids Next optimizer blanks on some guest JPEGs */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={photo.src}
+        alt={alt}
+        width={photo.width}
+        height={photo.height}
+        className="block h-auto w-full"
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+      />
+    </motion.figure>
+  );
+}
+
+function AboutSection({
+  children,
+  backdrop,
+  strength = 0.22,
+  intensity = 28
+}: {
+  children: ReactNode;
+  backdrop: string;
+  strength?: number;
+  intensity?: number;
+}) {
+  return (
+    <section className="relative overflow-hidden py-12 sm:py-14 lg:py-16">
+      <CarpetBackdrop
+        src={backdrop}
+        tone="paper"
+        strength={strength}
+        intensity={intensity}
+        parallax={false}
+      />
+      {/* Stronger wash in light mode so dark type never sits on busy carpet */}
+      <div className="pointer-events-none absolute inset-0 bg-[#ebe0d0]/78 dark:bg-[var(--oc-bg)]/60" />
+      <div className="oc-container relative">{children}</div>
+    </section>
+  );
+}
+
 export function AboutPageContent() {
   const { dict, locale } = useI18n();
   const copy = dict.aboutPage;
@@ -178,6 +386,8 @@ export function AboutPageContent() {
   const heroY = useTransform(scrollYProgress, [0, 1], [0, reduceMotion ? 0 : 80]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.85], [1, reduceMotion ? 1 : 0.35]);
 
+  const [teamLead, ...teamRest] = staffPhotos;
+
   return (
     <main>
       {/* Compact cinematic hero */}
@@ -188,66 +398,119 @@ export function AboutPageContent() {
           strength={0.62}
           intensity={70}
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[var(--oc-ink)]/25 via-transparent to-[var(--oc-bg)]" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[var(--oc-ink)]/40 via-[var(--oc-ink)]/20 to-[var(--oc-bg)]" />
 
         <motion.div style={{ y: heroY, opacity: heroOpacity }} className="oc-container relative">
-          <div className="mx-auto max-w-3xl text-center text-white">
-            <motion.p
-              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-[11px] font-medium uppercase tracking-[0.32em] text-white/70"
-            >
-              {copy.eyebrow}
-            </motion.p>
-            <motion.h1
-              initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.65, delay: 0.06 }}
-              className="mt-5 font-display text-[1.85rem] leading-[1.15] tracking-[-0.02em] text-white sm:text-4xl lg:text-[2.75rem]"
-            >
-              {copy.title}
-            </motion.h1>
+          <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
+            <div className="bg-[var(--oc-ink)]/55 px-5 py-7 backdrop-blur-md sm:px-8 sm:py-8">
+              <motion.p
+                initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-[11px] font-medium uppercase tracking-[0.32em] text-white/80"
+              >
+                {copy.eyebrow}
+              </motion.p>
+              <motion.h1
+                initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.65, delay: 0.06 }}
+                className="mt-5 font-display text-[1.85rem] leading-[1.15] tracking-[-0.02em] text-white sm:text-4xl lg:text-[2.75rem]"
+              >
+                {copy.title}
+              </motion.h1>
+            </div>
           </div>
         </motion.div>
       </section>
 
       <DecorationDivider />
 
-      {/* Media gallery — tight, orientation-aware */}
-      <section className="relative overflow-hidden py-10 sm:py-12 lg:py-14">
-        <CarpetBackdrop
-          src={stockImages.carpets.column}
-          tone="paper"
-          strength={0.42}
-          intensity={50}
-          parallax={false}
-        />
-        <div className="oc-container relative">
-          <div className="mb-8 text-center sm:mb-10">
-            <p className="oc-eyebrow">{copy.galleryEyebrow}</p>
-            <h2 className="mt-2 font-display text-2xl text-[var(--oc-ink)] sm:text-3xl">
-              {copy.galleryTitle}
-            </h2>
-          </div>
+      {/* 1. Videos first */}
+      <AboutSection backdrop={stockImages.carpets.aboutFeatures} strength={0.2} intensity={24}>
+        <SectionIntro eyebrow={copy.galleryEyebrow} title={copy.galleryTitle} />
 
-          <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 sm:gap-12">
-            {aboutMediaItems.map((item, index) => (
-              <MediaFrame
-                key={item.id}
-                item={item}
-                index={index}
-                label={copy.facebookEmbedLabel}
-                openLabel={copy.openOnFacebook}
-                tvEyebrow={copy.tvEyebrow}
-                tvBody={copy.tvBody}
-                watchLabel={copy.watchOnAdjara}
-                locale={locale}
-              />
-            ))}
-          </div>
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 sm:gap-12">
+          {aboutMediaItems.map((item, index) => (
+            <MediaFrame
+              key={item.id}
+              item={item}
+              index={index}
+              label={copy.facebookEmbedLabel}
+              openLabel={copy.openOnFacebook}
+              tvEyebrow={copy.tvEyebrow}
+              tvBody={copy.tvBody}
+              watchLabel={copy.watchOnAdjara}
+              localLabel={copy.localVideoLabel}
+              locale={locale}
+            />
+          ))}
         </div>
-      </section>
+      </AboutSection>
+
+      <DecorationDivider />
+
+      {/* 2. Distinguished guests */}
+      <AboutSection backdrop={stockImages.carpets.lattice} strength={0.18} intensity={22}>
+        <SectionIntro
+          eyebrow={copy.guestsEyebrow}
+          title={copy.guestsTitle}
+          lead={copy.guestsLead}
+        />
+
+        <div className="mx-auto flex max-w-5xl flex-col gap-12 lg:gap-16">
+          {featuredGuests.map((guest, index) => (
+            <FeaturedGuestBlock key={guest.id} guest={guest} index={index} locale={locale} />
+          ))}
+        </div>
+      </AboutSection>
+
+      <DecorationDivider />
+
+      {/* 3. Guest archive — full images, mixed orientations */}
+      <AboutSection backdrop={stockImages.gallery} strength={0.16} intensity={20}>
+        <SectionIntro eyebrow={copy.guestGalleryEyebrow} title={copy.guestGalleryTitle} />
+
+        {/* CSS columns masonry — mixed portrait/landscape without empty stretched cells */}
+        <div className="mx-auto max-w-5xl columns-2 gap-3 sm:gap-4 md:columns-3">
+          {guestGallery.map((photo, i) => (
+            <ContainedPhoto
+              key={photo.id}
+              photo={photo}
+              locale={locale}
+              className="mb-3 break-inside-avoid sm:mb-4"
+              priority={i < 3}
+            />
+          ))}
+        </div>
+      </AboutSection>
+
+      <DecorationDivider />
+
+      {/* 4. Staff — full frame, no crop, no forced rotation */}
+      <AboutSection backdrop={stockImages.carpets.layered} strength={0.18} intensity={22}>
+        <SectionIntro eyebrow={copy.staffEyebrow} title={copy.staffTitle} lead={copy.staffLead} />
+
+        {teamLead ? (
+          <ContainedPhoto
+            photo={teamLead}
+            locale={locale}
+            className="mx-auto mb-4 w-full max-w-5xl sm:mb-5"
+            priority
+          />
+        ) : null}
+
+        <div className="mx-auto grid max-w-5xl grid-cols-1 items-start gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+          {teamRest.map((photo, i) => (
+            <ContainedPhoto
+              key={photo.id}
+              photo={photo}
+              locale={locale}
+              priority={i < 2}
+            />
+          ))}
+        </div>
+      </AboutSection>
 
       <DecorationDivider />
     </main>
