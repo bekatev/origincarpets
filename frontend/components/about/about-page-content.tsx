@@ -309,12 +309,14 @@ function ContainedPhoto({
   photo,
   locale,
   className,
-  priority
+  priority,
+  sizes = '(max-width: 768px) 50vw, 33vw'
 }: {
   photo: GalleryPhoto;
   locale: string;
   className?: string;
   priority?: boolean;
+  sizes?: string;
 }) {
   const reduceMotion = useReducedMotion();
   const alt = locale === 'ka' ? photo.altKa : photo.altEn;
@@ -332,16 +334,15 @@ function ContainedPhoto({
         className
       )}
     >
-      {/* Native img — avoids Next optimizer blanks on some guest JPEGs */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={photo.src}
         alt={alt}
         width={photo.width}
         height={photo.height}
-        className="block h-auto w-full"
-        loading={priority ? 'eager' : 'lazy'}
-        decoding="async"
+        className="h-auto w-full"
+        sizes={sizes}
+        quality={80}
+        priority={priority}
       />
     </motion.figure>
   );
@@ -496,6 +497,7 @@ export function AboutPageContent() {
             photo={teamLead}
             locale={locale}
             className="mx-auto mb-4 w-full max-w-5xl sm:mb-5"
+            sizes="(max-width: 1024px) 100vw, 1024px"
             priority
           />
         ) : null}
@@ -506,6 +508,7 @@ export function AboutPageContent() {
               key={photo.id}
               photo={photo}
               locale={locale}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               priority={i < 2}
             />
           ))}
