@@ -523,8 +523,6 @@ export function AboutPageContent() {
           ))}
         </div>
       </AboutSection>
-
-      <DecorationDivider />
     </main>
   );
 }
