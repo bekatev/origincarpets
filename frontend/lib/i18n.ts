@@ -36,6 +36,7 @@ export const dictionaries = {
     nav: {
       shop: 'Shop',
       about: 'About Us',
+      history: 'History of our gallery',
       carpets: 'Carpets',
       origin: 'Carpet Technologies',
       guides: 'Guides & Policies',
@@ -172,6 +173,7 @@ export const dictionaries = {
     nav: {
       shop: 'მაღაზია',
       about: 'ჩვენ შესახებ',
+      history: 'ჩვენი გალერეის ისტორია',
       carpets: 'ხალიჩები',
       origin: 'ხალიჩის ტექნოლოგია',
       guides: 'სახელმძღვანელოები და წესები',

@@ -18,6 +18,7 @@ export function SiteHeader() {
   const primaryNav: Array<{ href: Route; label: string }> = [
     { href: '/products', label: dict.nav.shop },
     { href: '/about' as Route, label: dict.nav.about },
+    { href: '/#about-us' as Route, label: dict.nav.history },
     { href: '/#contact-us' as Route, label: dict.nav.contact }
   ];
 
