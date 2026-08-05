@@ -137,7 +137,7 @@ export const dictionaries = {
       guestGalleryTitle: 'From the guest book',
       staffEyebrow: 'People',
       staffTitle: 'Our team',
-      staffLead: 'The faces behind Origin Carpets — curators, hosts, and keepers of the collection.',
+      staffLead: 'The people of Origin Carpets.',
       localVideoLabel: 'Broadcast'
     },
     footerLinks: footerTranslations.en,
@@ -273,7 +273,7 @@ export const dictionaries = {
       guestGalleryTitle: 'სტუმრების წიგნიდან',
       staffEyebrow: 'ადამიანები',
       staffTitle: 'ჩვენი გუნდი',
-      staffLead: 'Origin Carpets-ის სახეები — კურატორები, მასპინძლები და კოლექციის მცველები.',
+      staffLead: 'Origin Carpets-ის გუნდის წევრები.',
       localVideoLabel: 'ტელესიუჟეტი'
     },
     footerLinks: footerTranslations.ka,
