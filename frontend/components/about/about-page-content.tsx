@@ -1,8 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef, type ReactNode } from 'react';
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { type ReactNode } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { CarpetBackdrop } from '@/components/home/carpet-backdrop';
 import { DecorationDivider } from '@/components/home/decoration-divider';
 import { useI18n } from '@/components/providers/i18n-provider';
@@ -21,6 +21,14 @@ import {
 } from '@/lib/about-media';
 import { cn } from '@/lib/cn';
 import { stockImages } from '@/lib/stock-images';
+
+function chunkItems<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
 
 const PORTRAIT = { width: 320, height: 568 };
 const LANDSCAPE = { width: 720, height: 405 };
@@ -341,7 +349,7 @@ function ContainedPhoto({
         height={photo.height}
         className="h-auto w-full"
         sizes={sizes}
-        quality={80}
+        quality={85}
         priority={priority}
       />
     </motion.figure>
@@ -351,23 +359,15 @@ function ContainedPhoto({
 function AboutSection({
   children,
   backdrop,
-  strength = 0.22,
-  intensity = 28
+  strength = 0.22
 }: {
   children: ReactNode;
   backdrop: string;
   strength?: number;
-  intensity?: number;
 }) {
   return (
     <section className="relative overflow-hidden py-12 sm:py-14 lg:py-16">
-      <CarpetBackdrop
-        src={backdrop}
-        tone="paper"
-        strength={strength}
-        intensity={intensity}
-        parallax={false}
-      />
+      <CarpetBackdrop src={backdrop} tone="paper" strength={strength} />
       {/* Stronger wash in light mode so dark type never sits on busy carpet */}
       <div className="pointer-events-none absolute inset-0 bg-[#ebe0d0]/78 dark:bg-[var(--oc-bg)]/60" />
       <div className="oc-container relative">{children}</div>
@@ -379,29 +379,18 @@ export function AboutPageContent() {
   const { dict, locale } = useI18n();
   const copy = dict.aboutPage;
   const reduceMotion = useReducedMotion();
-  const heroRef = useRef<HTMLElement | null>(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ['start start', 'end start']
-  });
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, reduceMotion ? 0 : 80]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.85], [1, reduceMotion ? 1 : 0.35]);
-
   const [teamLead, ...teamRest] = staffPhotos;
+  const videoChunks = chunkItems(aboutMediaItems, 3);
+  const videoBackdrops = stockImages.aboutVideoBackdrops;
 
   return (
     <main>
-      {/* Compact cinematic hero */}
-      <section ref={heroRef} className="relative overflow-hidden py-14 sm:py-16 lg:py-20">
-        <CarpetBackdrop
-          src={stockImages.carpets.jewel}
-          tone="ink"
-          strength={0.62}
-          intensity={70}
-        />
+      {/* Compact cinematic hero — no scroll parallax */}
+      <section className="relative overflow-hidden py-14 sm:py-16 lg:py-20">
+        <CarpetBackdrop src={stockImages.carpets.jewel} tone="ink" strength={0.62} />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[var(--oc-ink)]/40 via-[var(--oc-ink)]/20 to-[var(--oc-bg)]" />
 
-        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="oc-container relative">
+        <div className="oc-container relative">
           <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
             <div className="bg-[var(--oc-ink)]/55 px-5 py-7 backdrop-blur-md sm:px-8 sm:py-8">
               <motion.p
@@ -422,37 +411,50 @@ export function AboutPageContent() {
               </motion.h1>
             </div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       <DecorationDivider />
 
-      {/* 1. Videos first */}
-      <AboutSection backdrop={stockImages.carpets.aboutFeatures} strength={0.2} intensity={24}>
-        <SectionIntro eyebrow={copy.galleryEyebrow} title={copy.galleryTitle} />
+      {/* 1. Videos — short groups, each with its own high-res carpet plate */}
+      {videoChunks.map((group, groupIndex) => {
+        const startIndex = groupIndex * 3;
+        return (
+          <div key={`video-group-${groupIndex}`}>
+            {groupIndex > 0 ? <DecorationDivider /> : null}
+            <AboutSection
+              backdrop={videoBackdrops[groupIndex % videoBackdrops.length]}
+              strength={0.2}
+            >
+              {groupIndex === 0 ? (
+                <SectionIntro eyebrow={copy.galleryEyebrow} title={copy.galleryTitle} />
+              ) : null}
 
-        <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 sm:gap-12">
-          {aboutMediaItems.map((item, index) => (
-            <MediaFrame
-              key={item.id}
-              item={item}
-              index={index}
-              label={copy.facebookEmbedLabel}
-              openLabel={copy.openOnFacebook}
-              tvEyebrow={copy.tvEyebrow}
-              tvBody={copy.tvBody}
-              watchLabel={copy.watchOnAdjara}
-              localLabel={copy.localVideoLabel}
-              locale={locale}
-            />
-          ))}
-        </div>
-      </AboutSection>
+              <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 sm:gap-12">
+                {group.map((item, index) => (
+                  <MediaFrame
+                    key={item.id}
+                    item={item}
+                    index={startIndex + index}
+                    label={copy.facebookEmbedLabel}
+                    openLabel={copy.openOnFacebook}
+                    tvEyebrow={copy.tvEyebrow}
+                    tvBody={copy.tvBody}
+                    watchLabel={copy.watchOnAdjara}
+                    localLabel={copy.localVideoLabel}
+                    locale={locale}
+                  />
+                ))}
+              </div>
+            </AboutSection>
+          </div>
+        );
+      })}
 
       <DecorationDivider />
 
       {/* 2. Distinguished guests */}
-      <AboutSection backdrop={stockImages.carpets.lattice} strength={0.18} intensity={22}>
+      <AboutSection backdrop={stockImages.carpets.lattice} strength={0.18}>
         <SectionIntro
           eyebrow={copy.guestsEyebrow}
           title={copy.guestsTitle}
@@ -468,11 +470,10 @@ export function AboutPageContent() {
 
       <DecorationDivider />
 
-      {/* 3. Guest archive — full images, mixed orientations */}
-      <AboutSection backdrop={stockImages.gallery} strength={0.16} intensity={20}>
+      {/* 3. Guest archive — high-res editorial backdrop (not the small brand interior) */}
+      <AboutSection backdrop={stockImages.guestBookBackdrop} strength={0.18}>
         <SectionIntro eyebrow={copy.guestGalleryEyebrow} title={copy.guestGalleryTitle} />
 
-        {/* CSS columns masonry — mixed portrait/landscape without empty stretched cells */}
         <div className="mx-auto max-w-5xl columns-2 gap-3 sm:gap-4 md:columns-3">
           {guestGallery.map((photo, i) => (
             <ContainedPhoto
@@ -488,8 +489,8 @@ export function AboutPageContent() {
 
       <DecorationDivider />
 
-      {/* 4. Staff — full frame, no crop, no forced rotation */}
-      <AboutSection backdrop={stockImages.carpets.layered} strength={0.18} intensity={22}>
+      {/* 4. Staff */}
+      <AboutSection backdrop={stockImages.carpets.layered} strength={0.18}>
         <SectionIntro eyebrow={copy.staffEyebrow} title={copy.staffTitle} lead={copy.staffLead} />
 
         {teamLead ? (

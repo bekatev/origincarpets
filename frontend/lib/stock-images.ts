@@ -3,7 +3,8 @@
  * Product images always come from the API.
  *
  * Editorial/staff assets under the web/ folders are pre-resized
- * (~2K edge, high-quality JPEG) so live pages stay sharp but load fast.
+ * (~3–4K edge, quality ~90 JPEG) so backdrops stay sharp while loading far
+ * faster than the original camera files.
  */
 
 export const stockImages = {
@@ -28,5 +29,16 @@ export const stockImages = {
     heroCarpet: '/stock/editorial/web/_IG_1633.jpg',
     /** About Us — Selected features section */
     aboutFeatures: '/stock/editorial/web/_IG_1637.jpg'
-  }
+  },
+  /**
+   * High-res editorial plates for tall About sections.
+   * Rotating a few keeps each stretch short so carpets stay sharp.
+   */
+  aboutVideoBackdrops: [
+    '/stock/editorial/web/_IG_1637.jpg',
+    '/stock/editorial/web/_IG_1630.jpg',
+    '/stock/editorial/web/_IG_1628.jpg'
+  ] as const,
+  /** Guest book section — prefer editorial over the small brand interior shot */
+  guestBookBackdrop: '/stock/editorial/web/_IG_1639.jpg'
 } as const;

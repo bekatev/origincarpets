@@ -1,15 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef } from 'react';
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { cn } from '@/lib/cn';
 
 type Tone = 'paper' | 'ink';
 
 /**
  * Carpet fills the section; a scrim keeps copy readable.
- * Soft parallax on the carpet layer; scrim stays fixed for readability.
+ * Parallax intentionally disabled — static layers are sharper and cheaper to scroll.
  * `zoom` crops studio black edges; `rotate` turns the rug (e.g. 90 for landscape sections).
  */
 export function CarpetBackdrop({
@@ -19,10 +17,7 @@ export function CarpetBackdrop({
   strength = 0.55,
   position = 'center',
   zoom = 1,
-  rotate = 0,
-  parallax = true,
-  /** Vertical travel in px across the section (split ±). */
-  intensity = 90
+  rotate = 0
 }: {
   src: string;
   className?: string;
@@ -31,27 +26,16 @@ export function CarpetBackdrop({
   position?: string;
   zoom?: number;
   rotate?: number;
+  /** @deprecated Parallax removed — accepted for call-site compatibility. */
   parallax?: boolean;
+  /** @deprecated Parallax removed — accepted for call-site compatibility. */
   intensity?: number;
 }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const reduceMotion = useReducedMotion();
-  const enableParallax = parallax && !reduceMotion;
-
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start end', 'end start']
-  });
-  const y = useTransform(scrollYProgress, [0, 1], [intensity, -intensity]);
-
   const needsTransform = rotate !== 0 || zoom !== 1;
 
   return (
-    <div ref={ref} className={cn('pointer-events-none absolute inset-0 overflow-hidden', className)} aria-hidden>
-      <motion.div
-        className="absolute inset-x-0 -top-[18%] -bottom-[18%] will-change-transform"
-        style={enableParallax ? { y } : undefined}
-      >
+    <div className={cn('pointer-events-none absolute inset-0 overflow-hidden', className)} aria-hidden>
+      <div className="absolute inset-0">
         {rotate === 90 || rotate === -90 ? (
           <div
             className="absolute left-1/2 top-1/2 h-[max(100%,100vw)] w-[max(100%,100vh)]"
@@ -60,7 +44,14 @@ export function CarpetBackdrop({
               transformOrigin: 'center center'
             }}
           >
-            <Image src={src} alt="" fill className="object-cover object-center" sizes="100vw" />
+            <Image
+              src={src}
+              alt=""
+              fill
+              className="object-cover object-center"
+              sizes="100vw"
+              quality={90}
+            />
           </div>
         ) : (
           <Image
@@ -74,9 +65,10 @@ export function CarpetBackdrop({
               transformOrigin: 'center center'
             }}
             sizes="100vw"
+            quality={90}
           />
         )}
-      </motion.div>
+      </div>
       {tone === 'ink' && strength > 0 ? (
         <div className="absolute inset-0 bg-[#1a1210]" style={{ opacity: strength }} />
       ) : null}
@@ -111,6 +103,7 @@ export function CarpetRibbon({
         className="object-cover object-center"
         style={{ transform: zoom !== 1 ? `scale(${zoom})` : undefined }}
         sizes="100vw"
+        quality={88}
       />
     </div>
   );

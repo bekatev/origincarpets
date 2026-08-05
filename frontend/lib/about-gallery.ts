@@ -115,56 +115,56 @@ export const staffPhotos: GalleryPhoto[] = [
   {
     id: 'staff-1679',
     src: '/staff/web/_IG_1679.jpg',
-    width: 2200,
-    height: 1467,
+    width: 2800,
+    height: 1867,
     altEn: 'Origin Carpets team in the gallery',
     altKa: 'Origin Carpets-ის გუნდი გალერეაში'
   },
   {
     id: 'staff-1687',
     src: '/staff/web/_IG_1687.jpg',
-    width: 2200,
-    height: 3300,
+    width: 2800,
+    height: 4200,
     altEn: 'Origin Carpets staff portrait',
     altKa: 'Origin Carpets-ის თანამშრომლის პორტრეტი'
   },
   {
     id: 'staff-1714',
     src: '/staff/web/_IG_1714.jpg',
-    width: 2200,
-    height: 3300,
+    width: 2800,
+    height: 4200,
     altEn: 'Origin Carpets staff portrait',
     altKa: 'Origin Carpets-ის თანამშრომლის პორტრეტი'
   },
   {
     id: 'staff-1716',
     src: '/staff/web/_IG_1716.jpg',
-    width: 2200,
-    height: 3300,
+    width: 2800,
+    height: 4200,
     altEn: 'Origin Carpets staff portrait',
     altKa: 'Origin Carpets-ის თანამშრომლის პორტრეტი'
   },
   {
     id: 'staff-1723',
     src: '/staff/web/_IG_1723.jpg',
-    width: 2200,
-    height: 3300,
+    width: 2800,
+    height: 4200,
     altEn: 'Origin Carpets staff portrait',
     altKa: 'Origin Carpets-ის თანამშრომლის პორტრეტი'
   },
   {
     id: 'staff-1740',
     src: '/staff/web/_IG_1740.jpg',
-    width: 2200,
-    height: 3300,
+    width: 2800,
+    height: 4200,
     altEn: 'Origin Carpets staff portrait',
     altKa: 'Origin Carpets-ის თანამშრომლის პორტრეტი'
   },
   {
     id: 'staff-1943',
     src: '/staff/web/_IG_1943.jpg',
-    width: 2200,
-    height: 3300,
+    width: 2800,
+    height: 4200,
     altEn: 'Origin Carpets staff portrait',
     altKa: 'Origin Carpets-ის თანამშრომლის პორტრეტი'
   },

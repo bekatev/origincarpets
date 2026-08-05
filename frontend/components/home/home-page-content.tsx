@@ -46,9 +46,9 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
 
   return (
     <main>
-      {/* Hero — full-bleed carpet + parallax */}
-      <section className="relative min-h-[78vh] overflow-hidden sm:min-h-[85vh]">
-        <ParallaxMedia intensity={130}>
+      {/* Hero — full-bleed carpet (compact so copy isn’t lost in empty height) */}
+      <section className="relative min-h-[52vh] overflow-hidden sm:min-h-[56vh] lg:min-h-[58vh]">
+        <ParallaxMedia>
           <Image
             src={stockImages.hero}
             alt="Stacks of handmade Caucasian and Oriental carpets in the Origin Carpets gallery"
@@ -56,12 +56,13 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             priority
             className="object-cover object-center"
             sizes="100vw"
+            quality={90}
           />
         </ParallaxMedia>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1a1210]/80 via-[#1a1210]/35 to-[#1a1210]/15" />
         <ParallaxContent
           intensity={48}
-          className="oc-container flex min-h-[78vh] flex-col items-center justify-end pb-20 pt-32 text-center sm:min-h-[85vh] sm:pb-28"
+          className="oc-container flex min-h-[52vh] flex-col items-center justify-end pb-12 pt-24 text-center sm:min-h-[56vh] sm:pb-16 lg:min-h-[58vh]"
         >
           <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-white/70">
             {dict.home.heroSubtitle}
