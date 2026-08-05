@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { DecorationMotif } from '@/components/home/decoration-motif';
 import { ProductCard, type ProductCardVariant } from '@/components/products/product-card';
 import { ProductFilters } from '@/components/products/product-filters';
 import { useI18n } from '@/components/providers/i18n-provider';
@@ -96,8 +97,10 @@ export function ProductsCatalogView({
       : formatCount(p.countMany, products.meta.total);
 
   return (
-    <section className="oc-section">
-      <div className="oc-container space-y-14">
+    <section className="relative overflow-hidden oc-section">
+      <DecorationMotif size="hero" placement="top-right" opacity={0.18} />
+      <DecorationMotif size="xl" placement="bottom-left" opacity={0.14} />
+      <div className="oc-container relative z-10 space-y-14">
         <div className="oc-container-narrow space-y-4 text-center">
           <p className="oc-eyebrow">{p.catalog}</p>
           <h1 className="oc-heading">{p.title}</h1>

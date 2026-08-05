@@ -27,7 +27,7 @@ function TextPanel({
   children: ReactNode;
   className?: string;
   motif?: boolean;
-  motifSize?: 'sm' | 'md' | 'lg';
+  motifSize?: 'sm' | 'md' | 'lg' | 'xl';
   motifPlacement?: MotifPlacement;
 }) {
   return (
@@ -96,7 +96,12 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             />
             <ParallaxContent intensity={28} className="oc-container">
               <div className="mx-auto max-w-2xl text-center">
-                <TextPanel className="inline-block px-8 py-5 sm:px-10 sm:py-6">
+                <TextPanel
+                  motif
+                  motifSize="md"
+                  motifPlacement="top-right"
+                  className="inline-block px-8 py-5 sm:px-10 sm:py-6"
+                >
                   <h2 className="oc-heading-sm">{dict.home.featuredCollection}</h2>
                 </TextPanel>
               </div>
@@ -125,7 +130,12 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
         <CarpetBackdrop src={stockImages.carpets.layered} tone="paper" strength={0.28} intensity={110} />
         <ParallaxContent intensity={32} className="oc-container">
           <div className="mx-auto max-w-3xl text-center lg:mx-0 lg:max-w-2xl lg:text-left">
-            <TextPanel className="inline-block px-8 py-5 sm:px-10 sm:py-6">
+            <TextPanel
+              motif
+              motifSize="md"
+              motifPlacement="bottom-left"
+              className="inline-block px-8 py-5 sm:px-10 sm:py-6"
+            >
               <h2 className="font-display text-2xl font-normal leading-[1.3] tracking-[-0.01em] text-[var(--oc-ink)] sm:text-3xl lg:text-4xl">
                 {dict.home.editorialTitle}
               </h2>
@@ -143,7 +153,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
                 />
               </ParallaxMedia>
             </div>
-            <TextPanel motif motifSize="sm" motifPlacement="bottom-right" className="max-w-xl">
+            <TextPanel motif motifSize="lg" motifPlacement="top-left" className="max-w-xl">
               <div className="space-y-6">
                 <p className="oc-body">{dict.home.editorialBody}</p>
                 <p className="oc-body">{dict.homeExtra.curator2}</p>
@@ -167,7 +177,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
           intensity={28}
           className="oc-container grid items-center gap-10 lg:grid-cols-2 lg:gap-16"
         >
-          <TextPanel motif motifSize="lg" motifPlacement="center" className="lg:max-w-xl">
+          <TextPanel motif motifSize="xl" motifPlacement="bottom-left" className="lg:max-w-xl">
             <p className="oc-eyebrow">{dict.home.aboutHeading}</p>
             <h2 className="oc-heading-sm mt-4">{dict.home.historyTitle}</h2>
             <div className="mt-8 space-y-5">
@@ -216,7 +226,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
               />
             </ParallaxMedia>
           </div>
-          <TextPanel motif motifSize="sm" motifPlacement="top-left">
+          <TextPanel motif motifSize="lg" motifPlacement="right">
             <div className="space-y-10">
               <p className="oc-eyebrow">{dict.home.categoriesTitle}</p>
               {(
@@ -266,8 +276,8 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
           <div className="mt-6 space-y-2 text-sm text-white/90">
             <p>{dict.homeExtra.phone}</p>
             <p>
-              <a href="mailto:gallerycarpets19@gmail.com" className="hover:text-white">
-                gallerycarpets19@gmail.com
+              <a href="mailto:info@origincarpets.com" className="hover:text-white">
+                info@origincarpets.com
               </a>
             </p>
             <p>{dict.homeExtra.address}</p>

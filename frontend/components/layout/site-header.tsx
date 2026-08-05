@@ -5,6 +5,7 @@ import { BrandLogo } from '@/components/brand/brand-logo';
 import type { Route } from 'next';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { DecorationMotif } from '@/components/home/decoration-motif';
 import { AccountNav, AccountNavMobile } from '@/components/layout/account-nav';
 import { CartLink } from '@/components/cart/cart-link';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
@@ -30,10 +31,12 @@ export function SiteHeader() {
 
   return (
     <header
-      className="sticky top-0 z-40 border-b border-[var(--oc-line)] backdrop-blur-lg"
+      className="relative sticky top-0 z-40 overflow-hidden border-b border-[var(--oc-line)] backdrop-blur-lg"
       style={{ backgroundColor: 'color-mix(in srgb, var(--oc-bg) 55%, transparent)' }}
     >
-      <div className="oc-container">
+      {/* Contained behind the logo — sized to sit within the bar height */}
+      <DecorationMotif size="xs" placement="center" opacity={0.34} />
+      <div className="oc-container relative z-10">
         <div className="hidden items-center justify-between py-8 lg:grid lg:grid-cols-[1fr_auto_1fr]">
           <nav className="flex items-center gap-8">
             {primaryNav.map((item) => (

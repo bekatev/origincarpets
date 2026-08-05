@@ -319,7 +319,7 @@ export const storefrontTranslations = {
       curator4: 'Professional stories and tips around carpets',
       curator5: '30+ years of experience',
       phone: 'T. +995 577 405 311',
-      email: 'E. gallerycarpets19@gmail.com',
+      email: 'E. info@origincarpets.com',
       address: 'A. 8/10 Erekle II street, Tbilisi, Georgia'
     }
   },
@@ -642,7 +642,7 @@ export const storefrontTranslations = {
       curator4: 'პროფესიონალური ისტორიები და რჩევები ხალიჩებზე',
       curator5: '30+ წლის გამოცდილება',
       phone: 'ტ. +995 577 405 311',
-      email: 'ელ. gallerycarpets19@gmail.com',
+      email: 'ელ. info@origincarpets.com',
       address: 'მ. ერეკლე II-ის ქ. 8/10, თბილისი, საქართველო'
     }
   }

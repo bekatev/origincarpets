@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
+import { DecorationMotif } from '@/components/home/decoration-motif';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { stockImages } from '@/lib/stock-images';
 
@@ -59,7 +60,9 @@ export function AtHomeSlider() {
 
   return (
     <section id="at-home" className="relative scroll-mt-28 overflow-hidden bg-[var(--oc-bg)]">
-      <div className="oc-container oc-section">
+      <DecorationMotif size="hero" placement="left" />
+      <DecorationMotif size="xl" placement="bottom-right" opacity={0.2} />
+      <div className="oc-container oc-section relative z-10">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="oc-heading-sm">{dict.home.atHomeTitle}</h2>
           <p className="oc-body mx-auto mt-4 max-w-md">{dict.home.atHomeBody}</p>

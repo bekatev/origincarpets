@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { DecorationDivider } from '@/components/home/decoration-divider';
+import { DecorationMotif } from '@/components/home/decoration-motif';
 import { FacebookIcon, InstagramIcon } from '@/components/icons/social-icons';
 import { MastercardIcon, VisaIcon } from '@/components/icons/payment-icons';
 import { useI18n } from '@/components/providers/i18n-provider';
@@ -23,9 +24,11 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-[var(--oc-bg)]">
+    <footer className="relative overflow-hidden bg-[var(--oc-bg)]">
       <DecorationDivider />
-      <div className="oc-container py-16 sm:py-20">
+      <DecorationMotif size="hero" placement="bottom-right" />
+      <DecorationMotif size="lg" placement="top-left" opacity={0.18} />
+      <div className="oc-container relative z-10 py-16 sm:py-20">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5 lg:gap-8">
           <div>
             <p className="oc-eyebrow mb-5">{f.aboutUs}</p>
@@ -116,7 +119,7 @@ export function SiteFooter() {
                   </a>
                 </li>
                 <li>
-                  <a href="mailto:gallerycarpets19@gmail.com" className="hover:text-[var(--oc-ink)]">
+                  <a href="mailto:info@origincarpets.com" className="hover:text-[var(--oc-ink)]">
                     {dict.homeExtra.email}
                   </a>
                 </li>
@@ -147,7 +150,7 @@ export function SiteFooter() {
                 </a>
               </div>
               <a
-                href="mailto:gallerycarpets19@gmail.com?subject=Virtual%20Appointment%20Request"
+                href="mailto:info@origincarpets.com?subject=Virtual%20Appointment%20Request"
                 className="oc-link mt-6 inline-flex text-[10px] font-medium uppercase tracking-[0.22em]"
               >
                 {f.bookAppointment}

@@ -5,6 +5,7 @@ import { type ReactNode } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { CarpetBackdrop } from '@/components/home/carpet-backdrop';
 import { DecorationDivider } from '@/components/home/decoration-divider';
+import { DecorationMotif, type MotifPlacement } from '@/components/home/decoration-motif';
 import { useI18n } from '@/components/providers/i18n-provider';
 import {
   featuredGuests,
@@ -94,33 +95,40 @@ function SectionIntro({
   eyebrow,
   title,
   lead,
-  className
+  className,
+  motifPlacement = 'top-right',
+  motifSize = 'md'
 }: {
   eyebrow: string;
   title: string;
   lead?: string;
   className?: string;
+  motifPlacement?: MotifPlacement;
+  motifSize?: 'sm' | 'md' | 'lg';
 }) {
   return (
     <div
       className={cn(
-        'mx-auto mb-10 max-w-2xl px-5 py-6 text-center sm:mb-12 sm:px-8 sm:py-7',
+        'relative isolate mx-auto mb-10 max-w-2xl overflow-hidden px-5 py-6 text-center sm:mb-12 sm:px-8 sm:py-7',
         'bg-[#f7f0e6] shadow-[var(--oc-shadow-lift)] ring-1 ring-[#2a1c18]/12',
         'dark:bg-[var(--oc-paper)] dark:ring-[var(--oc-ink)]/10',
         className
       )}
     >
-      <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#6b4f42] dark:text-[var(--oc-muted)]">
-        {eyebrow}
-      </p>
-      <h2 className="mt-2 font-display text-2xl text-[#1c1210] sm:text-3xl lg:text-[2.15rem] dark:text-[var(--oc-ink)]">
-        {title}
-      </h2>
-      {lead ? (
-        <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-[#3d2a22] sm:text-[15px] dark:text-[var(--oc-muted)]">
-          {lead}
+      <DecorationMotif size={motifSize} placement={motifPlacement} />
+      <div className="relative z-10">
+        <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#6b4f42] dark:text-[var(--oc-muted)]">
+          {eyebrow}
         </p>
-      ) : null}
+        <h2 className="mt-2 font-display text-2xl text-[#1c1210] sm:text-3xl lg:text-[2.15rem] dark:text-[var(--oc-ink)]">
+          {title}
+        </h2>
+        {lead ? (
+          <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-[#3d2a22] sm:text-[15px] dark:text-[var(--oc-muted)]">
+            {lead}
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -292,21 +300,27 @@ function FeaturedGuestBlock({
 
       <div
         className={cn(
-          'max-w-xl bg-[#f7f0e6] px-6 py-7 shadow-[var(--oc-shadow-lift)] ring-1 ring-[#2a1c18]/12 sm:px-8 sm:py-8',
+          'relative isolate max-w-xl overflow-hidden bg-[#f7f0e6] px-6 py-7 shadow-[var(--oc-shadow-lift)] ring-1 ring-[#2a1c18]/12 sm:px-8 sm:py-8',
           'dark:bg-[var(--oc-paper)] dark:ring-[var(--oc-ink)]/10',
           reverse ? 'lg:ml-auto' : ''
         )}
       >
-        <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#6b4f42] dark:text-[var(--oc-muted)]">
-          {role}
-        </p>
-        <h3 className="mt-3 font-display text-3xl tracking-[-0.02em] text-[#1c1210] sm:text-4xl dark:text-[var(--oc-ink)]">
-          {name}
-        </h3>
-        <div className="mt-5 h-px w-16 bg-[#1c1210]/25 dark:bg-[var(--oc-ink)]/25" />
-        <p className="mt-5 font-display text-xl leading-relaxed text-[#2a1c18] sm:text-2xl dark:text-[var(--oc-ink)]">
-          {caption}
-        </p>
+        <DecorationMotif
+          size="lg"
+          placement={reverse ? 'bottom-left' : 'bottom-right'}
+        />
+        <div className="relative z-10">
+          <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#6b4f42] dark:text-[var(--oc-muted)]">
+            {role}
+          </p>
+          <h3 className="mt-3 font-display text-3xl tracking-[-0.02em] text-[#1c1210] sm:text-4xl dark:text-[var(--oc-ink)]">
+            {name}
+          </h3>
+          <div className="mt-5 h-px w-16 bg-[#1c1210]/25 dark:bg-[var(--oc-ink)]/25" />
+          <p className="mt-5 font-display text-xl leading-relaxed text-[#2a1c18] sm:text-2xl dark:text-[var(--oc-ink)]">
+            {caption}
+          </p>
+        </div>
       </div>
     </motion.article>
   );
@@ -427,7 +441,12 @@ export function AboutPageContent() {
               strength={0.2}
             >
               {groupIndex === 0 ? (
-                <SectionIntro eyebrow={copy.galleryEyebrow} title={copy.galleryTitle} />
+                <SectionIntro
+                  eyebrow={copy.galleryEyebrow}
+                  title={copy.galleryTitle}
+                  motifPlacement="top-right"
+                  motifSize="md"
+                />
               ) : null}
 
               <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 sm:gap-12">
@@ -459,6 +478,8 @@ export function AboutPageContent() {
           eyebrow={copy.guestsEyebrow}
           title={copy.guestsTitle}
           lead={copy.guestsLead}
+          motifPlacement="bottom-left"
+          motifSize="lg"
         />
 
         <div className="mx-auto flex max-w-5xl flex-col gap-12 lg:gap-16">
@@ -472,7 +493,12 @@ export function AboutPageContent() {
 
       {/* 3. Guest archive — clean aspect-aware grid */}
       <AboutSection backdrop={stockImages.guestBookBackdrop} strength={0.18}>
-        <SectionIntro eyebrow={copy.guestGalleryEyebrow} title={copy.guestGalleryTitle} />
+        <SectionIntro
+          eyebrow={copy.guestGalleryEyebrow}
+          title={copy.guestGalleryTitle}
+          motifPlacement="right"
+          motifSize="lg"
+        />
 
         <div className="mx-auto grid max-w-5xl grid-cols-2 items-start gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5">
           {guestGallery.map((photo, i) => {
@@ -499,7 +525,13 @@ export function AboutPageContent() {
 
       {/* 4. Staff */}
       <AboutSection backdrop={stockImages.carpets.layered} strength={0.18}>
-        <SectionIntro eyebrow={copy.staffEyebrow} title={copy.staffTitle} lead={copy.staffLead} />
+        <SectionIntro
+          eyebrow={copy.staffEyebrow}
+          title={copy.staffTitle}
+          lead={copy.staffLead}
+          motifPlacement="top-left"
+          motifSize="md"
+        />
 
         {teamLead ? (
           <ContainedPhoto
