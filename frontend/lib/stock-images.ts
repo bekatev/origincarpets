@@ -30,7 +30,9 @@ export const stockImages = {
     /** About Us — Selected features section */
     aboutFeatures: '/stock/editorial/web/_IG_1637.jpg',
     /** Homepage featured collection backdrop */
-    featured: '/stock/editorial/featured-collection.png'
+    featured: '/stock/editorial/featured-collection.png',
+    /** Homepage editorial / Caucasus intro backdrop */
+    editorial: '/stock/editorial/editorial-collection.png'
   },
   /**
    * High-res editorial plates for tall About sections.

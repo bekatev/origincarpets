@@ -127,7 +127,13 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
 
       {/* Editorial */}
       <section id="collection" className="relative oc-section overflow-hidden scroll-mt-28">
-        <CarpetBackdrop src={stockImages.carpets.layered} tone="paper" strength={0} intensity={110} />
+        <CarpetBackdrop
+          src={stockImages.carpets.editorial}
+          tone="paper"
+          strength={0}
+          rotate={90}
+          zoom={1.2}
+        />
         <ParallaxContent intensity={32} className="oc-container">
           <div className="mx-auto max-w-3xl text-center lg:mx-0 lg:max-w-2xl lg:text-left">
             <TextPanel
