@@ -372,18 +372,14 @@ function ContainedPhoto({
 
 function AboutSection({
   children,
-  backdrop,
-  strength = 0.22
+  backdrop
 }: {
   children: ReactNode;
   backdrop: string;
-  strength?: number;
 }) {
   return (
     <section className="relative overflow-hidden py-12 sm:py-14 lg:py-16">
-      <CarpetBackdrop src={backdrop} tone="paper" strength={strength} />
-      {/* Stronger wash in light mode so dark type never sits on busy carpet */}
-      <div className="pointer-events-none absolute inset-0 bg-[#ebe0d0]/78 dark:bg-[var(--oc-bg)]/60" />
+      <CarpetBackdrop src={backdrop} tone="paper" strength={0} />
       <div className="oc-container relative">{children}</div>
     </section>
   );
@@ -401,8 +397,7 @@ export function AboutPageContent() {
     <main>
       {/* Compact cinematic hero — no scroll parallax */}
       <section className="relative overflow-hidden py-14 sm:py-16 lg:py-20">
-        <CarpetBackdrop src={stockImages.carpets.jewel} tone="ink" strength={0.62} />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[var(--oc-ink)]/40 via-[var(--oc-ink)]/20 to-[var(--oc-bg)]" />
+        <CarpetBackdrop src={stockImages.carpets.jewel} tone="ink" strength={0} />
 
         <div className="oc-container relative">
           <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
@@ -438,7 +433,6 @@ export function AboutPageContent() {
             {groupIndex > 0 ? <DecorationDivider /> : null}
             <AboutSection
               backdrop={videoBackdrops[groupIndex % videoBackdrops.length]}
-              strength={0.2}
             >
               {groupIndex === 0 ? (
                 <SectionIntro
@@ -473,7 +467,7 @@ export function AboutPageContent() {
       <DecorationDivider />
 
       {/* 2. Distinguished guests */}
-      <AboutSection backdrop={stockImages.carpets.lattice} strength={0.18}>
+      <AboutSection backdrop={stockImages.carpets.lattice}>
         <SectionIntro
           eyebrow={copy.guestsEyebrow}
           title={copy.guestsTitle}
@@ -492,7 +486,7 @@ export function AboutPageContent() {
       <DecorationDivider />
 
       {/* 3. Guest archive — clean aspect-aware grid */}
-      <AboutSection backdrop={stockImages.guestBookBackdrop} strength={0.18}>
+      <AboutSection backdrop={stockImages.guestBookBackdrop}>
         <SectionIntro
           eyebrow={copy.guestGalleryEyebrow}
           title={copy.guestGalleryTitle}
@@ -524,7 +518,7 @@ export function AboutPageContent() {
       <DecorationDivider />
 
       {/* 4. Staff */}
-      <AboutSection backdrop={stockImages.carpets.layered} strength={0.18}>
+      <AboutSection backdrop={stockImages.carpets.layered}>
         <SectionIntro
           eyebrow={copy.staffEyebrow}
           title={copy.staffTitle}

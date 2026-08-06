@@ -59,7 +59,6 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             quality={90}
           />
         </ParallaxMedia>
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1a1210]/80 via-[#1a1210]/35 to-[#1a1210]/15" />
         <ParallaxContent
           intensity={48}
           className="oc-container flex min-h-[52vh] flex-col items-center justify-end pb-12 pt-24 text-center sm:min-h-[56vh] sm:pb-16 lg:min-h-[58vh]"
@@ -91,7 +90,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             <CarpetBackdrop
               src={stockImages.carpets.lattice}
               tone="paper"
-              strength={0.28}
+              strength={0}
               intensity={100}
             />
             <ParallaxContent intensity={28} className="oc-container">
@@ -127,7 +126,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
 
       {/* Editorial */}
       <section id="collection" className="relative oc-section overflow-hidden scroll-mt-28">
-        <CarpetBackdrop src={stockImages.carpets.layered} tone="paper" strength={0.28} intensity={110} />
+        <CarpetBackdrop src={stockImages.carpets.layered} tone="paper" strength={0} intensity={110} />
         <ParallaxContent intensity={32} className="oc-container">
           <div className="mx-auto max-w-3xl text-center lg:mx-0 lg:max-w-2xl lg:text-left">
             <TextPanel
@@ -172,7 +171,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
 
       {/* About */}
       <section id="about-us" className="relative oc-section overflow-hidden scroll-mt-28">
-        <CarpetBackdrop src={stockImages.carpets.jewel} tone="paper" strength={0.28} intensity={105} />
+        <CarpetBackdrop src={stockImages.carpets.jewel} tone="paper" strength={0} intensity={105} />
         <ParallaxContent
           intensity={28}
           className="oc-container grid items-center gap-10 lg:grid-cols-2 lg:gap-16"
@@ -210,7 +209,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
 
       {/* Carpet / Kilim */}
       <section id="carpet-origin" className="relative oc-section overflow-hidden scroll-mt-28">
-        <CarpetBackdrop src={stockImages.carpets.heroCarpet} tone="paper" strength={0.28} intensity={100} />
+        <CarpetBackdrop src={stockImages.carpets.heroCarpet} tone="paper" strength={0} intensity={100} />
         <ParallaxContent
           intensity={28}
           className="oc-container grid items-center gap-14 lg:grid-cols-2 lg:gap-20"
@@ -262,7 +261,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
         <CarpetBackdrop
           src={stockImages.carpets.lions}
           tone="ink"
-          strength={0.55}
+          strength={0}
           position="center 40%"
           intensity={115}
         />
