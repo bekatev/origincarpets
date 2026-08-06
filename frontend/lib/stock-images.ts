@@ -28,7 +28,9 @@ export const stockImages = {
     lions: '/stock/editorial/web/_IG_1626.jpg',
     heroCarpet: '/stock/editorial/web/_IG_1633.jpg',
     /** About Us — Selected features section */
-    aboutFeatures: '/stock/editorial/web/_IG_1637.jpg'
+    aboutFeatures: '/stock/editorial/web/_IG_1637.jpg',
+    /** Homepage featured collection backdrop */
+    featured: '/stock/editorial/featured-collection.png'
   },
   /**
    * High-res editorial plates for tall About sections.

@@ -88,10 +88,11 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
         <>
           <section id="featured" className="relative oc-section overflow-hidden scroll-mt-28">
             <CarpetBackdrop
-              src={stockImages.carpets.lattice}
+              src={stockImages.carpets.featured}
               tone="paper"
               strength={0}
-              intensity={100}
+              rotate={90}
+              zoom={1.2}
             />
             <ParallaxContent intensity={28} className="oc-container">
               <div className="mx-auto max-w-2xl text-center">
