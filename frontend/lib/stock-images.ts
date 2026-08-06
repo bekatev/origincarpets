@@ -34,7 +34,11 @@ export const stockImages = {
     /** Homepage editorial / Caucasus intro backdrop */
     editorial: '/stock/editorial/editorial-collection.png',
     /** Homepage gallery history backdrop */
-    history: '/stock/editorial/gallery-history.png'
+    history: '/stock/editorial/gallery-history.png',
+    /** Homepage carpet technologies section image */
+    technologies: '/stock/editorial/carpet-technologies.png',
+    /** Homepage contact section backdrop (gallery interior) */
+    contact: '/stock/editorial/carpet-technologies.png'
   },
   /**
    * High-res editorial plates for tall About sections.

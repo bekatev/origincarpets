@@ -1,10 +1,18 @@
 /** About Us — guests & staff photo galleries */
 
+export type FeaturedGuestImage = {
+  src: string;
+  width: number;
+  height: number;
+};
+
 export type FeaturedGuest = {
   id: string;
   src: string;
   width: number;
   height: number;
+  /** Extra photos for a multi-image grid (includes primary when set). */
+  images?: FeaturedGuestImage[];
   nameEn: string;
   nameKa: string;
   roleEn: string;
@@ -29,6 +37,10 @@ export const featuredGuests: FeaturedGuest[] = [
     src: '/guests/eweerweee.jpg',
     width: 540,
     height: 530,
+    images: [
+      { src: '/guests/eweerweee.jpg', width: 540, height: 530 },
+      { src: '/guests/sharon-stone-street.png', width: 328, height: 664 }
+    ],
     nameEn: 'Sharon Stone',
     nameKa: 'შერონ სთოუნი',
     roleEn: 'Hollywood actress',
@@ -41,6 +53,10 @@ export const featuredGuests: FeaturedGuest[] = [
     src: '/guests/john-kerry.jpg',
     width: 960,
     height: 541,
+    images: [
+      { src: '/guests/john-kerry.jpg', width: 960, height: 541 },
+      { src: '/guests/john-kerry-gallery.png', width: 678, height: 448 }
+    ],
     nameEn: 'John Kerry',
     nameKa: 'ჯონ კერი',
     roleEn: 'Attorney and former United States Secretary of State',
@@ -50,39 +66,25 @@ export const featuredGuests: FeaturedGuest[] = [
   },
 ];
 
-/** Additional guest moments — clean baseline JPEGs with stable paths. */
+/** Additional guest moments — clean baseline JPEGs with stable paths.
+ *  Featured-guest photos (Sharon Stone, John Kerry) live only in `featuredGuests`.
+ */
 export const guestGallery: GalleryPhoto[] = [
   {
-    id: 'guest-outdoor',
-    src: '/guests/guest-outdoor.jpg',
-    width: 720,
-    height: 960,
-    altEn: 'Sharon Stone at an outdoor Origin Carpets presentation',
-    altKa: 'შერონ სთოუნი Origin Carpets-ის ღია პრეზენტაციაზე'
-  },
-  {
-    id: 'guest-kilim-bag',
-    src: '/guests/guest-kilim-bag.jpg',
-    width: 331,
-    height: 670,
-    altEn: 'Sharon Stone outside the gallery with a kilim bag',
-    altKa: 'შერონ სთოუნი გალერეასთან კილიმის ჩანთით'
-  },
-  {
-    id: 'guest-portrait',
-    src: '/guests/sharon-stone.jpg',
+    id: 'guest-book-gallery',
+    src: '/guests/guest-book-gallery.png',
     width: 342,
     height: 640,
-    altEn: 'Sharon Stone portrait at Origin Carpets',
-    altKa: 'შერონ სთოუნის პორტრეტი Origin Carpets-ში'
+    altEn: 'Guests viewing carpets inside Origin Carpets gallery',
+    altKa: 'სტუმრები Origin Carpets-ის გალერეაში ხალიჩებს ათვალიერებენ'
   },
   {
-    id: 'guest-kerry-street',
-    src: '/guests/guest-kerry-street.jpg',
-    width: 552,
-    height: 366,
-    altEn: 'John Kerry walking past Origin Carpets gallery',
-    altKa: 'ჯონ კერი Origin Carpets-ის გალერეასთან'
+    id: 'guest-book-outdoor',
+    src: '/guests/guest-book-outdoor.png',
+    width: 720,
+    height: 960,
+    altEn: 'Guests at an outdoor Origin Carpets presentation',
+    altKa: 'სტუმრები Origin Carpets-ის ღია პრეზენტაციაზე'
   },
   {
     id: 'guest-visit',

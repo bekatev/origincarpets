@@ -260,11 +260,17 @@ function FeaturedGuestBlock({
   locale: string;
 }) {
   const reduceMotion = useReducedMotion();
-  const reverse = index % 2 === 1;
-  const isPortrait = guest.height > guest.width * 1.15;
+  const photos =
+    guest.images && guest.images.length > 0
+      ? guest.images
+      : [{ src: guest.src, width: guest.width, height: guest.height }];
   const name = locale === 'ka' ? guest.nameKa : guest.nameEn;
   const role = locale === 'ka' ? guest.roleKa : guest.roleEn;
   const caption = locale === 'ka' ? guest.captionKa : guest.captionEn;
+  const motifPlacement = index % 2 === 0 ? 'bottom-right' : 'bottom-left';
+  /** Prefer a landscape frame when both shots are wide; otherwise a shared portrait frame. */
+  const allLandscape = photos.every((photo) => photo.width >= photo.height);
+  const frameAspect = allLandscape ? 'aspect-[3/2]' : 'aspect-[3/4]';
 
   return (
     <motion.article
@@ -272,43 +278,15 @@ function FeaturedGuestBlock({
       whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-10% 0px' }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      className={cn(
-        'grid items-center gap-6 lg:gap-12',
-        isPortrait
-          ? 'lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]'
-          : 'lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]',
-        reverse && 'lg:[&>*:first-child]:order-2'
-      )}
+      className="mx-auto w-full max-w-4xl"
     >
       <div
         className={cn(
-          'relative overflow-hidden shadow-[var(--oc-shadow-lift)] ring-1 ring-[#2a1c18]/12 dark:ring-[var(--oc-ink)]/10',
-          isPortrait ? 'mx-auto w-full max-w-[320px] lg:mx-0' : 'w-full'
-        )}
-        style={{ backgroundColor: PHOTO_FRAME }}
-      >
-        <Image
-          src={guest.src}
-          alt={name}
-          width={guest.width}
-          height={guest.height}
-          className="h-auto w-full"
-          sizes={isPortrait ? '(max-width: 1024px) 320px, 360px' : '(max-width: 1024px) 100vw, 640px'}
-          priority={index === 0}
-        />
-      </div>
-
-      <div
-        className={cn(
-          'relative isolate max-w-xl overflow-hidden bg-[#f7f0e6] px-6 py-7 shadow-[var(--oc-shadow-lift)] ring-1 ring-[#2a1c18]/12 sm:px-8 sm:py-8',
-          'dark:bg-[var(--oc-paper)] dark:ring-[var(--oc-ink)]/10',
-          reverse ? 'lg:ml-auto' : ''
+          'relative isolate mx-auto max-w-2xl overflow-hidden bg-[#f7f0e6] px-6 py-8 text-center shadow-[var(--oc-shadow-lift)] ring-1 ring-[#2a1c18]/12 sm:px-10 sm:py-9',
+          'dark:bg-[var(--oc-paper)] dark:ring-[var(--oc-ink)]/10'
         )}
       >
-        <DecorationMotif
-          size="lg"
-          placement={reverse ? 'bottom-left' : 'bottom-right'}
-        />
+        <DecorationMotif size="md" placement={motifPlacement} />
         <div className="relative z-10">
           <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#6b4f42] dark:text-[var(--oc-muted)]">
             {role}
@@ -316,11 +294,42 @@ function FeaturedGuestBlock({
           <h3 className="mt-3 font-display text-3xl tracking-[-0.02em] text-[#1c1210] sm:text-4xl dark:text-[var(--oc-ink)]">
             {name}
           </h3>
-          <div className="mt-5 h-px w-16 bg-[#1c1210]/25 dark:bg-[var(--oc-ink)]/25" />
-          <p className="mt-5 font-display text-xl leading-relaxed text-[#2a1c18] sm:text-2xl dark:text-[var(--oc-ink)]">
+          <div className="mx-auto mt-5 h-px w-16 bg-[#1c1210]/25 dark:bg-[var(--oc-ink)]/25" />
+          <p className="mx-auto mt-5 max-w-xl font-display text-xl leading-relaxed text-[#2a1c18] sm:text-2xl dark:text-[var(--oc-ink)]">
             {caption}
           </p>
         </div>
+      </div>
+
+      <div
+        className={cn(
+          'mt-6 grid gap-3 sm:mt-8 sm:gap-4',
+          photos.length > 1 ? 'grid-cols-2' : 'mx-auto max-w-xl grid-cols-1'
+        )}
+      >
+        {photos.map((photo, photoIndex) => (
+          <div
+            key={photo.src}
+            className={cn(
+              'relative overflow-hidden shadow-[var(--oc-shadow-lift)] ring-1 ring-[#2a1c18]/12 dark:ring-[var(--oc-ink)]/10',
+              frameAspect
+            )}
+            style={{ backgroundColor: PHOTO_FRAME }}
+          >
+            <Image
+              src={photo.src}
+              alt={name}
+              fill
+              className="object-cover object-center"
+              sizes={
+                photos.length > 1
+                  ? '(max-width: 1024px) 50vw, 420px'
+                  : '(max-width: 1024px) 100vw, 560px'
+              }
+              priority={index === 0 && photoIndex === 0}
+            />
+          </div>
+        ))}
       </div>
     </motion.article>
   );
@@ -370,16 +379,9 @@ function ContainedPhoto({
   );
 }
 
-function AboutSection({
-  children,
-  backdrop
-}: {
-  children: ReactNode;
-  backdrop: string;
-}) {
+function AboutSection({ children }: { children: ReactNode }) {
   return (
-    <section className="relative overflow-hidden py-12 sm:py-14 lg:py-16">
-      <CarpetBackdrop src={backdrop} tone="paper" strength={0} />
+    <section className="relative overflow-hidden bg-[var(--oc-bg)] py-12 sm:py-14 lg:py-16">
       <div className="oc-container relative">{children}</div>
     </section>
   );
@@ -391,49 +393,43 @@ export function AboutPageContent() {
   const reduceMotion = useReducedMotion();
   const [teamLead, ...teamRest] = staffPhotos;
   const videoChunks = chunkItems(aboutMediaItems, 3);
-  const videoBackdrops = stockImages.aboutVideoBackdrops;
 
   return (
     <main>
-      {/* Compact cinematic hero — no scroll parallax */}
-      <section className="relative overflow-hidden py-14 sm:py-16 lg:py-20">
-        <CarpetBackdrop src={stockImages.carpets.jewel} tone="ink" strength={0} />
-
-        <div className="oc-container relative">
+      <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">
+        <CarpetBackdrop src={stockImages.carpets.jewel} tone="paper" strength={0} />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1a1210]/55 via-[#1a1210]/28 to-[#1a1210]/12" />
+        <div className="oc-container relative z-10">
           <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-            <div className="bg-[var(--oc-ink)]/55 px-5 py-7 backdrop-blur-md sm:px-8 sm:py-8">
-              <motion.p
-                initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="text-[11px] font-medium uppercase tracking-[0.32em] text-white/80"
-              >
-                {copy.eyebrow}
-              </motion.p>
-              <motion.h1
-                initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.65, delay: 0.06 }}
-                className="mt-5 font-display text-[1.85rem] leading-[1.15] tracking-[-0.02em] text-white sm:text-4xl lg:text-[2.75rem]"
-              >
-                {copy.title}
-              </motion.h1>
-            </div>
+            <motion.p
+              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-[11px] font-medium uppercase tracking-[0.32em] text-white/70"
+            >
+              {copy.eyebrow}
+            </motion.p>
+            <motion.h1
+              initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, delay: 0.06 }}
+              className="mt-5 font-display text-[1.85rem] leading-[1.15] tracking-[-0.02em] text-white sm:text-4xl lg:text-[2.75rem]"
+            >
+              {copy.title}
+            </motion.h1>
           </div>
         </div>
       </section>
 
       <DecorationDivider />
 
-      {/* 1. Videos — short groups, each with its own high-res carpet plate */}
+      {/* 1. Videos */}
       {videoChunks.map((group, groupIndex) => {
         const startIndex = groupIndex * 3;
         return (
           <div key={`video-group-${groupIndex}`}>
             {groupIndex > 0 ? <DecorationDivider /> : null}
-            <AboutSection
-              backdrop={videoBackdrops[groupIndex % videoBackdrops.length]}
-            >
+            <AboutSection>
               {groupIndex === 0 ? (
                 <SectionIntro
                   eyebrow={copy.galleryEyebrow}
@@ -467,7 +463,7 @@ export function AboutPageContent() {
       <DecorationDivider />
 
       {/* 2. Distinguished guests */}
-      <AboutSection backdrop={stockImages.carpets.lattice}>
+      <AboutSection>
         <SectionIntro
           eyebrow={copy.guestsEyebrow}
           title={copy.guestsTitle}
@@ -486,7 +482,7 @@ export function AboutPageContent() {
       <DecorationDivider />
 
       {/* 3. Guest archive — clean aspect-aware grid */}
-      <AboutSection backdrop={stockImages.guestBookBackdrop}>
+      <AboutSection>
         <SectionIntro
           eyebrow={copy.guestGalleryEyebrow}
           title={copy.guestGalleryTitle}
@@ -518,7 +514,7 @@ export function AboutPageContent() {
       <DecorationDivider />
 
       {/* 4. Staff */}
-      <AboutSection backdrop={stockImages.carpets.layered}>
+      <AboutSection>
         <SectionIntro
           eyebrow={copy.staffEyebrow}
           title={copy.staffTitle}

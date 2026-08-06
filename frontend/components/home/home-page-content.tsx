@@ -59,9 +59,10 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             quality={90}
           />
         </ParallaxMedia>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1a1210]/55 via-[#1a1210]/28 to-[#1a1210]/12" />
         <ParallaxContent
           intensity={48}
-          className="oc-container flex min-h-[52vh] flex-col items-center justify-end pb-12 pt-24 text-center sm:min-h-[56vh] sm:pb-16 lg:min-h-[58vh]"
+          className="oc-container relative z-10 flex min-h-[52vh] flex-col items-center justify-end pb-12 pt-24 text-center sm:min-h-[56vh] sm:pb-16 lg:min-h-[58vh]"
         >
           <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-white/70">
             {dict.home.heroSubtitle}
@@ -86,14 +87,10 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
       {/* Featured */}
       {featured.length > 0 && (
         <>
-          <section id="featured" className="relative oc-section overflow-hidden scroll-mt-28">
-            <CarpetBackdrop
-              src={stockImages.carpets.featured}
-              tone="paper"
-              strength={0}
-              rotate={90}
-              zoom={1.2}
-            />
+          <section
+            id="featured"
+            className="relative oc-section overflow-hidden scroll-mt-28 bg-[var(--oc-bg)]"
+          >
             <ParallaxContent intensity={28} className="oc-container">
               <div className="mx-auto max-w-2xl text-center">
                 <TextPanel
@@ -198,45 +195,58 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
       <DecorationDivider />
 
       {/* Carpet / Kilim */}
-      <section id="carpet-origin" className="relative oc-section overflow-hidden scroll-mt-28">
-        <CarpetBackdrop src={stockImages.carpets.heroCarpet} tone="paper" strength={0} intensity={100} />
-        <ParallaxContent
-          intensity={28}
-          className="oc-container grid items-center gap-14 lg:grid-cols-2 lg:gap-20"
-        >
-          <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[16/10]">
+      <section
+        id="carpet-origin"
+        className="relative oc-section overflow-hidden scroll-mt-28 bg-[var(--oc-bg)]"
+      >
+        <ParallaxContent intensity={28} className="oc-container">
+          <div className="mx-auto max-w-2xl text-center">
+            <TextPanel
+              motif
+              motifSize="md"
+              motifPlacement="top-right"
+              className="inline-block px-8 py-5 sm:px-10 sm:py-6"
+            >
+              <h2 className="oc-heading-sm">{dict.home.categoriesTitle}</h2>
+            </TextPanel>
+          </div>
+
+          <div className="mx-auto mt-12 grid max-w-5xl gap-8 sm:mt-14 sm:grid-cols-3 sm:gap-x-10 sm:gap-y-10">
+            {(
+              [
+                ['carpetTitle', 'carpetBody'],
+                ['kilimTitle', 'kilimBody'],
+                ['djidjimTitle', 'djidjimBody'],
+                ['suzaniTitle', 'suzaniBody'],
+                ['soumakTitle', 'soumakBody']
+              ] as const
+            ).map(([titleKey, bodyKey]) => (
+              <TextPanel
+                key={titleKey}
+                motif
+                motifSize="sm"
+                motifPlacement="bottom-right"
+                className="h-full"
+              >
+                <h3 className="font-display text-2xl text-[var(--oc-ink)] sm:text-3xl">
+                  {dict.home[titleKey]}
+                </h3>
+                <p className="oc-body mt-4">{dict.home[bodyKey]}</p>
+              </TextPanel>
+            ))}
+          </div>
+
+          <div className="relative mx-auto mt-12 aspect-[16/10] w-full max-w-5xl overflow-hidden sm:mt-16 sm:aspect-[21/9]">
             <ParallaxMedia intensity={55}>
               <Image
                 src={stockImages.gallery}
                 alt="Interior of Origin Carpets gallery with handmade rugs on display"
                 fill
                 className="object-cover object-center"
-                sizes="(max-width: 1024px) 100vw, 50vw"
+                sizes="(max-width: 1024px) 100vw, 1024px"
               />
             </ParallaxMedia>
           </div>
-          <TextPanel motif motifSize="lg" motifPlacement="right">
-            <div className="space-y-10">
-              <p className="oc-eyebrow">{dict.home.categoriesTitle}</p>
-              {(
-                [
-                  ['carpetTitle', 'carpetBody'],
-                  ['kilimTitle', 'kilimBody'],
-                  ['djidjimTitle', 'djidjimBody'],
-                  ['suzaniTitle', 'suzaniBody'],
-                  ['soumakTitle', 'soumakBody']
-                ] as const
-              ).map(([titleKey, bodyKey], index) => (
-                <div key={titleKey}>
-                  {index > 0 ? <div className="mb-10 h-px w-16 bg-[var(--oc-line)]" /> : null}
-                  <h3 className="font-display text-2xl text-[var(--oc-ink)] sm:text-3xl">
-                    {dict.home[titleKey]}
-                  </h3>
-                  <p className="oc-body mt-4">{dict.home[bodyKey]}</p>
-                </div>
-              ))}
-            </div>
-          </TextPanel>
         </ParallaxContent>
       </section>
 
@@ -249,13 +259,15 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
       {/* Contact */}
       <section id="contact-us" className="relative oc-section overflow-hidden scroll-mt-28">
         <CarpetBackdrop
-          src={stockImages.carpets.lions}
+          src={stockImages.carpets.contact}
           tone="ink"
-          strength={0}
-          position="center 40%"
-          intensity={115}
+          strength={0.45}
+          position="center"
         />
-        <ParallaxContent intensity={36} className="oc-container-narrow text-center text-white">
+        <ParallaxContent
+          intensity={36}
+          className="oc-container-narrow relative z-10 text-center text-white"
+        >
           <div className="flex justify-center [&_.font-bold]:!text-white [&_.font-light]:!text-white [&_span.flex]:!border-white/50">
             <BrandLogo size="md" />
           </div>
