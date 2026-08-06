@@ -135,7 +135,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
           zoom={1.2}
         />
         <ParallaxContent intensity={32} className="oc-container">
-          <div className="mx-auto max-w-3xl text-center lg:mx-0 lg:max-w-2xl lg:text-left">
+          <div className="mx-auto max-w-3xl text-center">
             <TextPanel
               motif
               motifSize="md"
@@ -147,20 +147,9 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
               </h2>
             </TextPanel>
           </div>
-          <div className="mt-16 grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-            <div className="relative aspect-[4/5] overflow-hidden sm:aspect-[4/3]">
-              <ParallaxMedia intensity={70}>
-                <Image
-                  src={stockImages.collection}
-                  alt="Handmade Caucasian and Oriental carpet collection at Origin Carpets"
-                  fill
-                  className="object-cover object-center"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
-              </ParallaxMedia>
-            </div>
-            <TextPanel motif motifSize="lg" motifPlacement="top-left" className="max-w-xl">
-              <div className="space-y-6">
+          <div className="mx-auto mt-12 max-w-xl text-center sm:mt-14">
+            <TextPanel motif motifSize="lg" motifPlacement="top-left" className="inline-block">
+              <div className="space-y-6 text-center">
                 <p className="oc-body">{dict.home.editorialBody}</p>
                 <p className="oc-body">{dict.homeExtra.curator2}</p>
                 <Link href="/#about-us" className="oc-link oc-link-arrow inline-flex">
@@ -178,36 +167,30 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
 
       {/* About */}
       <section id="about-us" className="relative oc-section overflow-hidden scroll-mt-28">
-        <CarpetBackdrop src={stockImages.carpets.jewel} tone="paper" strength={0} intensity={105} />
-        <ParallaxContent
-          intensity={28}
-          className="oc-container grid items-center gap-10 lg:grid-cols-2 lg:gap-16"
-        >
-          <TextPanel motif motifSize="xl" motifPlacement="bottom-left" className="lg:max-w-xl">
-            <p className="oc-eyebrow">{dict.home.aboutHeading}</p>
-            <h2 className="oc-heading-sm mt-4">{dict.home.historyTitle}</h2>
-            <div className="mt-8 space-y-5">
-              <p className="oc-body">{dict.home.historyP1}</p>
-              <p className="oc-body">{dict.home.historyP2}</p>
-              <p className="oc-body">{dict.home.historyP3}</p>
-            </div>
-            <Link
-              href={ready && isAuthenticated ? '/orders' : '/register'}
-              className="oc-link oc-link-arrow mt-10 inline-flex"
-            >
-              {ready && isAuthenticated ? dict.home.goToProfile : dict.home.createAccount}
-            </Link>
-          </TextPanel>
-          <div className="relative mx-auto aspect-[3/4] w-full max-w-md overflow-hidden lg:max-w-none">
-            <ParallaxMedia intensity={60}>
-              <Image
-                src={stockImages.about}
-                alt="Historic carpet bazaar — the heritage behind Origin Carpets"
-                fill
-                className="object-cover object-center grayscale-[12%]"
-                sizes="(max-width: 1024px) 100vw, 45vw"
-              />
-            </ParallaxMedia>
+        <CarpetBackdrop
+          src={stockImages.carpets.history}
+          tone="paper"
+          strength={0}
+          rotate={90}
+          zoom={1.2}
+        />
+        <ParallaxContent intensity={28} className="oc-container">
+          <div className="mx-auto max-w-xl text-center">
+            <TextPanel motif motifSize="xl" motifPlacement="bottom-left" className="inline-block">
+              <p className="oc-eyebrow">{dict.home.aboutHeading}</p>
+              <h2 className="oc-heading-sm mt-4">{dict.home.historyTitle}</h2>
+              <div className="mt-8 space-y-5 text-center">
+                <p className="oc-body">{dict.home.historyP1}</p>
+                <p className="oc-body">{dict.home.historyP2}</p>
+                <p className="oc-body">{dict.home.historyP3}</p>
+              </div>
+              <Link
+                href={ready && isAuthenticated ? '/orders' : '/register'}
+                className="oc-link oc-link-arrow mt-10 inline-flex"
+              >
+                {ready && isAuthenticated ? dict.home.goToProfile : dict.home.createAccount}
+              </Link>
+            </TextPanel>
           </div>
         </ParallaxContent>
       </section>
