@@ -15,6 +15,8 @@ export const stockImages = {
   gallery: '/brand/gallery-interior.jpg',
   og: '/brand/hero-exterior.jpg',
   decorationMotif: '/brand/decoration-ornament.png',
+  /** Carpet medallion extracted for occasional alternate watermarks */
+  decorationMotifMedallion: '/brand/decoration-ornament-medallion.png',
   decorationLine: '/brand/decoration-line.png',
   interiors: {
     wallHanging: '/stock/interiors/wall-hanging.jpg',

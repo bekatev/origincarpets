@@ -28,7 +28,7 @@ export type AboutMediaItem =
 /**
  * Press / TV appearances.
  * Orientation follows the source video aspect (FB metadata reports these reels as 16:9).
- * Local staff broadcast stays last in the list.
+ * Local staff broadcast stays last in the list; other local clips can sit earlier.
  */
 export const aboutMediaItems: AboutMediaItem[] = [
   {
@@ -51,6 +51,14 @@ export const aboutMediaItems: AboutMediaItem[] = [
     poster: '/stock/video/ajaratv-startaperebi-manana.jpg',
     titleEn: 'AdjaraTV — Startaperebi',
     titleKa: 'აჭარა TV — სტარტაპერები'
+  },
+  {
+    id: 'founder-press-yes',
+    kind: 'local',
+    src: '/staff/founder-press-yes.mp4',
+    orientation: 'portrait',
+    titleEn: 'Manana Arkania on television',
+    titleKa: 'მანანა არქანია ტელევიზიაში'
   },
   {
     id: 'fb-1224067171665274',

@@ -518,7 +518,19 @@ export class ProductsService {
     }
 
     // Filters accept comma-separated values (multi-select checkboxes on the storefront).
-    const categories = splitFilterValues(query.category).filter((slug) => slug !== 'sale');
+    // decoration absorbs legacy mafrash + saddlebag slugs so old links still work.
+    const CATEGORY_SLUG_ALIASES: Record<string, string[]> = {
+      decoration: ['decoration', 'mafrash', 'saddlebag'],
+      mafrash: ['decoration', 'mafrash', 'saddlebag'],
+      saddlebag: ['decoration', 'mafrash', 'saddlebag']
+    };
+    const categories = [
+      ...new Set(
+        splitFilterValues(query.category)
+          .filter((slug) => slug !== 'sale')
+          .flatMap((slug) => CATEGORY_SLUG_ALIASES[slug] ?? [slug])
+      )
+    ];
     if (categories.length) {
       and.push({ category: { slug: { in: categories } } });
     }

@@ -12,7 +12,14 @@ export type MotifPlacement =
   | 'right'
   | 'bottom';
 
+export type MotifVariant = 'lace' | 'medallion';
+
 const SIZE_PX = { xs: 72, sm: 160, md: 240, lg: 340, xl: 480, hero: 640 } as const;
+
+const MOTIF_SRC: Record<MotifVariant, string> = {
+  lace: stockImages.decorationMotif,
+  medallion: stockImages.decorationMotifMedallion
+};
 
 /** Corner: pin center on the corner so ~¼ of the ornament shows. */
 const CORNER_CLASS: Record<
@@ -32,7 +39,14 @@ const EDGE_CLASS: Record<'left' | 'right' | 'bottom', string> = {
   bottom: 'bottom-0 left-1/2 -translate-x-1/2 translate-y-[45%]'
 };
 
-function defaultOpacityClass(placement: MotifPlacement): string {
+function defaultOpacityClass(placement: MotifPlacement, variant: MotifVariant): string {
+  // Colored medallion reads denser — keep it a touch softer
+  if (variant === 'medallion') {
+    if (placement === 'center') {
+      return 'opacity-[0.18] sm:opacity-[0.22] dark:opacity-[0.16]';
+    }
+    return 'opacity-[0.2] sm:opacity-[0.24] dark:opacity-[0.18]';
+  }
   if (placement === 'center') {
     return 'opacity-[0.22] sm:opacity-[0.26] dark:opacity-[0.2]';
   }
@@ -44,30 +58,32 @@ function defaultOpacityClass(placement: MotifPlacement): string {
 
 /**
  * Soft watermark ornament for solid paper/sand panels.
- * Renders the source PNG as-is so lace cutouts and tonal layers stay intact.
+ * `lace` = classic white scroll; `medallion` = carpet diamond from gallery photography.
  */
 export function DecorationMotif({
   className,
   size = 'md',
   placement = 'center',
-  opacity
+  opacity,
+  variant = 'lace'
 }: {
   className?: string;
   size?: keyof typeof SIZE_PX;
   placement?: MotifPlacement;
   /** Override default opacity (0–1). */
   opacity?: number;
+  variant?: MotifVariant;
 }) {
   const dimensions = SIZE_PX[size];
 
   const motif = (
     <Image
-      src={stockImages.decorationMotif}
+      src={MOTIF_SRC[variant]}
       alt=""
       width={dimensions}
       height={dimensions}
       unoptimized
-      className={cn(opacity == null && defaultOpacityClass(placement))}
+      className={cn(opacity == null && defaultOpacityClass(placement, variant))}
       style={opacity != null ? { opacity } : undefined}
     />
   );

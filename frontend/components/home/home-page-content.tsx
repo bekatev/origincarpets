@@ -91,7 +91,9 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             id="featured"
             className="relative oc-section overflow-hidden scroll-mt-28 bg-[var(--oc-bg)]"
           >
-            <ParallaxContent intensity={28} className="oc-container">
+            <DecorationMotif size="hero" placement="top-left" opacity={0.18} />
+            <DecorationMotif size="xl" placement="bottom-right" opacity={0.22} variant="medallion" />
+            <ParallaxContent intensity={28} className="oc-container relative z-10">
               <div className="mx-auto max-w-2xl text-center">
                 <TextPanel
                   motif
@@ -199,7 +201,9 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
         id="carpet-origin"
         className="relative oc-section overflow-hidden scroll-mt-28 bg-[var(--oc-bg)]"
       >
-        <ParallaxContent intensity={28} className="oc-container">
+        <DecorationMotif size="hero" placement="right" opacity={0.18} />
+        <DecorationMotif size="xl" placement="bottom-left" opacity={0.2} variant="medallion" />
+        <ParallaxContent intensity={28} className="oc-container relative z-10">
           <div className="mx-auto max-w-2xl text-center">
             <TextPanel
               motif
@@ -216,9 +220,10 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
               [
                 ['carpetTitle', 'carpetBody'],
                 ['kilimTitle', 'kilimBody'],
+                ['soumakTitle', 'soumakBody'],
+                ['ziliTitle', 'ziliBody'],
                 ['djidjimTitle', 'djidjimBody'],
-                ['suzaniTitle', 'suzaniBody'],
-                ['soumakTitle', 'soumakBody']
+                ['decorationTitle', 'decorationBody']
               ] as const
             ).map(([titleKey, bodyKey]) => (
               <TextPanel

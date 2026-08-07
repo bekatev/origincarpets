@@ -38,12 +38,24 @@ const ATTRIBUTE_TRANSLATIONS: Record<string, Record<string, string>> = {
   },
   category: {
     CARPET: 'ხალიჩა',
+    Carpet: 'ხალიჩა',
     KILIM: 'ფარდაგი',
+    Kilim: 'ფარდაგი',
+    SOUMAK: 'სუმახი',
+    Soumak: 'სუმახი',
+    ZILI: 'ზილი',
+    Zili: 'ზილი',
     DJIDJIM: 'ჯეჯიმი',
+    Djidjim: 'ჯეჯიმი',
+    DECORATION: 'დეკორაცია',
+    Decoration: 'დეკორაცია',
+    // Legacy categories (merged into Decoration)
     SUZANI: 'სუზანე',
-    MAFRASH: 'მაფრაში',
-    SADDLEBAG: 'ხურჯინი',
-    SOUMAK: 'სუმახი'
+    Suzani: 'სუზანე',
+    MAFRASH: 'დეკორაცია',
+    Mafrash: 'დეკორაცია',
+    SADDLEBAG: 'დეკორაცია',
+    Saddlebag: 'დეკორაცია'
   },
   age: {
     'Tribal handmade': 'ტრიბალური ხელნაქსოვი',
@@ -131,6 +143,12 @@ export function translateAttributeValue(
   locale: ProductLocale
 ): string | null {
   if (!value) return null;
+
+  const categoryKey = value.trim().toUpperCase().replace(/\s+/g, '');
+  if (group === 'category' && (categoryKey === 'MAFRASH' || categoryKey === 'SADDLEBAG' || categoryKey === 'DECORATION')) {
+    return locale === 'ka' ? 'დეკორაცია' : 'Decoration';
+  }
+
   if (locale === 'en') return value;
   return ATTRIBUTE_TRANSLATIONS[group]?.[value] ?? value;
 }

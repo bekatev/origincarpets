@@ -13,10 +13,9 @@ export const footerTranslations = {
       carpet: 'Carpet',
       kilim: 'Kilim',
       soumak: 'Soumak',
+      zili: 'Zili',
       djidjim: 'Djidjim',
-      suzani: 'Suzani',
-      mafrash: 'Mafrash',
-      saddlebag: 'Saddlebag'
+      decoration: 'Decoration'
     },
     carpetOrigin: 'Carpet Origin',
     origins: {
@@ -50,10 +49,9 @@ export const footerTranslations = {
       carpet: 'ხალიჩა',
       kilim: 'ფარდაგი',
       soumak: 'სუმახი',
+      zili: 'ზილი',
       djidjim: 'ჯეჯიმი',
-      suzani: 'სუზანე',
-      mafrash: 'მაფრაში',
-      saddlebag: 'ჩანთა'
+      decoration: 'დეკორაცია'
     },
     carpetOrigin: 'ხალიჩის წარმომავლობა',
     origins: {
@@ -81,14 +79,14 @@ export const FOOTER_SOCIAL = {
     'https://www.instagram.com/explore/locations/717260098461829/caucasian-and-oriental-carpets-gallery-tbilisi/'
 } as const;
 
+/** Chronology: carpet → kilim → soumak → zili → djidjim → decoration */
 export const FOOTER_CARPET_SLUGS = {
   carpet: 'carpet',
   kilim: 'kilim',
   soumak: 'soumak',
+  zili: 'zili',
   djidjim: 'djidjim',
-  suzani: 'suzani',
-  mafrash: 'mafrash',
-  saddlebag: 'saddlebag'
+  decoration: 'decoration'
 } as const;
 
 export const FOOTER_ORIGIN_FILTERS = {

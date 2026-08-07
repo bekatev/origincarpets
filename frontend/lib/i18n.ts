@@ -79,15 +79,18 @@ export const dictionaries = {
       kilimTitle: 'Kilim',
       kilimBody:
         'Kilim, compared to carpets, is a thinner flatweave without pile. First they weave the base and then they start making ornaments by knots. Unlike carpets, weavers do not cut knots. In kilims there are natural vegetable dyes and also insects used to dye, for example dirty pink. This is popular Koshineli.',
-      djidjimTitle: 'Djidjim',
-      djidjimBody:
-        'Djidjim (jejim) is a flatweave technique where coloured supplementary wefts float across the surface to form an embroidery-like pattern over the ground weave. Lighter than a pile carpet, it is prized for graphic ornament and soft textile character.',
-      suzaniTitle: 'Suzani',
-      suzaniBody:
-        'Suzani is a traditional Central Asian embroidered textile — floral and medallion motifs worked by hand onto cloth. Often used as wall hangings, covers, or decorative pieces rather than heavy floor rugs.',
       soumakTitle: 'Soumak',
       soumakBody:
         'Soumak is woven by wrapping coloured wefts around the warp, creating a flat but textured, corded surface — denser and more dimensional than a kilim, without a cut pile.',
+      ziliTitle: 'Zili',
+      ziliBody:
+        'Zili is a Caucasian flatweave in which supplementary wefts form bold geometric motifs that stand slightly proud of the ground. Firmer and more sculptural than a kilim, it sits between kilim and soumak in character.',
+      djidjimTitle: 'Djidjim',
+      djidjimBody:
+        'Djidjim (jejim) is a flatweave technique where coloured supplementary wefts float across the surface to form an embroidery-like pattern over the ground weave. Lighter than a pile carpet, it is prized for graphic ornament and soft textile character.',
+      decorationTitle: 'Decoration',
+      decorationBody:
+        'Decoration gathers smaller woven pieces for the home — saddlebags, mafrash chests, cushions, and related textiles. Portable, richly patterned, and made with the same techniques as larger rugs.',
       contactTitle: 'Contact Us',
       policyReturn: 'Return and Refund policy',
       policyPrivacy: 'Customer privacy policy',
@@ -216,15 +219,18 @@ export const dictionaries = {
       kilimTitle: 'ფარდაგი',
       kilimBody:
         'ფარდაგი ხალიჩაზე უფრო თხელი, ბრტყელი ქსოვილია ხაოს გარეშე. ორნამენტი კვანძებით იქმნება, მაგრამ კვანძები არ იჭრება. ხშირად გამოიყენება ბუნებრივი მცენარეული საღებავები.',
-      djidjimTitle: 'ჯეჯიმი',
-      djidjimBody:
-        'ჯეჯიმი ბრტყელი ქსოვის ტექნიკაა, სადაც ფერადი დამატებითი ძაფები ზედაპირზე ცურავს და ქმნის ნაქარგივით ორნამენტს ძირითადი ქსოვილის თავზე. უფრო მსუბუქია ვიდრე ხაოიანი ხალიჩა, უფრო დატვირთულია ვიდრე ფარდაგი და გამოირჩევა გრაფიკული ნახატით.',
-      suzaniTitle: 'სუზანე',
-      suzaniBody:
-        'სუზანე ცენტრალური აზიის ტრადიციული ნაქარგი ტექსტილია — ყვავილოვანი (განსაკუთრებით ბროწეულები) და მედალიონის მოტივები ხელით იკერება ქსოვილზე. ხშირად გამოიყენება კედლის დეკორად, ფარდებად, მაგიდის ან საწოლზე გადასაფარებლად,  ან დეკორატიულ ნაწარმად.',
       soumakTitle: 'სუმახი',
       soumakBody:
         'სუმახი იქსოვება ფერადი ძაფების საფუძველზე შემოვლით — გამოდის ბრტყელი, მაგრამ ტექსტურირებული ზედაპირი. ფარდაგზე უფრო მკვრივი და რელიეფურია, ხაოს გარეშე.',
+      ziliTitle: 'ზილი',
+      ziliBody:
+        'ზილი კავკასიური ბრტყელი ქსოვის ტექნიკაა, სადაც დამატებითი ძაფებით იქმნება გეომეტრიული ორნამენტი, რომელიც ქსელის ზედაპირზე ოდნავ ამოწეულია. ფარდაგზე უფრო მკვრივი და რელიეფურია და ხასიათით ფარდაგსა და სუმახს შორის დგას.',
+      djidjimTitle: 'ჯეჯიმი',
+      djidjimBody:
+        'ჯეჯიმი ბრტყელი ქსოვის ტექნიკაა, სადაც ფერადი დამატებითი ძაფები ზედაპირზე ცურავს და ქმნის ნაქარგივით ორნამენტს ძირითადი ქსოვილის თავზე. უფრო მსუბუქია ვიდრე ხაოიანი ხალიჩა, უფრო დატვირთულია ვიდრე ფარდაგი და გამოირჩევა გრაფიკული ნახატით.',
+      decorationTitle: 'დეკორაცია',
+      decorationBody:
+        'დეკორაცია აერთიანებს სახლისთვის განკუთვნილ პატარა ნაქსოვებს — ხურჯინს, მაფრაშს, ბალიშებს და მსგავს ტექსტილს. პორტატული, ორნამენტით მდიდარი და იგივე ტექნიკით ნაქსოვი, რითაც დიდი ხალიჩები.',
       contactTitle: 'კონტაქტი',
       policyReturn: 'დაბრუნებისა და ანაზღაურების პოლიტიკა',
       policyPrivacy: 'მომხმარებლის კონფიდენციალურობის პოლიტიკა',

@@ -61,7 +61,7 @@ export function AtHomeSlider() {
   return (
     <section id="at-home" className="relative scroll-mt-28 overflow-hidden bg-[var(--oc-bg)]">
       <DecorationMotif size="hero" placement="left" />
-      <DecorationMotif size="xl" placement="bottom-right" opacity={0.2} />
+      <DecorationMotif size="xl" placement="bottom-right" opacity={0.24} variant="medallion" />
       <div className="oc-container oc-section relative z-10">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="oc-heading-sm">{dict.home.atHomeTitle}</h2>

@@ -8,6 +8,7 @@ import { DecorationDivider } from '@/components/home/decoration-divider';
 import { DecorationMotif, type MotifPlacement } from '@/components/home/decoration-motif';
 import { useI18n } from '@/components/providers/i18n-provider';
 import {
+  compactFeaturedGuests,
   featuredGuests,
   guestGallery,
   staffPhotos,
@@ -27,6 +28,11 @@ function chunkItems<T>(items: T[], size: number): T[][] {
   const chunks: T[][] = [];
   for (let i = 0; i < items.length; i += size) {
     chunks.push(items.slice(i, i + size));
+  }
+  // Don't leave a short leftover section — fold the remainder into the last group.
+  if (chunks.length >= 2 && chunks[chunks.length - 1].length < size) {
+    const remainder = chunks.pop()!;
+    chunks[chunks.length - 1] = [...chunks[chunks.length - 1], ...remainder];
   }
   return chunks;
 }
@@ -200,12 +206,17 @@ function MediaFrame({
         {item.kind === 'facebook' ? (
           <FacebookEmbed href={item.href} orientation={item.orientation} title={`${label} ${n}`} />
         ) : item.kind === 'local' ? (
-          <div className="relative aspect-video w-full overflow-hidden bg-black">
+          <div
+            className={cn(
+              'relative w-full overflow-hidden bg-black',
+              isLandscape ? 'aspect-video' : 'aspect-[9/16]'
+            )}
+          >
             <video
               controls
               playsInline
               preload="metadata"
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-contain"
               aria-label={locale === 'ka' ? item.titleKa : item.titleEn}
             >
               <source src={item.src} type="video/mp4" />
@@ -267,6 +278,8 @@ function FeaturedGuestBlock({
   const name = locale === 'ka' ? guest.nameKa : guest.nameEn;
   const role = locale === 'ka' ? guest.roleKa : guest.roleEn;
   const caption = locale === 'ka' ? guest.captionKa : guest.captionEn;
+  const photoAlt =
+    (locale === 'ka' ? guest.photoAltKa : guest.photoAltEn) ?? name;
   const motifPlacement = index % 2 === 0 ? 'bottom-right' : 'bottom-left';
   /** Prefer a landscape frame when both shots are wide; otherwise a shared portrait frame. */
   const allLandscape = photos.every((photo) => photo.width >= photo.height);
@@ -318,7 +331,7 @@ function FeaturedGuestBlock({
           >
             <Image
               src={photo.src}
-              alt={name}
+              alt={photoAlt}
               fill
               className="object-cover object-center"
               sizes={
@@ -330,6 +343,52 @@ function FeaturedGuestBlock({
             />
           </div>
         ))}
+      </div>
+    </motion.article>
+  );
+}
+
+/** Compact portrait card for the secondary distinguished-guest grid. */
+function CompactGuestCard({
+  guest,
+  index,
+  locale
+}: {
+  guest: FeaturedGuest;
+  index: number;
+  locale: string;
+}) {
+  const reduceMotion = useReducedMotion();
+  const name = locale === 'ka' ? guest.nameKa : guest.nameEn;
+  const role = locale === 'ka' ? guest.roleKa : guest.roleEn;
+
+  return (
+    <motion.article
+      initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+      whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-8% 0px' }}
+      transition={{ duration: 0.45, delay: Math.min(index * 0.04, 0.2) }}
+      className="flex flex-col"
+    >
+      <div
+        className="relative aspect-[3/4] overflow-hidden shadow-[var(--oc-shadow-lift)] ring-1 ring-[#2a1c18]/12 dark:ring-[var(--oc-ink)]/10"
+        style={{ backgroundColor: PHOTO_FRAME }}
+      >
+        <Image
+          src={guest.src}
+          alt={name}
+          fill
+          className="object-cover object-top"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 220px"
+        />
+      </div>
+      <div className="mt-3 text-center">
+        <h3 className="font-display text-lg leading-tight tracking-[-0.01em] text-[var(--oc-ink)] sm:text-xl">
+          {name}
+        </h3>
+        <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--oc-muted)]">
+          {role}
+        </p>
       </div>
     </motion.article>
   );
@@ -382,7 +441,9 @@ function ContainedPhoto({
 function AboutSection({ children }: { children: ReactNode }) {
   return (
     <section className="relative overflow-hidden bg-[var(--oc-bg)] py-12 sm:py-14 lg:py-16">
-      <div className="oc-container relative">{children}</div>
+      <DecorationMotif size="hero" placement="top-right" opacity={0.2} />
+      <DecorationMotif size="xl" placement="bottom-left" opacity={0.22} variant="medallion" />
+      <div className="oc-container relative z-10">{children}</div>
     </section>
   );
 }
@@ -425,7 +486,9 @@ export function AboutPageContent() {
 
       {/* 1. Videos */}
       {videoChunks.map((group, groupIndex) => {
-        const startIndex = groupIndex * 3;
+        const startIndex = videoChunks
+          .slice(0, groupIndex)
+          .reduce((total, chunk) => total + chunk.length, 0);
         return (
           <div key={`video-group-${groupIndex}`}>
             {groupIndex > 0 ? <DecorationDivider /> : null}
@@ -475,6 +538,12 @@ export function AboutPageContent() {
         <div className="mx-auto flex max-w-5xl flex-col gap-12 lg:gap-16">
           {featuredGuests.map((guest, index) => (
             <FeaturedGuestBlock key={guest.id} guest={guest} index={index} locale={locale} />
+          ))}
+        </div>
+
+        <div className="mx-auto mt-12 grid max-w-5xl grid-cols-2 gap-x-3 gap-y-8 sm:mt-14 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-10 lg:grid-cols-5 lg:gap-x-5">
+          {compactFeaturedGuests.map((guest, index) => (
+            <CompactGuestCard key={guest.id} guest={guest} index={index} locale={locale} />
           ))}
         </div>
       </AboutSection>

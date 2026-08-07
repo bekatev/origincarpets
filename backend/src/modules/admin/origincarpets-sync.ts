@@ -138,10 +138,20 @@ async function fetchLegacyPage(page: number): Promise<LegacyPageResponse> {
   return payload;
 }
 
+/** Legacy mafrash + saddlebag are storefront “Decoration”. */
+const CATEGORY_SLUG_REMAP: Record<string, { slug: string; name: string }> = {
+  mafrash: { slug: 'decoration', name: 'Decoration' },
+  saddlebag: { slug: 'decoration', name: 'Decoration' },
+  'saddle-bag': { slug: 'decoration', name: 'Decoration' }
+};
+
 async function upsertCategory(prisma: PrismaClient, product: LegacyProduct) {
   const legacyCategory = product.categories?.[0];
-  const name = pickText(legacyCategory?.title, 'Uncategorized');
-  const slug = slugify(legacyCategory?.slug || name) || 'uncategorized';
+  const rawName = pickText(legacyCategory?.title, 'Uncategorized');
+  const rawSlug = slugify(legacyCategory?.slug || rawName) || 'uncategorized';
+  const remapped = CATEGORY_SLUG_REMAP[rawSlug];
+  const slug = remapped?.slug ?? rawSlug;
+  const name = remapped?.name ?? rawName;
   const description = pickText(legacyCategory?.info?.description, undefined);
 
   return prisma.category.upsert({
