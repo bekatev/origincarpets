@@ -58,7 +58,7 @@ function defaultOpacityClass(placement: MotifPlacement, variant: MotifVariant): 
 
 /**
  * Soft watermark ornament for solid paper/sand panels.
- * `lace` = classic white scroll; `medallion` = carpet diamond from gallery photography.
+ * `lace` = classic white scroll; `medallion` = carpet gul silhouette (same stamp style).
  */
 export function DecorationMotif({
   className,

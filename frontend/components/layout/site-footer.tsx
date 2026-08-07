@@ -27,7 +27,7 @@ export function SiteFooter() {
     <footer className="relative overflow-hidden bg-[var(--oc-bg)]">
       <DecorationDivider />
       <DecorationMotif size="hero" placement="bottom-right" />
-      <DecorationMotif size="lg" placement="top-left" opacity={0.22} variant="medallion" />
+      <DecorationMotif size="lg" placement="top-left" opacity={0.22} />
       <div className="oc-container relative z-10 py-16 sm:py-20">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5 lg:gap-8">
           <div>

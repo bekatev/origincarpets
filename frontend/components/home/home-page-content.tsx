@@ -22,19 +22,24 @@ function TextPanel({
   className = '',
   motif = false,
   motifSize = 'md',
-  motifPlacement = 'center'
+  motifPlacement = 'center',
+  motifVariant = 'lace'
 }: {
   children: ReactNode;
   className?: string;
   motif?: boolean;
   motifSize?: 'sm' | 'md' | 'lg' | 'xl';
   motifPlacement?: MotifPlacement;
+  /** Prefer lace; use medallion sparingly (~30% of motifs site-wide). */
+  motifVariant?: 'lace' | 'medallion';
 }) {
   return (
     <div
       className={`relative isolate overflow-hidden bg-[var(--oc-paper)] p-8 text-[var(--oc-ink)] sm:p-10 lg:p-12 ${className}`}
     >
-      {motif ? <DecorationMotif size={motifSize} placement={motifPlacement} /> : null}
+      {motif ? (
+        <DecorationMotif size={motifSize} placement={motifPlacement} variant={motifVariant} />
+      ) : null}
       <div className="relative z-10">{children}</div>
     </div>
   );
@@ -92,7 +97,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             className="relative oc-section overflow-hidden scroll-mt-28 bg-[var(--oc-bg)]"
           >
             <DecorationMotif size="hero" placement="top-left" opacity={0.18} />
-            <DecorationMotif size="xl" placement="bottom-right" opacity={0.22} variant="medallion" />
+            <DecorationMotif size="xl" placement="bottom-right" opacity={0.22} />
             <ParallaxContent intensity={28} className="oc-container relative z-10">
               <div className="mx-auto max-w-2xl text-center">
                 <TextPanel
@@ -201,7 +206,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
         id="carpet-origin"
         className="relative oc-section overflow-hidden scroll-mt-28 bg-[var(--oc-bg)]"
       >
-        <DecorationMotif size="hero" placement="right" opacity={0.18} />
+        <DecorationMotif size="hero" placement="right" opacity={0.18} variant="medallion" />
         <DecorationMotif size="xl" placement="bottom-left" opacity={0.2} variant="medallion" />
         <ParallaxContent intensity={28} className="oc-container relative z-10">
           <div className="mx-auto max-w-2xl text-center">
@@ -209,6 +214,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
               motif
               motifSize="md"
               motifPlacement="top-right"
+              motifVariant="medallion"
               className="inline-block px-8 py-5 sm:px-10 sm:py-6"
             >
               <h2 className="oc-heading-sm">{dict.home.categoriesTitle}</h2>
@@ -231,6 +237,7 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
                 motif
                 motifSize="sm"
                 motifPlacement="bottom-right"
+                motifVariant="medallion"
                 className="h-full"
               >
                 <h3 className="font-display text-2xl text-[var(--oc-ink)] sm:text-3xl">

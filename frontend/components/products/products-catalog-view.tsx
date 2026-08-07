@@ -99,7 +99,7 @@ export function ProductsCatalogView({
   return (
     <section className="relative overflow-hidden oc-section">
       <DecorationMotif size="hero" placement="top-right" opacity={0.18} />
-      <DecorationMotif size="xl" placement="bottom-left" opacity={0.2} variant="medallion" />
+      <DecorationMotif size="xl" placement="bottom-left" opacity={0.2} />
       <div className="oc-container relative z-10 space-y-14">
         <div className="oc-container-narrow space-y-4 text-center">
           <p className="oc-eyebrow">{p.catalog}</p>

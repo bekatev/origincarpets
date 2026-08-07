@@ -15,7 +15,7 @@ export function PolicyContent({
   return (
     <main className="relative overflow-hidden oc-section">
       <DecorationMotif size="xl" placement="top-left" opacity={0.2} />
-      <DecorationMotif size="lg" placement="bottom" opacity={0.22} variant="medallion" />
+      <DecorationMotif size="lg" placement="bottom" opacity={0.22} />
       <div className="oc-container-narrow relative z-10 space-y-8">
         <header className="space-y-3 border-b border-[var(--oc-line)] pb-8">
           <h1 className="oc-heading-sm">{title}</h1>

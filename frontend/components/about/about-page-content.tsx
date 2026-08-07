@@ -103,7 +103,8 @@ function SectionIntro({
   lead,
   className,
   motifPlacement = 'top-right',
-  motifSize = 'md'
+  motifSize = 'md',
+  motifVariant = 'lace'
 }: {
   eyebrow: string;
   title: string;
@@ -111,6 +112,7 @@ function SectionIntro({
   className?: string;
   motifPlacement?: MotifPlacement;
   motifSize?: 'sm' | 'md' | 'lg';
+  motifVariant?: 'lace' | 'medallion';
 }) {
   return (
     <div
@@ -121,7 +123,7 @@ function SectionIntro({
         className
       )}
     >
-      <DecorationMotif size={motifSize} placement={motifPlacement} />
+      <DecorationMotif size={motifSize} placement={motifPlacement} variant={motifVariant} />
       <div className="relative z-10">
         <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#6b4f42] dark:text-[var(--oc-muted)]">
           {eyebrow}
@@ -533,6 +535,7 @@ export function AboutPageContent() {
           lead={copy.guestsLead}
           motifPlacement="bottom-left"
           motifSize="lg"
+          motifVariant="medallion"
         />
 
         <div className="mx-auto flex max-w-5xl flex-col gap-12 lg:gap-16">
