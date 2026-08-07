@@ -61,11 +61,11 @@ const ATTRIBUTE_TRANSLATIONS: Record<string, Record<string, string>> = {
     SALE: 'აქცია'
   },
   age: {
-    'Tribal handmade': 'ტრიბალური ხელნაქსოვი',
-    'Modern handmade': 'თანამედროვე ხელნაქსოვი',
-    'Antique handmade': 'ანტიკური ხელნაქსოვი',
+    'Tribal handmade': 'ტრიბალური ხელით ნაქსოვი',
+    'Modern handmade': 'თანამედროვე ხელით ნაქსოვი',
+    'Antique handmade': 'ანტიკური ხელით ნაქსოვი',
     // Legacy typo from older imports / UI copy
-    'Antic handmade': 'ანტიკური ხელნაქსოვი'
+    'Antic handmade': 'ანტიკური ხელით ნაქსოვი'
   }
 };
 

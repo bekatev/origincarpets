@@ -60,6 +60,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: 'yearly',
       priority: 0.3
+    },
+    {
+      url: absoluteUrl('/policies/shipping'),
+      lastModified: now,
+      changeFrequency: 'yearly',
+      priority: 0.3
     }
   ];
 

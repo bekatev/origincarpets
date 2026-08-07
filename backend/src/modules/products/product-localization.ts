@@ -58,10 +58,10 @@ const ATTRIBUTE_TRANSLATIONS: Record<string, Record<string, string>> = {
     Saddlebag: 'დეკორაცია'
   },
   age: {
-    'Tribal handmade': 'ტრიბალური ხელნაქსოვი',
-    'Modern handmade': 'თანამედროვე ხელნაქსოვი',
-    'Antique handmade': 'ანტიკური ხელნაქსოვი',
-    'Antic handmade': 'ანტიკური ხელნაქსოვი'
+    'Tribal handmade': 'ტრიბალური ხელით ნაქსოვი',
+    'Modern handmade': 'თანამედროვე ხელით ნაქსოვი',
+    'Antique handmade': 'ანტიკური ხელით ნაქსოვი',
+    'Antic handmade': 'ანტიკური ხელით ნაქსოვი'
   }
 };
 

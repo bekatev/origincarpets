@@ -308,6 +308,9 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             <Link href="/policies/return-refund" className="hover:text-white">
               {dict.home.policyReturn}
             </Link>
+            <Link href={'/policies/shipping' as Route} className="hover:text-white">
+              {dict.home.policyShipping}
+            </Link>
             <Link href="/policies/privacy" className="hover:text-white">
               {dict.home.policyPrivacy}
             </Link>

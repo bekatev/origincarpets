@@ -102,6 +102,11 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
+                <Link href={'/policies/shipping' as Route} className="hover:opacity-50">
+                  {dict.home.policyShipping}
+                </Link>
+              </li>
+              <li>
                 <Link href="/policies/privacy" className="hover:opacity-50">
                   {dict.home.policyPrivacy}
                 </Link>

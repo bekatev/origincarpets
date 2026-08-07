@@ -157,6 +157,54 @@ export const policyTranslations = {
           ]
         }
       ]
+    },
+    shipping: {
+      title: 'Shipping policy',
+      blocks: [
+        {
+          type: 'p',
+          text: 'At Origin Carpets, every handmade carpet leaves our Tbilisi gallery with the same care we give to selecting it. Shipping is not an afterthought — it is part of the promise that your piece will arrive safely, on time, and ready to become part of your home. This page explains how we ship, why we partner with UPS, and what you can expect from the moment your order is confirmed until delivery is complete.'
+        },
+        { type: 'h2', text: 'Our carrier: UPS' },
+        {
+          type: 'p',
+          text: 'We ship with UPS, one of the world’s most trusted logistics networks — known for reliable tracking, careful handling of valuable goods, and consistent delivery in Georgia and abroad. Your order is packed in our gallery and handed to UPS with full documentation, so you always know where your carpet is.'
+        },
+        { type: 'h2', text: 'Free shipping within Georgia' },
+        {
+          type: 'p',
+          text: 'Delivery inside Georgia is free of charge. We cover the UPS shipping cost for eligible orders delivered within Georgia. There is no separate freight line on your invoice for domestic Georgian delivery — you pay for the carpet; we take care of getting it to you safely through UPS.'
+        },
+        { type: 'h2', text: 'International shipping' },
+        {
+          type: 'p',
+          text: 'For destinations outside Georgia, we also use UPS. International rates depend on destination, package dimensions, weight, and the service level required for safe transit of textiles. Before your order is finalised, we calculate shipping carefully so you see a clear cost.'
+        },
+        { type: 'h2', text: 'Delivery times' },
+        {
+          type: 'p',
+          text: 'Within Georgia, UPS typically delivers within a few business days after dispatch, depending on your city and local service schedules. International delivery times vary by country and customs processing. Once your order ships, you receive tracking details so you can follow the UPS journey in real time. If a delay occurs in the UPS network or at customs, we help you interpret the tracking status and contact the right support channels.'
+        },
+        { type: 'h2', text: 'What we need from you' },
+        {
+          type: 'p',
+          text: 'Accurate delivery details keep UPS efficient: full name, phone number, and complete street address. Wrong addresses or unreachable phones are the most common causes of failed first delivery attempts.'
+        },
+        { type: 'h2', text: 'Questions about shipping' },
+        {
+          type: 'p',
+          text: 'If you want to confirm free Georgia delivery for your order, ask about UPS transit time to your city, or plan an international shipment, contact us before or after purchase. We are happy to explain packaging, tracking, and what to expect on arrival.'
+        },
+        {
+          type: 'address',
+          lines: [
+            'Origin Carpets',
+            '8/10 Erekle II street, Tbilisi, 0105, Georgia',
+            '+995 577 405 311',
+            'info@origincarpets.com'
+          ]
+        }
+      ]
     }
   },
   ka: {
@@ -305,6 +353,55 @@ export const policyTranslations = {
           ]
         }
       ]
+    },
+    shipping: {
+      title: 'მიწოდების პოლიტიკა',
+      blocks: [
+        {
+          type: 'p',
+          text: 'Origin Carpets-ში ყოველი ხელით ნაქსოვი ხალიჩა ჩვენს თბილისის გალერეას ტოვებს იმავე ყურადღებით, რითაც მას ვარჩევთ. მიწოდება შემთხვევითი ნაბიჯი არ არის — ეს დაპირების ნაწილია, რომ თქვენი ნაწარმოები უსაფრთხოდ, დროულად და სახლისთვის მზად მოგივათ. ამ გვერდზე აღწერილია, როგორ ვაგზავნით შეკვეთებს, რატომ ვმუშაობთ UPS-თან და რას უნდა ელოდოთ შეკვეთის დადასტურებიდან მიწოდების დასრულებამდე.'
+        },
+        { type: 'h2', text: 'ჩვენი გადამზიდავი: UPS' },
+        {
+          type: 'p',
+          text: 'შეკვეთებს ვაგზავნით UPS-ით — მსოფლიოში ერთ-ერთი ყველაზე სანდო ლოჯისტიკური ქსელით. საიმედო თვალყური, ძვირფასი ტვირთის ფრთხილი დამუშავება და სტაბილური მიწოდება საქართველოშიც და საერთაშორისოდ. შეკვეთა იფუთება გალერეაში და გადაეცემა UPS-ს სრული დოკუმენტაციით, რათა ყოველთვის იცოდეთ, სად არის ხალიჩა.'
+        },
+        { type: 'h2', text: 'უფასო მიწოდება საქართველოში' },
+        {
+          type: 'p',
+          text: 'საქართველოს შიგნით მიწოდება უფასოა. საქართველოში მიწოდებადი შესაბამისი შეკვეთებისთვის UPS-ის მიწოდების ღირებულებას ჩვენ ვფარავთ. შიდა ქართულ მიწოდებაზე ცალკე სატრანსპორტო ხაზი ინვოისზე არ გეწერებათ: იხდით ხალიჩას; უსაფრთხო მიწოდებას UPS-ით ჩვენ ვუზრუნველვყოფთ.'
+        },
+        { type: 'h2', text: 'საერთაშორისო მიწოდება' },
+        {
+          type: 'p',
+          text: 'საქართველოს გარეთ მიმართულებებზეც ვიყენებთ UPS-ს. საერთაშორისო ტარიფები დამოკიდებულია დანიშნულებაზე, ამანათის ზომაზე, წონასა და ტექსტილის უსაფრთხო ტრანზიტისთვის საჭირო სერვისის დონეზე. შეკვეთის საბოლოო გაფორმებამდე მიწოდების ღირებულებას ზუსტად ვიანგარიშებთ, რომ ხარჯი გასაგები იყოს.'
+        },
+        { type: 'h2', text: 'მიწოდების ვადები' },
+        {
+          type: 'p',
+          text: 'საქართველოში UPS ჩვეულებრივ რამდენიმე სამუშაო დღეში აწვდის გაგზავნის შემდეგ — თქვენს ქალაქსა და ადგილობრივ გრაფიკზეა დამოკიდებული. საერთაშორისო ვადები ქვეყნებისა და საბაჟოს მიხედვით იცვლება. გაგზავნისთანავე მიიღებთ თვალყურის დევნების დეტალებს, რომ UPS-ის გზას რეალურ დროში ადევნოთ თვალი. თუ დაყოვნება UPS-ის ქსელში ან საბაჟოზე მოხდება, დაგეხმარებით სტატუსის გაგებაში და სწორ მხარდაჭერასთან დაკავშირებაში.'
+        },
+        { type: 'h2', text: 'რა გვჭირდება თქვენგან' },
+        {
+          type: 'p',
+          text: 'ზუსტი მიწოდების დეტალები UPS-ს ეფექტურს ტოვებს: სრული სახელი, ტელეფონი და სრული ქუჩის მისამართი. არასწორი მისამართი ან მიუწვდომელი ტელეფონი პირველი მიწოდების წარუმატებლობის ყველაზე ხშირი მიზეზია.'
+        },
+        { type: 'h2', text: 'კითხვები მიწოდებაზე' },
+        {
+          type: 'p',
+          text: 'თუ გსურთ დაადასტუროთ უფასო მიწოდება საქართველოში, იკითხოთ UPS-ის ვადა თქვენს ქალაქამდე ან დაგეგმოთ საერთაშორისო გადაზიდვა — დაგვიკავშირდით შეძენამდე ან შემდეგ. სიამოვნებით აგიხსნით შეფუთვას, თვალყურს და იმას, რასაც ჩამოსვლისას უნდა ელოდოთ.'
+        },
+        {
+          type: 'address',
+          lines: [
+            'Origin Carpets',
+            'ერეკლე II-ის ქ. 8/10, თბილისი, 0105, საქართველო',
+            '+995 577 405 311',
+            'info@origincarpets.com'
+          ]
+        }
+      ]
     }
+
   }
 } as const;
