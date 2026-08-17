@@ -15,3 +15,6 @@ data/
 *.tsbuildinfo
 
 .tmp/
+
+# Accidental local downloads (never commit)
+elfbar-600v2-product-transparent.png
