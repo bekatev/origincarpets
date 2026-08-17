@@ -96,6 +96,7 @@ export function AtHomeSlider() {
                   priority={i === 0}
                   className={`object-cover ${slide.position}`}
                   sizes="(max-width: 1400px) 100vw, 1400px"
+                  quality={72}
                 />
               </div>
             ))}

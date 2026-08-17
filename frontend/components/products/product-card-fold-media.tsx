@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState, type MouseEvent, type ReactNode } from 'react';
+import { OptimizedImg } from '@/components/media/optimized-img';
 import { cn } from '@/lib/cn';
 
 type ProductCardFoldMediaProps = {
@@ -52,6 +53,8 @@ export function ProductCardFoldMedia({
   const [index, setIndex] = useState(0);
   /** After arrow navigation, keep the new slide at rest size until pointer leaves. */
   const [browsing, setBrowsing] = useState(false);
+  /** Mount hover zoom layer only after first hover — avoids a second full download on load. */
+  const [hoverLayerReady, setHoverLayerReady] = useState(false);
   const safeIndex = slides.length ? index % slides.length : 0;
   const src = slides[safeIndex];
   const hasMultiple = slides.length > 1;
@@ -86,6 +89,7 @@ export function ProductCardFoldMedia({
         browsing && 'product-reveal--browsing',
         className
       )}
+      onMouseEnter={() => setHoverLayerReady(true)}
       onMouseLeave={() => setBrowsing(false)}
     >
       {badge ? (
@@ -93,26 +97,36 @@ export function ProductCardFoldMedia({
       ) : null}
 
       <div className="absolute inset-0 z-0 overflow-hidden p-2 sm:p-3">
-        {/* Native img — legacy product files are served by nginx at the site root, not via /_next/image */}
-        <img
+        <OptimizedImg
           key={src}
           src={src}
           alt={alt}
-          loading={priority && safeIndex === 0 ? 'eager' : 'lazy'}
-          decoding="async"
+          priority={priority && safeIndex === 0}
+          maxWidth={750}
+          quality={70}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px"
           className="h-full w-full object-contain"
         />
       </div>
 
-      {/* Hover panel: same full carpet + tiny zoom (not bg-cover crop). */}
-      <div
-        className="product-reveal__panel absolute inset-0 z-[1] overflow-hidden bg-[var(--oc-bg-secondary)]"
-        aria-hidden
-      >
-        <div className="product-reveal__panel-inner h-full w-full p-2 sm:p-3">
-          <img src={src} alt="" className="h-full w-full object-contain" />
+      {/* Hover panel: same carpet + tiny zoom. Image mounts on first hover only. */}
+      {hoverLayerReady ? (
+        <div
+          className="product-reveal__panel absolute inset-0 z-[1] overflow-hidden bg-[var(--oc-bg-secondary)]"
+          aria-hidden
+        >
+          <div className="product-reveal__panel-inner h-full w-full p-2 sm:p-3">
+            <OptimizedImg
+              src={src}
+              alt=""
+              maxWidth={750}
+              quality={70}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px"
+              className="h-full w-full object-contain"
+            />
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {hasMultiple ? (
         <>

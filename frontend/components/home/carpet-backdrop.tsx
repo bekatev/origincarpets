@@ -49,8 +49,8 @@ export function CarpetBackdrop({
               alt=""
               fill
               className="object-cover object-center"
-              sizes="100vw"
-              quality={90}
+              sizes="(max-width: 1920px) 100vw, 1920px"
+              quality={72}
             />
           </div>
         ) : (
@@ -64,8 +64,8 @@ export function CarpetBackdrop({
               transform: needsTransform ? `rotate(${rotate}deg) scale(${zoom})` : undefined,
               transformOrigin: 'center center'
             }}
-            sizes="100vw"
-            quality={90}
+            sizes="(max-width: 1920px) 100vw, 1920px"
+            quality={72}
           />
         )}
       </div>
@@ -102,8 +102,8 @@ export function CarpetRibbon({
         fill
         className="object-cover object-center"
         style={{ transform: zoom !== 1 ? `scale(${zoom})` : undefined }}
-        sizes="100vw"
-        quality={88}
+        sizes="(max-width: 1920px) 100vw, 1920px"
+        quality={68}
       />
     </div>
   );

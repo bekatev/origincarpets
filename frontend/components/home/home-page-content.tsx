@@ -60,8 +60,8 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
             fill
             priority
             className="object-cover object-center"
-            sizes="100vw"
-            quality={90}
+            sizes="(max-width: 1920px) 100vw, 1920px"
+            quality={75}
           />
         </ParallaxMedia>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1a1210]/55 via-[#1a1210]/28 to-[#1a1210]/12" />

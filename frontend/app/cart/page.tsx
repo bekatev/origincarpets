@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { OptimizedImg } from '@/components/media/optimized-img';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { DeliveryComingSoon } from '@/components/storefront/delivery-coming-soon';
@@ -59,11 +60,12 @@ export default function CartPage() {
                   className="oc-surface flex items-center gap-4 p-4"
                 >
                   {item.image ? (
-                    <img
+                    <OptimizedImg
                       src={item.image}
                       alt={item.title}
-                      loading="lazy"
-                      decoding="async"
+                      maxWidth={256}
+                      quality={60}
+                      sizes="112px"
                       className="h-20 w-28 border border-[var(--oc-line)] object-cover"
                     />
                   ) : (

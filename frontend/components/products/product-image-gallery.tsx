@@ -8,6 +8,7 @@ import {
   type ReactNode
 } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { OptimizedImg } from '@/components/media/optimized-img';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { cn } from '@/lib/cn';
 
@@ -73,12 +74,14 @@ export function ProductImageGallery({
           className="group relative flex min-h-[420px] w-full cursor-zoom-in items-center justify-center md:min-h-[520px]"
           style={{ backgroundColor: FRAME_BG }}
         >
-          <img
+          <OptimizedImg
             key={activeUrl}
             src={activeUrl}
             alt={`${title} — image ${activeIndex + 1} of ${urls.length}`}
-            loading={activeIndex === 0 ? 'eager' : 'lazy'}
-            decoding="async"
+            priority={activeIndex === 0}
+            maxWidth={1200}
+            quality={75}
+            sizes="(max-width: 768px) 100vw, 560px"
             className="h-auto max-h-[70vh] w-full object-contain transition duration-500 ease-luxury group-hover:scale-[1.01]"
             draggable={false}
           />
@@ -111,7 +114,14 @@ export function ProductImageGallery({
               )}
               style={{ backgroundColor: FRAME_BG }}
             >
-              <img src={url} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain" />
+              <OptimizedImg
+                src={url}
+                alt=""
+                maxWidth={256}
+                quality={60}
+                sizes="96px"
+                className="h-full w-full object-contain"
+              />
             </button>
           ))}
         </div>

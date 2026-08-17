@@ -10,13 +10,14 @@ const nextConfig = {
       { protocol: "https", hostname: "placehold.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "origincarpets.com" },
+      { protocol: "https", hostname: "www.origincarpets.com" },
       { protocol: "http", hostname: "localhost" },
       { protocol: "http", hostname: "127.0.0.1" }
     ],
     formats: ["image/avif", "image/webp"],
     // Prefer modern formats; keep source files web-sized so first paint stays fast.
-    // Include large retina widths so full-bleed carpet backdrops stay sharp.
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 2560, 3840],
+    // Cap at 2048 — full-bleed carpets stay sharp without shipping 4K JPEGs on mobile.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60 * 60 * 24 * 30
   }
