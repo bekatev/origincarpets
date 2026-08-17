@@ -1,8 +1,5 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import { cn } from '@/lib/cn';
-
 type OptimizedImgProps = {
   src: string;
   alt: string;
@@ -17,12 +14,9 @@ type OptimizedImgProps = {
 };
 
 /**
- * Product/media images are often served by Nest (`/api/media/...`) or nginx at the
- * site root. Next’s `/_next/image` optimizer cannot fetch those internally, so we
- * load the original URL directly (lazy + fade-in + error visibility).
- *
- * Static assets under /stock, /brand, /guests, /staff still go through next/image
- * where callers use the next/image component themselves.
+ * Product/media images load from the original URL (Nest `/api/media/...` or nginx).
+ * No opacity gate — cached images often skip `onLoad`, which previously left cards blank
+ * until hover remounted a second image.
  */
 export function OptimizedImg({
   src,
@@ -31,14 +25,6 @@ export function OptimizedImg({
   priority = false,
   draggable = false
 }: OptimizedImgProps) {
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  const onError = useCallback(() => {
-    setFailed(true);
-    setLoaded(true);
-  }, []);
-
   return (
     <img
       src={src}
@@ -47,14 +33,7 @@ export function OptimizedImg({
       decoding="async"
       fetchPriority={priority ? 'high' : 'auto'}
       draggable={draggable}
-      onLoad={() => setLoaded(true)}
-      onError={onError}
-      className={cn(
-        'transition-opacity duration-500 ease-out',
-        loaded ? 'opacity-100' : 'opacity-0',
-        failed && 'opacity-40',
-        className
-      )}
+      className={className}
     />
   );
 }
