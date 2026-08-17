@@ -433,7 +433,7 @@ function ContainedPhoto({
         height={photo.height}
         className="h-auto w-full"
         sizes={sizes}
-        quality={85}
+        quality={75}
         priority={priority}
       />
     </motion.figure>

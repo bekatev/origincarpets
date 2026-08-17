@@ -15,6 +15,8 @@ const nextConfig = {
       { protocol: "http", hostname: "127.0.0.1" }
     ],
     formats: ["image/avif", "image/webp"],
+    // Next 15 defaults to [75] only — anything else 400s the optimizer.
+    qualities: [60, 68, 70, 72, 75, 80, 85, 90],
     // Prefer modern formats; keep source files web-sized so first paint stays fast.
     // Cap at 2048 — full-bleed carpets stay sharp without shipping 4K JPEGs on mobile.
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
