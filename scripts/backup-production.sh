@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Daily production backup: Postgres dump + product uploads.
-# Keeps RETENTION_DAYS copies under BACKUP_ROOT.
+# Keeps the newest RETENTION_COUNT daily folders under BACKUP_ROOT.
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/opt/carp}"
 BACKUP_ROOT="${BACKUP_ROOT:-/opt/backups}"
-RETENTION_DAYS="${RETENTION_DAYS:-14}"
+# Each day is ~300 MB (full uploads archive); the droplet disk also has to fit Docker builds.
+RETENTION_COUNT="${RETENTION_COUNT:-3}"
 STAMP="$(date -u +%Y-%m-%d_%H%M%S)"
 DAY="$(date -u +%Y-%m-%d)"
 DEST="${BACKUP_ROOT}/${DAY}"
@@ -60,7 +61,9 @@ else
   log "WARNING: uploads dir missing (${UPLOADS_SRC}) — skipped"
 fi
 
-# Remove older day folders beyond retention
-find "$BACKUP_ROOT" -mindepth 1 -maxdepth 1 -type d -name '????-??-??' -mtime "+${RETENTION_DAYS}" -exec rm -rf {} +
-log "Retention: kept last ${RETENTION_DAYS} days"
+# Only YYYY-MM-DD folders rotate; one-off folders (e.g. migration-*) are never removed.
+ls -1d "$BACKUP_ROOT"/????-??-?? 2>/dev/null | sort -r | tail -n "+$((RETENTION_COUNT + 1))" | while read -r dir; do
+  rm -rf "$dir"
+done || true
+log "Retention: kept newest ${RETENTION_COUNT} daily backups"
 log "Backup complete"

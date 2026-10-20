@@ -33,6 +33,11 @@ if [ "$NEEDS_BUILD" -eq 1 ]; then
   docker image prune -af >/dev/null 2>&1 || true
   rm -rf /root/.npm 2>/dev/null || true
   journalctl --vacuum-size=200M >/dev/null 2>&1 || true
+  # Same rotation as backup-production.sh: newest 3 daily folders; migration-* etc. untouched.
+  ls -1d /opt/backups/????-??-?? 2>/dev/null | sort -r | tail -n +4 | while read -r dir; do
+    echo "    removing old backup $dir"
+    rm -rf "$dir"
+  done || true
 else
   docker image prune -f >/dev/null 2>&1 || true
 fi

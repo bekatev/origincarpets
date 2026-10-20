@@ -41,7 +41,7 @@ crontab -l | grep origin-carpets-daily-backup || true
 if [[ "$RUN_NOW" -eq 1 ]]; then
   echo "==> Running first backup now"
   APP_DIR="$APP_DIR" /bin/bash "$BACKUP_SCRIPT"
-  echo "==> Done. Backups live in /opt/backups (14-day retention)"
+  echo "==> Done. Backups live in /opt/backups (newest 3 daily backups kept)"
 else
   echo "==> Cron only — skipped immediate backup"
 fi
