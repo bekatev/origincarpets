@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { apiRequest, postJson } from '@/lib/api';
 import { fetchAccountProfile } from '@/lib/account';
@@ -32,6 +32,12 @@ import {
   type ShippingQuote
 } from '@/lib/shipping';
 import { PURCHASE_ENABLED } from '@/lib/storefront';
+import { getAttributionForOrder } from '@/lib/attribution';
+import {
+  cartPayloadFromItems,
+  stashPendingPurchase,
+  trackInitiateCheckout
+} from '@/lib/tracking';
 
 const defaultPaymentConfig: PaymentConfig = { card: false };
 
@@ -39,6 +45,7 @@ type CreatedOrder = {
   id: string;
   orderNumber: string;
   status: string;
+  total?: number;
   guestAccessToken?: string;
 };
 
@@ -74,6 +81,18 @@ export default function CheckoutPage() {
   const [loadingQuote, setLoadingQuote] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const didTrackCheckout = useRef(false);
+
+  useEffect(() => {
+    if (!PURCHASE_ENABLED || !items.length || didTrackCheckout.current) return;
+    didTrackCheckout.current = true;
+    trackInitiateCheckout(
+      cartPayloadFromItems(items, {
+        email: (user?.email ?? email).trim() || undefined,
+        phone: phone.trim() || undefined
+      })
+    );
+  }, [items, user?.email, email, phone]);
 
   useEffect(() => {
     let cancelled = false;
@@ -297,7 +316,8 @@ export default function CheckoutPage() {
         postalCode: postalCode || undefined,
         line1,
         line2: line2 || undefined
-      }
+      },
+      attribution: getAttributionForOrder()
     };
 
     try {
@@ -328,6 +348,18 @@ export default function CheckoutPage() {
       }
 
       setSuccess(t.cardRedirecting);
+      const purchasePayload = cartPayloadFromItems(items, {
+        orderId: order.orderNumber,
+        eventId: order.id,
+        email: checkoutEmail || undefined,
+        phone: phone || undefined
+      });
+      stashPendingPurchase({
+        ...purchasePayload,
+        value: order.total ?? purchasePayload.value,
+        orderId: order.orderNumber,
+        eventId: order.id
+      });
       clearCart();
       window.location.href = paymentUrl;
     } catch (submitError) {
@@ -505,7 +537,10 @@ export default function CheckoutPage() {
               </label>
             ) : null}
 
-            <PaymentMethodPicker dict={t} config={paymentConfig} />
+            <PaymentMethodPicker
+              dict={t}
+              config={{ card: paymentConfig.card, paypal: paymentConfig.paypal, bankTransfer: false }}
+            />
 
             <button
               disabled={busy || loadingQuote || !quote || !paymentConfig.card}

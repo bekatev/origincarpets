@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { Suspense } from 'react';
 import { cookies } from 'next/headers';
 import { Inter, Playfair_Display } from 'next/font/google';
 import { CartProvider } from '@/lib/cart';
@@ -16,6 +17,8 @@ import { ThemeProvider } from '@/components/providers/theme-provider';
 import { ThemeScript } from '@/components/layout/theme-script';
 import { JsonLd } from '@/components/seo/json-ld';
 import { Analytics } from '@/components/seo/analytics';
+import { ConsentBanner } from '@/components/seo/consent-banner';
+import { TrackingScripts } from '@/components/seo/tracking-scripts';
 import { CURRENCY_COOKIE, normalizeCurrency } from '@/lib/currency';
 import { LANG_COOKIE, resolveSiteLocale } from '@/lib/i18n';
 import {
@@ -135,6 +138,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                     <MessengerChat />
                     <CurrencySwitcher />
                   </div>
+                  <Suspense fallback={null}>
+                    <TrackingScripts />
+                  </Suspense>
+                  <ConsentBanner />
                 </CartProvider>
               </AuthProvider>
             </CurrencyProvider>

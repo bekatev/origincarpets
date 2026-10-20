@@ -295,6 +295,8 @@ model Order {
   parcelTrackingNumber     String?
   parcelRegisteredAt       DateTime?
   parcelRegistrationError  String?
+  /** Ad click IDs, UTMs, browser IDs and consent captured at checkout. */
+  attribution              Json?
   createdAt                DateTime         @default(now())
   updatedAt                DateTime         @updatedAt
 

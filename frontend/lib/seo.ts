@@ -156,6 +156,7 @@ export function productJsonLd(input: {
   categoryName?: string | null;
   material?: string | null;
   color?: string | null;
+  isSold?: boolean;
 }) {
   const url = absoluteUrl(`/products/${input.slug}`);
   const images = (input.images.length ? input.images : [stockImages.og]).map(absoluteImageUrl);
@@ -181,7 +182,9 @@ export function productJsonLd(input: {
       url,
       priceCurrency: 'USD',
       price: input.price.toFixed(2),
-      availability: 'https://schema.org/InStock',
+      availability: input.isSold
+        ? 'https://schema.org/SoldOut'
+        : 'https://schema.org/InStock',
       seller: {
         '@type': 'Organization',
         name: SITE_NAME

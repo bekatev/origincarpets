@@ -12,6 +12,8 @@ import {
   FOOTER_ORIGIN_FILTERS,
   FOOTER_SOCIAL
 } from '@/lib/i18n-footer';
+import { openConsentSettings } from '@/lib/consent';
+import { trackLead } from '@/lib/tracking';
 
 function productsHref(params: Record<string, string>): Route {
   const search = new URLSearchParams(params);
@@ -111,6 +113,11 @@ export function SiteFooter() {
                   {dict.home.policyPrivacy}
                 </Link>
               </li>
+              <li>
+                <button type="button" onClick={openConsentSettings} className="text-left hover:opacity-50">
+                  {dict.consent.settings}
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -157,6 +164,12 @@ export function SiteFooter() {
               <a
                 href="mailto:info@origincarpets.com?subject=Virtual%20Appointment%20Request"
                 className="oc-link mt-6 inline-flex text-[10px] font-medium uppercase tracking-[0.22em]"
+                onClick={() =>
+                  trackLead({
+                    contentIds: ['virtual_appointment'],
+                    contentName: 'Virtual Appointment'
+                  })
+                }
               >
                 {f.bookAppointment}
               </a>

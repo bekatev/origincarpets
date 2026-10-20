@@ -9,7 +9,7 @@ export type PaymentConfig = {
 export async function fetchPaymentConfig(): Promise<PaymentConfig> {
   const response = await fetch(`${API_URL}/payments/config`, { cache: 'no-store' });
   if (!response.ok) {
-    return { card: false, bankTransfer: true };
+    return { card: false, bankTransfer: false };
   }
   return response.json() as Promise<PaymentConfig>;
 }

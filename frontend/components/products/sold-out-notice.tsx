@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import type { Route } from 'next';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { cn } from '@/lib/cn';
 
@@ -7,10 +9,13 @@ const MESSENGER_URL = 'https://m.me/carpetsgallerytbilisi';
 
 export function SoldOutNotice({
   className,
-  showSoldLabel = true
+  showSoldLabel = true,
+  categorySlug
 }: {
   className?: string;
   showSoldLabel?: boolean;
+  /** When set, offers a link to available pieces in the same category. */
+  categorySlug?: string;
 }) {
   const { dict } = useI18n();
   const d = dict.productDetail;
@@ -33,6 +38,14 @@ export function SoldOutNotice({
           {d.textUsSimilar}
         </a>
       </p>
+      {categorySlug ? (
+        <Link
+          href={`/products?category=${encodeURIComponent(categorySlug)}` as Route}
+          className="oc-btn-primary inline-flex"
+        >
+          {d.browseAvailable}
+        </Link>
+      ) : null}
     </div>
   );
 }

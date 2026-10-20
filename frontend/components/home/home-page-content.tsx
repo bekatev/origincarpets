@@ -189,10 +189,10 @@ export function HomePageContent({ featured }: { featured: ProductItem[] }) {
                 <p className="oc-body">{dict.home.historyP3}</p>
               </div>
               <Link
-                href={ready && isAuthenticated ? '/orders' : '/register'}
+                href={ready && isAuthenticated ? '/orders' : '/products'}
                 className="oc-link oc-link-arrow mt-10 inline-flex"
               >
-                {ready && isAuthenticated ? dict.home.goToProfile : dict.home.createAccount}
+                {ready && isAuthenticated ? dict.home.goToProfile : dict.home.browseShop}
               </Link>
             </TextPanel>
           </div>

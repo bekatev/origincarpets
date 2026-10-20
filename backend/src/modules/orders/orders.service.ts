@@ -6,6 +6,7 @@ import { PUBLIC_SHIPPABLE_PRODUCT_WHERE } from '../products/shipping-dimensions'
 import { SHIPPING_PROVIDER_KEY } from '../shipping/shipping.constants';
 import { CreateGuestOrderDto, CreateOrderDto } from './dto/create-order.dto';
 import { GuestCheckoutTokenService } from './guest-checkout-token.service';
+import { sanitizeAttribution, type RequestMeta } from './order-attribution';
 
 @Injectable()
 export class OrdersService {
@@ -16,18 +17,19 @@ export class OrdersService {
     private readonly guestTokens: GuestCheckoutTokenService
   ) {}
 
-  async createOrder(userId: string, dto: CreateOrderDto) {
+  async createOrder(userId: string, dto: CreateOrderDto, meta: RequestMeta = {}) {
     const order = await this.createOrderRecord({
       userId,
       guestEmail: null,
       dto,
-      saveAddress: Boolean(dto.saveAddress)
+      saveAddress: Boolean(dto.saveAddress),
+      meta
     });
 
     return this.toOrderResponse(order, dto.deliveryMethod, order.shippingProvider ?? SHIPPING_PROVIDER_KEY);
   }
 
-  async createGuestOrder(dto: CreateGuestOrderDto) {
+  async createGuestOrder(dto: CreateGuestOrderDto, meta: RequestMeta = {}) {
     const guestEmail = dto.email.trim().toLowerCase();
     if (!guestEmail) {
       throw new BadRequestException('Email is required');
@@ -37,7 +39,8 @@ export class OrdersService {
       userId: null,
       guestEmail,
       dto,
-      saveAddress: false
+      saveAddress: false,
+      meta
     });
 
     return {
@@ -120,8 +123,10 @@ export class OrdersService {
     guestEmail: string | null;
     dto: CreateOrderDto | CreateGuestOrderDto;
     saveAddress: boolean;
+    meta: RequestMeta;
   }) {
-    const { userId, guestEmail, dto, saveAddress } = input;
+    const { userId, guestEmail, dto, saveAddress, meta } = input;
+    const attribution = sanitizeAttribution(dto.attribution, meta);
 
     if (!dto.items.length) {
       throw new BadRequestException('Order must contain at least one item');
@@ -229,6 +234,7 @@ export class OrdersService {
         packageLengthCm: shipping.package.lengthCm,
         packageWidthCm: shipping.package.widthCm,
         packageHeightCm: shipping.package.heightCm,
+        ...(attribution ? { attribution } : {}),
         items: {
           create: products.map((product) => {
             const quantity = grouped.get(product.id) ?? 0;

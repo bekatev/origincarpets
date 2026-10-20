@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
 import { ProductPrice } from '@/components/products/product-price';
 import { SoldOutNotice } from '@/components/products/sold-out-notice';
@@ -10,6 +10,7 @@ import type { ProductItem } from '@/lib/products';
 import { saleDiscountPercent } from '@/lib/product-badges';
 import { PURCHASE_ENABLED } from '@/lib/storefront';
 import { toPlainText } from '@/lib/text';
+import { trackViewContent } from '@/lib/tracking';
 import { formatDimensionsBothFromCm, formatWeightBothFromKg } from '@/lib/units';
 
 export function ProductDetailView({ product }: { product: ProductItem }) {
@@ -18,6 +19,24 @@ export function ProductDetailView({ product }: { product: ProductItem }) {
   const localized = useMemo(() => localizeProduct(product, locale), [product, locale]);
   const sold = Boolean(product.isSold);
   const discount = saleDiscountPercent(product.price, product.compareAtPrice);
+
+  useEffect(() => {
+    trackViewContent({
+      contentIds: [product.slug || product.id],
+      contentName: localized.title,
+      contentType: 'product',
+      value: product.price,
+      currency: 'USD',
+      contents: [
+        {
+          id: product.slug || product.id,
+          name: localized.title,
+          price: product.price,
+          quantity: 1
+        }
+      ]
+    });
+  }, [product.id, product.slug, product.price, localized.title]);
 
   const dimensionsLabel =
     product.shipping?.lengthCm != null && product.shipping?.widthCm != null
@@ -97,7 +116,7 @@ export function ProductDetailView({ product }: { product: ProductItem }) {
       ) : null}
 
       {sold ? (
-        <SoldOutNotice />
+        <SoldOutNotice categorySlug={product.category?.slug} />
       ) : (
         <AddToCartButton
           product={{

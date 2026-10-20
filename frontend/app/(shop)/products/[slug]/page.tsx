@@ -78,7 +78,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             images: product.images,
             categoryName: product.category.name,
             material: localized.attributes.material,
-            color: localized.attributes.color
+            color: localized.attributes.color,
+            isSold: product.isSold
           })
         ]}
       />

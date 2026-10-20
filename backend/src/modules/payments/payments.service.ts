@@ -3,10 +3,20 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { GuestCheckoutTokenService } from '../orders/guest-checkout-token.service';
+import type { OrderAttribution } from '../orders/order-attribution';
 import { ShippingService } from '../shipping/shipping.service';
 import { IpayClient } from './ipay.client';
+import { MetaCapiService } from './meta-capi.service';
 import { PayPalClient } from './paypal.client';
 import { BANK_TRANSFER_DEFAULTS } from './payments.constants';
+
+export type IpayCallbackResult = {
+  ok: boolean;
+  orderId?: string;
+  orderNumber?: string;
+  paid?: boolean;
+  failed?: boolean;
+};
 
 @Injectable()
 export class PaymentsService {
@@ -19,7 +29,8 @@ export class PaymentsService {
     private readonly guestTokens: GuestCheckoutTokenService,
     private readonly config: ConfigService,
     private readonly ipay: IpayClient,
-    private readonly paypal: PayPalClient
+    private readonly paypal: PayPalClient,
+    private readonly metaCapi: MetaCapiService
   ) {}
 
   getPublicConfig() {
@@ -159,6 +170,58 @@ export class PaymentsService {
         error instanceof Error ? error.stack : String(error)
       );
     }
+
+    try {
+      await this.sendMetaPurchaseEvent(orderId);
+    } catch (error) {
+      this.logger.error(
+        `Meta CAPI Purchase failed for order ${orderId}`,
+        error instanceof Error ? error.stack : String(error)
+      );
+    }
+  }
+
+  private async sendMetaPurchaseEvent(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        user: true,
+        shippingAddress: true,
+        items: { include: { product: { select: { slug: true, sku: true } } } }
+      }
+    });
+    if (!order) return;
+
+    const email = order.user?.email ?? order.guestEmail;
+    const phone = order.shippingAddress?.phone ?? order.user?.phone ?? null;
+    const contents = order.items.map((item) => {
+      const id = item.product?.slug || item.skuSnapshot;
+      return {
+        id,
+        quantity: item.quantity,
+        item_price: Number(item.unitPrice)
+      };
+    });
+
+    const [nameFirst, ...nameRest] = (order.shippingAddress?.fullName ?? '').trim().split(/\s+/);
+
+    await this.metaCapi.sendPurchase({
+      eventId: order.id,
+      orderNumber: order.orderNumber,
+      value: Number(order.total),
+      currency: order.currency || 'USD',
+      email,
+      phone,
+      firstName: order.user?.firstName ?? (nameFirst || null),
+      lastName: order.user?.lastName ?? (nameRest.join(' ') || null),
+      externalId: order.userId ?? email ?? null,
+      countryCode: order.shippingAddress?.countryCode ?? null,
+      city: order.shippingAddress?.city ?? null,
+      postalCode: order.shippingAddress?.postalCode ?? null,
+      attribution: (order.attribution as OrderAttribution | null) ?? null,
+      contentIds: contents.map((c) => c.id),
+      contents
+    });
   }
 
   private async sendCustomerOrderConfirmation(orderId: string) {
@@ -280,7 +343,7 @@ export class PaymentsService {
     return this.createIpayCheckoutForOrder(order);
   }
 
-  async handleIpayCallback(body: Record<string, unknown>) {
+  async handleIpayCallback(body: Record<string, unknown>): Promise<IpayCallbackResult> {
     const trxIdentifier = String(body.order_id ?? body.ipay_payment_id ?? '');
     const status = String(body.status ?? '').toLowerCase();
 
@@ -305,14 +368,42 @@ export class PaymentsService {
         trxIdentifier,
         body.transaction_id ? String(body.transaction_id) : undefined
       );
-    } else if (status && status !== 'success') {
+      return {
+        ok: true,
+        orderId: payment.orderId,
+        orderNumber: payment.order.orderNumber,
+        paid: true
+      };
+    }
+
+    if (status === 'success' || payment.order.status === 'PAID') {
+      return {
+        ok: true,
+        orderId: payment.orderId,
+        orderNumber: payment.order.orderNumber,
+        paid: payment.order.status === 'PAID' || status === 'success'
+      };
+    }
+
+    if (status && status !== 'success') {
       await this.prisma.payment.updateMany({
         where: { id: payment.id },
         data: { status: 'FAILED' }
       });
+      return {
+        ok: true,
+        orderId: payment.orderId,
+        orderNumber: payment.order.orderNumber,
+        failed: true
+      };
     }
 
-    return { ok: true, orderNumber: payment.order.orderNumber };
+    return {
+      ok: true,
+      orderId: payment.orderId,
+      orderNumber: payment.order.orderNumber,
+      paid: false
+    };
   }
 
   /** Poll iPay for PENDING card payments and mark paid + notify admins when successful. */
@@ -353,8 +444,19 @@ export class PaymentsService {
     return { checked: results.length, results };
   }
 
-  ipayReturnRedirect() {
-    return `${this.frontendUrl()}/checkout/result?payment=success`;
+  ipayReturnRedirect(result?: IpayCallbackResult) {
+    const params = new URLSearchParams();
+    if (result?.paid) {
+      params.set('payment', 'success');
+    } else if (result?.failed) {
+      params.set('payment', 'failed');
+    } else {
+      // Webhook may still confirm — do not claim success or fire browser Purchase yet.
+      params.set('payment', 'pending');
+    }
+    if (result?.orderId) params.set('orderId', result.orderId);
+    if (result?.orderNumber) params.set('orderNumber', result.orderNumber);
+    return `${this.frontendUrl()}/checkout/result?${params.toString()}`;
   }
 
   async createPayPalOrder(userId: string, orderId: string) {

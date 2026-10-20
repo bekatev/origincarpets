@@ -10,6 +10,7 @@ import { emptyAddressValues, type ShippingAddressFieldValues } from '@/component
 import { useAuth } from '@/components/providers/auth-provider';
 import { useI18n } from '@/components/providers/i18n-provider';
 import { postJson, type AuthResponse } from '@/lib/api';
+import { trackCompleteRegistration } from '@/lib/tracking';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -68,6 +69,11 @@ export default function RegisterPage() {
       }
 
       const data = await postJson<AuthResponse>('/auth/register', payload);
+      trackCompleteRegistration({
+        contentIds: ['register'],
+        contentName: 'CompleteRegistration',
+        email
+      });
       login(data);
       router.push('/orders');
     } catch (submitError) {

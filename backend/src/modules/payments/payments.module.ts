@@ -4,6 +4,7 @@ import { OrdersModule } from '../orders/orders.module';
 import { ShippingModule } from '../shipping/shipping.module';
 import { IpayClient } from './ipay.client';
 import { LegacyIpayController } from './legacy-ipay.controller';
+import { MetaCapiService } from './meta-capi.service';
 import { PayPalClient } from './paypal.client';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
@@ -11,7 +12,7 @@ import { PaymentsService } from './payments.service';
 @Module({
   imports: [ShippingModule, MailModule, OrdersModule],
   controllers: [PaymentsController, LegacyIpayController],
-  providers: [PaymentsService, IpayClient, PayPalClient],
+  providers: [PaymentsService, IpayClient, PayPalClient, MetaCapiService],
   exports: [PaymentsService]
 })
 export class PaymentsModule {}

@@ -68,6 +68,7 @@ export const storefrontTranslations = {
       sold: 'Sold',
       outOfStock: 'Out of stock',
       textUsSimilar: 'Text us for a similar one',
+      browseAvailable: 'See available pieces',
       zoomOpen: 'Open zoomed carpet image',
       zoomHint: 'Click to zoom',
       zoomClose: 'Close',
@@ -188,9 +189,13 @@ export const storefrontTranslations = {
     },
     checkoutResult: {
       title: 'Thank you for your order',
+      failedTitle: 'Payment was not completed',
       success: 'Your payment was received. A confirmation email is on its way with your order details.',
+      failedBody:
+        'The card payment did not go through. You can try again from checkout, or look up an existing order with your email and order number.',
       pending:
         'If you just completed payment, confirmation can take a moment. Check your email, or look up the order with your email and order number.',
+      emailHint: 'Check your inbox for the order confirmation.',
       viewOrders: 'View my orders',
       lookupOrder: 'Look up order',
       continueShopping: 'Continue shopping'
@@ -319,7 +324,7 @@ export const storefrontTranslations = {
       curator4: 'Professional stories and tips around carpets',
       curator5: '30+ years of experience',
       phone: 'T. +995 577 405 311',
-      email: 'E. info@origincarpets.com',
+      email: 'Email: info@origincarpets.com',
       address: 'A. 8/10 Erekle II street, Tbilisi, Georgia'
     }
   },
@@ -391,6 +396,7 @@ export const storefrontTranslations = {
       sold: 'გაყიდულია',
       outOfStock: 'მარაგი ამოწურულია',
       textUsSimilar: 'მოგვწერეთ მსგავსისთვის',
+      browseAvailable: 'ხელმისაწვდომი ნამუშევრების ნახვა',
       zoomOpen: 'გადიდებული ხალიჩის სურათის გახსნა',
       zoomHint: 'დაკლიკეთ გადიდებისთვის',
       zoomClose: 'დახურვა',
@@ -511,9 +517,13 @@ export const storefrontTranslations = {
     },
     checkoutResult: {
       title: 'გმადლობთ შეკვეთისთვის',
+      failedTitle: 'გადახდა ვერ დასრულდა',
       success: 'გადახდა მიღებულია. დადასტურების წერილი მალე მოგივათ შეკვეთის დეტალებით.',
+      failedBody:
+        'ბარათით გადახდა ვერ შესრულდა. სცადეთ თავიდან checkout-იდან, ან მოძებნეთ არსებული შეკვეთა ელფოსტითა და ნომრით.',
       pending:
         'თუ ახლახან დაასრულეთ გადახდა, დადასტურებას შეიძლება რამდენიმე წუთი დასჭირდეს. შეამოწმეთ ელფოსტა ან მოძებნეთ შეკვეთა ელფოსტითა და ნომრით.',
+      emailHint: 'შეამოწმეთ ინბოქსი შეკვეთის დადასტურებისთვის.',
       viewOrders: 'ჩემი შეკვეთები',
       lookupOrder: 'შეკვეთის მოძებნა',
       continueShopping: 'შოპინგის გაგრძელება'

@@ -31,7 +31,15 @@ export const dictionaries = {
       subtitle: 'We usually reply within a few hours',
       body: 'Have a question about a carpet, shipping, or anything else? Message us and we will get back to you.',
       cta: 'Continue in Messenger',
-      note: 'Opens Facebook Messenger'
+      ctaWhatsapp: 'Continue on WhatsApp',
+      note: 'Opens Facebook Messenger or WhatsApp'
+    },
+    consent: {
+      title: 'Cookies for ads & analytics',
+      body: 'We use Meta and Google cookies to measure visits and improve ads. Umami analytics runs without cookies. You can decline marketing cookies.',
+      accept: 'Accept',
+      reject: 'Decline',
+      settings: 'Cookie settings'
     },
     nav: {
       shop: 'Shop',
@@ -64,6 +72,7 @@ export const dictionaries = {
       memberLogin: 'Member Login',
       curatorSelection: "Curator's Selection",
       createAccount: 'Create Account',
+      browseShop: 'Browse the shop',
       goToProfile: 'Go To Profile',
       historyTitle: 'History of our Gallery',
       historyP1:
@@ -172,7 +181,15 @@ export const dictionaries = {
       subtitle: 'ჩვეულებრივ რამდენიმე საათში გპასუხობთ',
       body: 'გაქვთ შეკითხვა ხალიჩაზე, მიწოდებაზე ან სხვა თემაზე? მოგვწერეთ და მალე გიპასუხებთ.',
       cta: 'გაგრძელება Messenger-ში',
-      note: 'იხსნება Facebook Messenger-ში'
+      ctaWhatsapp: 'გაგრძელება WhatsApp-ზე',
+      note: 'იხსნება Messenger ან WhatsApp'
+    },
+    consent: {
+      title: 'ქუქიები რეკლამისა და ანალიტიკისთვის',
+      body: 'ვიყენებთ Meta-სა და Google-ის ქუქიებს ვიზიტების გასაზომად და რეკლამის გასაუმჯობესებლად. Umami ქუქიების გარეშე მუშაობს. მარკეტინგის ქუქიები შეგიძლიათ უარყოთ.',
+      accept: 'დათანხმება',
+      reject: 'უარყოფა',
+      settings: 'ქუქიების პარამეტრები'
     },
     nav: {
       shop: 'მაღაზია',
@@ -205,6 +222,7 @@ export const dictionaries = {
       memberLogin: 'კლიენტის შესვლა',
       curatorSelection: 'კურატორის შერჩევა',
       createAccount: 'ანგარიშის შექმნა',
+      browseShop: 'მაღაზიის ნახვა',
       goToProfile: 'პროფილზე გადასვლა',
       historyTitle: 'ჩვენი გალერეის ისტორია',
       historyP1:

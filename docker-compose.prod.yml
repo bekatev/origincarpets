@@ -12,6 +12,12 @@ services:
         NEXT_PUBLIC_PURCHASE_ENABLED: "true"
         # Umami Cloud website ID (cloud.umami.is) — empty disables analytics
         NEXT_PUBLIC_UMAMI_WEBSITE_ID: "1595dbe3-2176-45b5-b09f-3e5be99ff4f6"
+        # Ads: set in shell / .env next to compose before `docker compose build`
+        # Also put META_CAPI_ACCESS_TOKEN in backend/.env (runtime, Nest + Next CAPI).
+        NEXT_PUBLIC_META_PIXEL_ID: ${NEXT_PUBLIC_META_PIXEL_ID:-}
+        NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID:-}
+        NEXT_PUBLIC_GOOGLE_ADS_ID: ${NEXT_PUBLIC_GOOGLE_ADS_ID:-}
+        NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL: ${NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL:-}
     container_name: origincarpets-app
     restart: unless-stopped
     network_mode: host

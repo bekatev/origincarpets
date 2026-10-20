@@ -37,8 +37,8 @@ export class PaymentsController {
   /** Customer browser return from iPay (redirect_url). Also processes query params if present. */
   @Get('ipay/callback')
   async ipayReturn(@Query() query: Record<string, unknown>, @Res() res: Response) {
-    await this.paymentsService.handleIpayCallback(query);
-    return res.redirect(this.paymentsService.ipayReturnRedirect());
+    const result = await this.paymentsService.handleIpayCallback(query);
+    return res.redirect(this.paymentsService.ipayReturnRedirect(result));
   }
 
   /** Server-to-server callback from iPay (merchant Callback URL in BOG portal). */

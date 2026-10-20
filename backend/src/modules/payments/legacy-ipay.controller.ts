@@ -13,8 +13,8 @@ export class LegacyIpayController {
 
   @Get('ipay/execute')
   async executeGet(@Query() query: Record<string, unknown>, @Res() res: Response) {
-    await this.paymentsService.handleIpayCallback(query);
-    return res.redirect(this.paymentsService.ipayReturnRedirect());
+    const result = await this.paymentsService.handleIpayCallback(query);
+    return res.redirect(this.paymentsService.ipayReturnRedirect(result));
   }
 
   @Post('ipay/execute')

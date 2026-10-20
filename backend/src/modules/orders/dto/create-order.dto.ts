@@ -5,6 +5,7 @@ import {
   IsEmail,
   IsIn,
   IsInt,
+  IsObject,
   IsOptional,
   IsString,
   Max,
@@ -74,6 +75,10 @@ export class CreateOrderDto {
   @IsOptional()
   @IsBoolean()
   saveAddress?: boolean;
+
+  @IsOptional()
+  @IsObject()
+  attribution?: Record<string, unknown>;
 }
 
 export class CreateGuestOrderDto {
@@ -97,6 +102,10 @@ export class CreateGuestOrderDto {
   @ValidateNested()
   @Type(() => ShippingAddressDto)
   shippingAddress!: ShippingAddressDto;
+
+  @IsOptional()
+  @IsObject()
+  attribution?: Record<string, unknown>;
 }
 
 export class LookupGuestOrderDto {

@@ -102,6 +102,15 @@ services:
       - key: MAIL_RELAY_SECRET
         scope: RUN_TIME
         type: SECRET
+      - key: NEXT_PUBLIC_META_PIXEL_ID
+        scope: RUN_TIME
+        type: SECRET
+      - key: META_CAPI_ACCESS_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+      - key: META_CAPI_TEST_EVENT_CODE
+        scope: RUN_TIME
+        type: SECRET
 
   - name: web
     github:
@@ -124,3 +133,27 @@ services:
       - key: NEXT_PUBLIC_PURCHASE_ENABLED
         scope: BUILD_AND_RUN_TIME
         value: "true"
+      - key: NEXT_PUBLIC_SITE_URL
+        scope: BUILD_AND_RUN_TIME
+        value: https://origincarpets.com
+      - key: NEXT_PUBLIC_UMAMI_WEBSITE_ID
+        scope: BUILD_AND_RUN_TIME
+        type: SECRET
+      - key: NEXT_PUBLIC_META_PIXEL_ID
+        scope: BUILD_AND_RUN_TIME
+        type: SECRET
+      - key: NEXT_PUBLIC_GA_MEASUREMENT_ID
+        scope: BUILD_AND_RUN_TIME
+        type: SECRET
+      - key: NEXT_PUBLIC_GOOGLE_ADS_ID
+        scope: BUILD_AND_RUN_TIME
+        type: SECRET
+      - key: NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL
+        scope: BUILD_AND_RUN_TIME
+        type: SECRET
+      - key: META_CAPI_ACCESS_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+      - key: META_CAPI_TEST_EVENT_CODE
+        scope: RUN_TIME
+        type: SECRET
