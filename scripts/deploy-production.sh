@@ -41,6 +41,11 @@ echo "==> Disk after cleanup: $(df -h / | awk 'NR==2 {print $4}') free"
 avail_kb=$(df / | awk 'NR==2 {print $4}')
 if [ "$avail_kb" -lt 3000000 ]; then
   echo "WARNING: Low disk (${avail_kb}KB free). Build may fail; existing site is left running."
+  echo "==> Largest disk users"
+  du -xsh /opt/backups "$APP_DIR/backups" "$APP_DIR/data" /var/lib/docker /var/lib/postgresql /var/log /root /tmp 2>/dev/null | sort -rh || true
+  docker system df 2>/dev/null || true
+  du -xh --max-depth=1 /var/lib/docker/containers 2>/dev/null | sort -rh | head -5 || true
+  du -xh --max-depth=1 /opt/backups 2>/dev/null | sort -rh | head -20 || true
 fi
 
 bash scripts/deploy-migrate.sh
