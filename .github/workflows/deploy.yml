@@ -28,5 +28,10 @@ jobs:
           set -euo pipefail
           git config --global --add safe.directory /opt/carp
           cd /opt/carp
-          bash scripts/deploy-production.sh
+          # Update before running: bash reads the script while executing, so a script that
+          # replaces itself mid-run would continue with misaligned lines.
+          PREV_SHA="$(git rev-parse HEAD 2>/dev/null || true)"
+          git fetch origin main
+          git reset --hard origin/main
+          PREV_SHA="$PREV_SHA" bash scripts/deploy-production.sh
           REMOTE

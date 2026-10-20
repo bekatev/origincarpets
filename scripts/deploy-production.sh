@@ -6,7 +6,7 @@ cd "$APP_DIR"
 
 echo "==> Deploy starting (site stays up during build)"
 
-PREV_SHA="$(git rev-parse HEAD 2>/dev/null || true)"
+PREV_SHA="${PREV_SHA:-$(git rev-parse HEAD 2>/dev/null || true)}"
 git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
 if [ ! -d .git ]; then
   git init
