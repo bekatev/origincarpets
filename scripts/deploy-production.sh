@@ -24,11 +24,22 @@ if [ -n "$PREV_SHA" ] && [ "$PREV_SHA" != "$NEW_SHA" ]; then
   fi
 fi
 
-docker image prune -f >/dev/null 2>&1 || true
-docker builder prune -f --filter "until=72h" >/dev/null 2>&1 || true
+echo "==> Disk before cleanup: $(df -h / | awk 'NR==2 {print $4}') free"
+docker container prune -f >/dev/null 2>&1 || true
+if [ "$NEEDS_BUILD" -eq 1 ]; then
+  # The droplet disk is too small to keep build cache between deploys.
+  # `image prune -a` keeps the image of the running container, so the site stays up.
+  docker builder prune -af >/dev/null 2>&1 || true
+  docker image prune -af >/dev/null 2>&1 || true
+  rm -rf /root/.npm 2>/dev/null || true
+  journalctl --vacuum-size=200M >/dev/null 2>&1 || true
+else
+  docker image prune -f >/dev/null 2>&1 || true
+fi
+echo "==> Disk after cleanup: $(df -h / | awk 'NR==2 {print $4}') free"
 
 avail_kb=$(df / | awk 'NR==2 {print $4}')
-if [ "$avail_kb" -lt 1500000 ]; then
+if [ "$avail_kb" -lt 3000000 ]; then
   echo "WARNING: Low disk (${avail_kb}KB free). Build may fail; existing site is left running."
 fi
 
