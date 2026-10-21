@@ -29,6 +29,8 @@ services:
       - ./data/uploads:/app/backend/uploads
     env_file:
       - backend/.env
+      # Ad tracking runtime secrets, written by the deploy workflow (scripts/deploy-production.sh creates it if missing).
+      - .env.ads
     environment:
       NODE_ENV: production
       FRONTEND_URL: https://origincarpets.com

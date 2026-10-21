@@ -3,6 +3,8 @@ name: Deploy to production
 on:
   push:
     branches: [main]
+  # Manual run (e.g. after changing ad tracking secrets) — always rebuilds the image.
+  workflow_dispatch:
 
 concurrency:
   group: production-deploy
@@ -12,17 +14,47 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+      DROPLET_USER: ${{ secrets.DROPLET_USER }}
     steps:
-      - name: Deploy on droplet (build while site stays up)
+      - name: Prepare SSH key
         env:
-          DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
-          DROPLET_USER: ${{ secrets.DROPLET_USER }}
           DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
           printf '%s\n' "$DROPLET_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+
+      - name: Sync ad tracking IDs to droplet
+        env:
+          META_PIXEL_ID: ${{ secrets.META_PIXEL_ID }}
+          META_CAPI_ACCESS_TOKEN: ${{ secrets.META_CAPI_ACCESS_TOKEN }}
+          META_CAPI_TEST_EVENT_CODE: ${{ secrets.META_CAPI_TEST_EVENT_CODE }}
+          GOOGLE_ADS_ID: ${{ secrets.GOOGLE_ADS_ID }}
+          GOOGLE_ADS_PURCHASE_LABEL: ${{ secrets.GOOGLE_ADS_PURCHASE_LABEL }}
+          GA_MEASUREMENT_ID: ${{ secrets.GA_MEASUREMENT_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${META_PIXEL_ID}${GOOGLE_ADS_ID}${GA_MEASUREMENT_ID}" ]; then
+            echo "No ad tracking secrets set — leaving droplet env files unchanged"
+            exit 0
+          fi
+          SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          # Build-time values: docker-compose reads /opt/carp/.env for ${VAR} build args.
+          printf 'NEXT_PUBLIC_META_PIXEL_ID=%s\nNEXT_PUBLIC_GA_MEASUREMENT_ID=%s\nNEXT_PUBLIC_GOOGLE_ADS_ID=%s\nNEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL=%s\n' \
+            "$META_PIXEL_ID" "$GA_MEASUREMENT_ID" "$GOOGLE_ADS_ID" "$GOOGLE_ADS_PURCHASE_LABEL" \
+            | ssh $SSH_OPTS "${DROPLET_USER}@${DROPLET_HOST}" 'umask 077 && cat > /opt/carp/.env'
+          # Runtime values: loaded into the container via env_file (server-side Meta Conversions API).
+          printf 'NEXT_PUBLIC_META_PIXEL_ID=%s\nMETA_CAPI_ACCESS_TOKEN=%s\nMETA_CAPI_TEST_EVENT_CODE=%s\n' \
+            "$META_PIXEL_ID" "$META_CAPI_ACCESS_TOKEN" "$META_CAPI_TEST_EVENT_CODE" \
+            | ssh $SSH_OPTS "${DROPLET_USER}@${DROPLET_HOST}" 'umask 077 && cat > /opt/carp/.env.ads'
+          echo "Ad tracking env files written"
+
+      - name: Deploy on droplet (build while site stays up)
+        run: |
+          set -euo pipefail
           SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
           ssh $SSH_OPTS "${DROPLET_USER}@${DROPLET_HOST}" 'bash -s' <<'REMOTE'
           set -euo pipefail

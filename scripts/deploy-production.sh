@@ -56,6 +56,8 @@ fi
 bash scripts/deploy-migrate.sh
 
 mkdir -p "$APP_DIR/data/uploads"
+# docker-compose fails if an env_file is missing; the deploy workflow fills it when ad secrets exist.
+touch "$APP_DIR/.env.ads"
 
 if [ "$NEEDS_BUILD" -eq 1 ]; then
   echo "==> Build new image (old container still serving traffic)"
