@@ -34,7 +34,9 @@ const NON_EEA_EUROPE_ZONES = new Set([
   'Europe/Kiev',
   'Europe/Kyiv',
   'Europe/Minsk',
-  'Europe/Chisinau'
+  'Europe/Chisinau',
+  // Georgia is not EEA / UK / CH — track by default (majority of store traffic).
+  'Europe/Tbilisi'
 ]);
 
 const EXTRA_EEA_ZONES = new Set([

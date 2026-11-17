@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { captureAttribution } from '@/lib/attribution';
 import { CONSENT_EVENT, type ConsentValue } from '@/lib/consent';
@@ -12,12 +12,14 @@ import {
 } from '@/lib/tracking';
 
 /**
- * Loads Meta Pixel + GA4 + Google Ads (when env IDs are set), records ad-click attribution,
+ * Loads GA / Google Ads (when env IDs are set), records ad-click attribution,
  * and fires PageView on client navigations (App Router).
+ * Meta Pixel base code + first PageView live in <head> (MetaPixel) so Ads Manager can detect them.
  */
 export function TrackingScripts() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isFirstRoute = useRef(true);
 
   useEffect(() => {
     initTrackingScripts();
@@ -33,6 +35,12 @@ export function TrackingScripts() {
 
   useEffect(() => {
     captureAttribution();
+    if (isFirstRoute.current) {
+      // First Meta PageView already fired from <head> MetaPixel base code.
+      isFirstRoute.current = false;
+      trackPageView({ includeMeta: false });
+      return;
+    }
     trackPageView();
   }, [pathname, searchParams]);
 

@@ -18,6 +18,7 @@ import { ThemeScript } from '@/components/layout/theme-script';
 import { JsonLd } from '@/components/seo/json-ld';
 import { Analytics } from '@/components/seo/analytics';
 import { ConsentBanner } from '@/components/seo/consent-banner';
+import { MetaPixel } from '@/components/seo/meta-pixel';
 import { TrackingScripts } from '@/components/seo/tracking-scripts';
 import { CURRENCY_COOKIE, normalizeCurrency } from '@/lib/currency';
 import { LANG_COOKIE, resolveSiteLocale } from '@/lib/i18n';
@@ -123,6 +124,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <ThemeScript />
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <Analytics />
+        <MetaPixel />
       </head>
       <body suppressHydrationWarning className={`${inter.variable} ${playfair.variable} font-sans`}>
         <ThemeProvider initialTheme={theme}>

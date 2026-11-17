@@ -129,29 +129,10 @@ export function initTrackingScripts() {
     injectScript(`https://www.googletagmanager.com/gtag/js?id=${gaId || adsId}`);
   }
 
-  if (pixelId) {
-    type FbqStub = ((...args: unknown[]) => void) & {
-      callMethod?: (...args: unknown[]) => void;
-      queue: unknown[];
-      push: unknown;
-      loaded: boolean;
-      version: string;
-    };
-    if (!window.fbq) {
-      const stub = function (...args: unknown[]) {
-        if (stub.callMethod) stub.callMethod(...args);
-        else stub.queue.push(args);
-      } as FbqStub;
-      stub.queue = [];
-      stub.push = stub;
-      stub.loaded = true;
-      stub.version = '2.0';
-      window.fbq = stub;
-      window._fbq = stub;
-      injectScript('https://connect.facebook.net/en_US/fbevents.js');
-    }
+  // Base Pixel (init + first PageView) is server-rendered in <head> via MetaPixel
+  // so Ads Manager can detect it. Here we only sync consent if the stub already exists.
+  if (pixelId && typeof window.fbq === 'function') {
     window.fbq('consent', hasMarketingConsent() ? 'grant' : 'revoke');
-    window.fbq('init', pixelId);
   }
 }
 
@@ -298,8 +279,11 @@ export function trackMetaPageView() {
   window.fbq('track', 'PageView');
 }
 
-export function trackPageView() {
-  trackMetaPageView();
+/** Meta PageView on SPA navigations; GA always. First Meta PageView comes from <head>. */
+export function trackPageView(options?: { includeMeta?: boolean }) {
+  if (options?.includeMeta !== false) {
+    trackMetaPageView();
+  }
   fireGa('page_view', {
     page_location: window.location.href,
     page_path: window.location.pathname
