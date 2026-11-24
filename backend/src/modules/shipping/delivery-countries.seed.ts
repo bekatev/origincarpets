@@ -3,6 +3,8 @@ export const UPS_DELIVERY_COUNTRIES = [
   { abbr: 'GE', nameEn: 'Georgia', nameGe: 'საქართველო', gpostId: 268 },
   { abbr: 'US', nameEn: 'United States', nameGe: 'აშშ', gpostId: 840 },
   { abbr: 'CA', nameEn: 'Canada', nameGe: 'კანადა', gpostId: 124 },
+  { abbr: 'MX', nameEn: 'Mexico', nameGe: 'მექსიკა', gpostId: 484 },
+  { abbr: 'KW', nameEn: 'Kuwait', nameGe: 'ქუვეითი', gpostId: 414 },
   { abbr: 'GB', nameEn: 'United Kingdom', nameGe: 'გაერთიანებული სამეფო', gpostId: 826 },
   { abbr: 'DE', nameEn: 'Germany', nameGe: 'გერმანია', gpostId: 276 },
   { abbr: 'FR', nameEn: 'France', nameGe: 'საფრანგეთი', gpostId: 250 },
