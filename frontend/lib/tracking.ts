@@ -369,6 +369,40 @@ export type PendingPurchase = TrackingPayload & {
   stashedAt: number;
 };
 
+function readPendingPurchaseRaw(): string | null {
+  try {
+    return sessionStorage.getItem(PENDING_PURCHASE_KEY) || localStorage.getItem(PENDING_PURCHASE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writePendingPurchaseRaw(raw: string) {
+  try {
+    sessionStorage.setItem(PENDING_PURCHASE_KEY, raw);
+  } catch {
+    // ignore
+  }
+  try {
+    localStorage.setItem(PENDING_PURCHASE_KEY, raw);
+  } catch {
+    // ignore
+  }
+}
+
+function removePendingPurchaseRaw() {
+  try {
+    sessionStorage.removeItem(PENDING_PURCHASE_KEY);
+  } catch {
+    // ignore
+  }
+  try {
+    localStorage.removeItem(PENDING_PURCHASE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 /** Call right before redirecting to iPay so Purchase can fire on /checkout/result. */
 export function stashPendingPurchase(payload: TrackingPayload & { orderId: string }) {
   if (typeof window === 'undefined') return;
@@ -378,25 +412,22 @@ export function stashPendingPurchase(payload: TrackingPayload & { orderId: strin
     currency: payload.currency ?? 'USD',
     stashedAt: Date.now()
   };
-  try {
-    sessionStorage.setItem(PENDING_PURCHASE_KEY, JSON.stringify(pending));
-  } catch {
-    // ignore quota / private mode
-  }
+  writePendingPurchaseRaw(JSON.stringify(pending));
 }
 
 /** Fire Purchase once after successful payment return (backup to server CAPI). */
 export function flushPendingPurchase(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    const raw = sessionStorage.getItem(PENDING_PURCHASE_KEY);
+    const raw = readPendingPurchaseRaw();
     if (!raw) return false;
-    sessionStorage.removeItem(PENDING_PURCHASE_KEY);
     const pending = JSON.parse(raw) as PendingPurchase;
     // Ignore stale stashes (> 24h)
     if (!pending?.eventId || Date.now() - (pending.stashedAt || 0) > 86_400_000) {
+      removePendingPurchaseRaw();
       return false;
     }
+    removePendingPurchaseRaw();
     trackPurchase(pending);
     return true;
   } catch {
@@ -406,11 +437,7 @@ export function flushPendingPurchase(): boolean {
 
 export function clearPendingPurchase() {
   if (typeof window === 'undefined') return;
-  try {
-    sessionStorage.removeItem(PENDING_PURCHASE_KEY);
-  } catch {
-    // ignore
-  }
+  removePendingPurchaseRaw();
 }
 
 export function cartPayloadFromItems(

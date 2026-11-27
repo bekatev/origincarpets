@@ -44,13 +44,20 @@ fi
 echo "==> Disk after cleanup: $(df -h / | awk 'NR==2 {print $4}') free"
 
 avail_kb=$(df / | awk 'NR==2 {print $4}')
-if [ "$avail_kb" -lt 3000000 ]; then
-  echo "WARNING: Low disk (${avail_kb}KB free). Build may fail; existing site is left running."
+if [ "$avail_kb" -lt 4000000 ]; then
+  echo "WARNING: Low disk (${avail_kb}KB free) — aggressive cleanup before build"
   echo "==> Largest disk users"
   du -xsh /opt/backups "$APP_DIR/backups" "$APP_DIR/data" /var/lib/docker /var/lib/postgresql /var/log /root /tmp 2>/dev/null | sort -rh || true
   docker system df 2>/dev/null || true
-  du -xh --max-depth=1 /var/lib/docker/containers 2>/dev/null | sort -rh | head -5 || true
-  du -xh --max-depth=1 /opt/backups 2>/dev/null | sort -rh | head -20 || true
+  # Keep only the newest daily backup when disk is tight (migrate-* folders untouched).
+  ls -1d /opt/backups/????-??-?? 2>/dev/null | sort -r | tail -n +2 | while read -r dir; do
+    echo "    removing backup $dir (low disk)"
+    rm -rf "$dir"
+  done || true
+  docker builder prune -af >/dev/null 2>&1 || true
+  docker image prune -af >/dev/null 2>&1 || true
+  journalctl --vacuum-size=50M >/dev/null 2>&1 || true
+  echo "==> Disk after aggressive cleanup: $(df -h / | awk 'NR==2 {print $4}') free"
 fi
 
 bash scripts/deploy-migrate.sh

@@ -77,12 +77,18 @@ export class MetaCapiService {
     const pixelId = this.pixelId();
     const token = this.accessToken();
     if (!pixelId || !token) {
+      this.logger.warn(
+        `Meta CAPI Purchase skipped for ${input.orderNumber}: missing ${!pixelId ? 'META_PIXEL_ID' : 'META_CAPI_ACCESS_TOKEN'}`
+      );
       return;
     }
 
+    // Only skip when the shopper explicitly opted out. EEA "pending" still sends
+    // Purchase after a real paid order — otherwise Ads Manager never sees conversions
+    // (common for CH/EU checkouts that didn't click the banner).
     const consent = input.attribution?.consent;
-    if (consent === 'rejected' || consent === 'pending') {
-      this.logger.log(`Meta CAPI Purchase skipped for ${input.orderNumber}: consent ${consent}`);
+    if (consent === 'rejected') {
+      this.logger.log(`Meta CAPI Purchase skipped for ${input.orderNumber}: consent rejected`);
       return;
     }
 
